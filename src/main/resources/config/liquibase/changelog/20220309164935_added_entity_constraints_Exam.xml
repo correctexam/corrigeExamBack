@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    <!--
+        Added the constraints for entity Exam.
+    -->
+    <changeSet id="20220309164935-2" author="jhipster">
+        
+        <addForeignKeyConstraint baseColumnNames="template_id"
+                                 baseTableName="exam"
+                                 constraintName="fk_exam_template_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="template"/>
+
+        <addForeignKeyConstraint baseColumnNames="idzone_id"
+                                 baseTableName="exam"
+                                 constraintName="fk_exam_idzone_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="zone"/>
+
+        <addForeignKeyConstraint baseColumnNames="namezone_id"
+                                 baseTableName="exam"
+                                 constraintName="fk_exam_namezone_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="zone"/>
+
+        <addForeignKeyConstraint baseColumnNames="firstnamezone_id"
+                                 baseTableName="exam"
+                                 constraintName="fk_exam_firstnamezone_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="zone"/>
+
+        <addForeignKeyConstraint baseColumnNames="notezone_id"
+                                 baseTableName="exam"
+                                 constraintName="fk_exam_notezone_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="zone"/>
+
+        <addForeignKeyConstraint baseColumnNames="scanfile_id"
+                                 baseTableName="exam"
+                                 constraintName="fk_exam_scanfile_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="scan"/>
+
+        <addForeignKeyConstraint baseColumnNames="course_id"
+                                 baseTableName="exam"
+                                 constraintName="fk_exam_course_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="course"/>
+
+    </changeSet>
+</databaseChangeLog>

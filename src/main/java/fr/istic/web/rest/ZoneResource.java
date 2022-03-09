@@ -1,0 +1,131 @@
+package fr.istic.web.rest;
+
+import static javax.ws.rs.core.UriBuilder.fromPath;
+
+import fr.istic.service.ZoneService;
+import fr.istic.web.rest.errors.BadRequestAlertException;
+import fr.istic.web.util.HeaderUtil;
+import fr.istic.web.util.ResponseUtil;
+import fr.istic.service.dto.ZoneDTO;
+
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import fr.istic.service.Paged;
+import fr.istic.web.rest.vm.PageRequestVM;
+import fr.istic.web.rest.vm.SortRequestVM;
+import fr.istic.web.util.PaginationUtil;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * REST controller for managing {@link fr.istic.domain.Zone}.
+ */
+@Path("/api/zones")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+@ApplicationScoped
+public class ZoneResource {
+
+    private final Logger log = LoggerFactory.getLogger(ZoneResource.class);
+
+    private static final String ENTITY_NAME = "zone";
+
+    @ConfigProperty(name = "application.name")
+    String applicationName;
+
+
+    @Inject
+    ZoneService zoneService;
+    /**
+     * {@code POST  /zones} : Create a new zone.
+     *
+     * @param zoneDTO the zoneDTO to create.
+     * @return the {@link Response} with status {@code 201 (Created)} and with body the new zoneDTO, or with status {@code 400 (Bad Request)} if the zone has already an ID.
+     */
+    @POST
+    public Response createZone(ZoneDTO zoneDTO, @Context UriInfo uriInfo) {
+        log.debug("REST request to save Zone : {}", zoneDTO);
+        if (zoneDTO.id != null) {
+            throw new BadRequestAlertException("A new zone cannot already have an ID", ENTITY_NAME, "idexists");
+        }
+        var result = zoneService.persistOrUpdate(zoneDTO);
+        var response = Response.created(fromPath(uriInfo.getPath()).path(result.id.toString()).build()).entity(result);
+        HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.id.toString()).forEach(response::header);
+        return response.build();
+    }
+
+    /**
+     * {@code PUT  /zones} : Updates an existing zone.
+     *
+     * @param zoneDTO the zoneDTO to update.
+     * @return the {@link Response} with status {@code 200 (OK)} and with body the updated zoneDTO,
+     * or with status {@code 400 (Bad Request)} if the zoneDTO is not valid,
+     * or with status {@code 500 (Internal Server Error)} if the zoneDTO couldn't be updated.
+     */
+    @PUT
+    public Response updateZone(ZoneDTO zoneDTO) {
+        log.debug("REST request to update Zone : {}", zoneDTO);
+        if (zoneDTO.id == null) {
+            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
+        }
+        var result = zoneService.persistOrUpdate(zoneDTO);
+        var response = Response.ok().entity(result);
+        HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, zoneDTO.id.toString()).forEach(response::header);
+        return response.build();
+    }
+
+    /**
+     * {@code DELETE  /zones/:id} : delete the "id" zone.
+     *
+     * @param id the id of the zoneDTO to delete.
+     * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
+     */
+    @DELETE
+    @Path("/{id}")
+    public Response deleteZone(@PathParam("id") Long id) {
+        log.debug("REST request to delete Zone : {}", id);
+        zoneService.delete(id);
+        var response = Response.noContent();
+        HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()).forEach(response::header);
+        return response.build();
+    }
+
+    /**
+     * {@code GET  /zones} : get all the zones.
+     *
+     * @param pageRequest the pagination information.
+     * @return the {@link Response} with status {@code 200 (OK)} and the list of zones in body.
+     */
+    @GET
+    public Response getAllZones(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo) {
+        log.debug("REST request to get a page of Zones");
+        var page = pageRequest.toPage();
+        var sort = sortRequest.toSort();
+        Paged<ZoneDTO> result = zoneService.findAll(page);
+        var response = Response.ok().entity(result.content);
+        response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
+        return response.build();
+    }
+
+
+    /**
+     * {@code GET  /zones/:id} : get the "id" zone.
+     *
+     * @param id the id of the zoneDTO to retrieve.
+     * @return the {@link Response} with status {@code 200 (OK)} and with body the zoneDTO, or with status {@code 404 (Not Found)}.
+     */
+    @GET
+    @Path("/{id}")
+
+    public Response getZone(@PathParam("id") Long id) {
+        log.debug("REST request to get Zone : {}", id);
+        Optional<ZoneDTO> zoneDTO = zoneService.findOne(id);
+        return ResponseUtil.wrapOrNotFound(zoneDTO);
+    }
+}

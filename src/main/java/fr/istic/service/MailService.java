@@ -3,7 +3,7 @@ package fr.istic.service;
 import fr.istic.config.JHipsterProperties;
 import fr.istic.domain.User;
 import io.quarkus.mailer.MailTemplate;
-import io.quarkus.qute.api.ResourcePath;
+import io.quarkus.qute.Location;
 import java.util.concurrent.CompletionStage;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -23,23 +23,23 @@ public class MailService {
 
     final JHipsterProperties jHipsterProperties;
 
-    final MailTemplate activationEmail;
 
-    final MailTemplate creationEmail;
+    @Location("mail/activationEmail")
+    MailTemplate activationEmail;
 
-    final MailTemplate passwordResetEmail;
+    @Location("mail/creationEmail")
+    MailTemplate creationEmail;
+
+    @Location("mail/passwordResetEmail")
+     MailTemplate passwordResetEmail;
 
     @Inject
     public MailService(
-        JHipsterProperties jHipsterProperties,
-        @ResourcePath("mail/activationEmail") MailTemplate activationEmail,
-        @ResourcePath("mail/creationEmail") MailTemplate creationEmail,
-        @ResourcePath("mail/passwordResetEmail") MailTemplate passwordResetEmail
+        JHipsterProperties jHipsterProperties
+
     ) {
         this.jHipsterProperties = jHipsterProperties;
-        this.activationEmail = activationEmail;
-        this.creationEmail = creationEmail;
-        this.passwordResetEmail = passwordResetEmail;
+
     }
 
     public CompletionStage<Void> sendEmailFromTemplate(User user, MailTemplate template, String subject) {

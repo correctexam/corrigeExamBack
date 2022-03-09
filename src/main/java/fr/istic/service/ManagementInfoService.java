@@ -24,6 +24,8 @@ public class ManagementInfoService {
         var info = new ManagementInfoDTO();
         if(JHipsterInfo.isEnable()){
             info.activeProfiles.add("swagger");
+            info.activeProfiles.add("api-docs");
+
         }
         info.activeProfiles.add(ProfileManager.getActiveProfile());
         info.displayRibbonOnProfiles = ProfileManager.getActiveProfile();

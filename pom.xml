@@ -23,7 +23,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
         <!-- Dependency properties -->
-        <quarkus.platform.version>1.12.1.Final</quarkus.platform.version>
+        <quarkus.platform.version>2.7.3.Final</quarkus.platform.version>
         <mapstruct.version>1.3.1.Final</mapstruct.version>
         <archunit-junit5.version>0.12.0</archunit-junit5.version>
 
@@ -43,7 +43,7 @@
         <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
         <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
         <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
-        <quarkus-plugin.version>1.12.1.Final</quarkus-plugin.version>
+        <quarkus-plugin.version>2.7.3.Final</quarkus-plugin.version>
 
         <!-- Plugin properties -->
         <checkstyle.version>8.27</checkstyle.version>
@@ -78,6 +78,10 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy</artifactId>
         </dependency>
+                <dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-resteasy-qute</artifactId>
+</dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy-jsonb</artifactId>
@@ -98,6 +102,10 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-jdbc-mysql</artifactId>
         </dependency>
+                             <dependency>
+                    <groupId>io.quarkus</groupId>
+                    <artifactId>quarkus-jdbc-h2</artifactId>
+                </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-test-h2</artifactId>
@@ -484,7 +492,7 @@
                 <!-- default Quarkus profiles -->
                 <quarkus.profile>dev</quarkus.profile>
             </properties>
-            
+
             <dependencies>
                 <dependency>
                     <groupId>io.quarkus</groupId>
