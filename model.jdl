@@ -1,0 +1,109 @@
+entity Course {
+	name String required
+}
+
+entity CourseGroup {
+	groupName String required
+}
+
+entity Student {
+	name String required
+	firstname String
+	ine String required
+	caslogin String
+	mail String
+}
+
+entity Exam {
+	name String required
+}
+
+entity Template {
+	name String required
+	content Blob
+}
+
+entity Question {
+	numero Integer required
+    point Integer
+}
+
+entity ExamSheet {
+	name String required
+    pagemin Integer
+    pagemax Integer
+}
+
+entity Scan {
+	name String required
+	content Blob
+}
+
+entity FinalResult {
+	note Integer
+}
+
+
+entity StudentResponse {
+	note Integer
+}
+
+entity Comments {
+	jsonData String
+}
+
+
+entity Zone {
+	xInit Integer
+	yInit Integer
+	xFinal Integer
+	yFinal Integer
+}
+
+
+relationship ManyToOne {
+	Course{prof(login) required} to User
+    FinalResult{student(name)} to Student
+    FinalResult{exam(name)} to Exam
+    StudentResponse{question(numero)} to Question
+    StudentResponse{student(name)} to Student
+
+}
+
+relationship OneToMany{
+    Course{exam(name)} to Exam{course(name)}
+	Course{groups(groupName)} to CourseGroup{course(name)}
+	Exam{question(numero)} to Question{exam(name)}
+//	Exam{scan(name)} to Scan{exam(name)}
+    StudentResponse{comments} to Comments{studentResponse}
+    Scan{sheets} to ExamSheet{scan(name)}
+
+}
+
+relationship ManyToMany {
+	CourseGroup{students(name)} to Student{groups(groupName)}
+    Student{examSheets(name)} to ExamSheet{students(name)}
+
+}
+
+relationship OneToOne {
+	Exam{template(name)} to Template{exam(name)}
+	Question{zone} to Zone
+    Exam{idzone} to Zone
+    Exam{namezone} to Zone
+    Exam{firstnamezone} to Zone
+    Exam{notezone} to Zone
+    Exam{scanfile(name)} to Scan
+}
+
+
+// Set pagination options
+paginate * with pagination
+
+// Use Data Transfer Objects (DTO)
+ dto * with mapstruct
+
+// Set service options to all except few
+service all with serviceClass
+// Set an angular suffix
+// angularSuffix * with mySuffix
