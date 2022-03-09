@@ -1,0 +1,46 @@
+{
+  "generator-jhipster": {
+    "promptValues": {
+      "packageName": "fr.istic",
+      "nativeLanguage": "fr"
+    },
+    "jhipsterVersion": "6.10.5",
+    "applicationType": "monolith",
+    "baseName": "gradeScopeIstic",
+    "packageName": "fr.istic",
+    "packageFolder": "fr/istic",
+    "serverPort": "8080",
+    "authenticationType": "jwt",
+    "cacheProvider": "caffeine",
+    "enableHibernateCache": true,
+    "websocket": false,
+    "databaseType": "sql",
+    "devDatabaseType": "h2Disk",
+    "prodDatabaseType": "mysql",
+    "messageBroker": false,
+    "buildTool": "maven",
+    "jwtSecretKey": "MTljNTFhZTE4YjI0ZDViODg0ODdhZTM1ZjY4Nzg0ZTc3NjAyNzExYzYxNWE4ZDI5Y2Q3YWUxMjdmMGEwM2JlZjg0OTI0OWI5OWY0YTZlYTcwYTRhM2FlZWE2MGM2NWNlZDA0ZWU1Njc0YjA0MzM1ZDYyNDUyY2JhNDUxNzViNTY=",
+    "embeddableLaunchScript": false,
+    "creationTimestamp": 1646843861472,
+    "jhiPrefix": "jhi",
+    "entitySuffix": "",
+    "dtoSuffix": "DTO",
+    "otherModules": [
+      {
+        "name": "generator-jhipster-quarkus",
+        "version": "1.1.1"
+      }
+    ],
+    "enableTranslation": true,
+    "clientPackageManager": "npm",
+    "nativeLanguage": "fr",
+    "languages": ["fr", "en"],
+    "blueprints": [
+      {
+        "name": "generator-jhipster-quarkus",
+        "version": "1.1.1"
+      }
+    ],
+    "skipClient": true
+  }
+}

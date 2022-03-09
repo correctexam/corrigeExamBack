@@ -1,0 +1,7 @@
+***REMOVED***
+***REMOVED***
+  gradescopeistic-sonar:
+    image: sonarqube:8.3.1-community
+***REMOVED***
+      - 9001:9000
+      - 9092:9092
