@@ -41,6 +41,8 @@
         "version": "1.1.1"
       }
     ],
-    "skipClient": true
+    "skipClient": true,
+    "searchEngine": false,
+    "serviceDiscoveryType": false
   }
 }
