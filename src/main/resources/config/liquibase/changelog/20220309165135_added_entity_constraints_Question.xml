@@ -14,6 +14,12 @@
                                  referencedColumnNames="id"
                                  referencedTableName="zone"/>
 
+        <addForeignKeyConstraint baseColumnNames="type_id"
+                                 baseTableName="question"
+                                 constraintName="fk_question_type_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="question_type"/>
+
         <addForeignKeyConstraint baseColumnNames="exam_id"
                                  baseTableName="question"
                                  constraintName="fk_question_exam_id"

@@ -20,6 +20,8 @@ public class QuestionDTO implements Serializable {
     public Integer point;
 
     public Long zoneId;
+    public Long typeId;
+    public String typeAlgoName;
     public Long examId;
     public String examName;
 
@@ -47,6 +49,8 @@ public class QuestionDTO implements Serializable {
             ", numero=" + numero +
             ", point=" + point +
             ", zoneId=" + zoneId +
+            ", typeId=" + typeId +
+            ", typeAlgoName='" + typeAlgoName + "'" +
             ", examId=" + examId +
             ", examName='" + examName + "'" +
             "}";

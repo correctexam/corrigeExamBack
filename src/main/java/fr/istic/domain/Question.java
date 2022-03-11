@@ -38,6 +38,11 @@ public class Question extends PanacheEntityBase implements Serializable {
     public Zone zone;
 
     @ManyToOne
+    @JoinColumn(name = "type_id")
+    @JsonbTransient
+    public QuestionType type;
+
+    @ManyToOne
     @JoinColumn(name = "exam_id")
     @JsonbTransient
     public Exam exam;
@@ -86,6 +91,7 @@ public class Question extends PanacheEntityBase implements Serializable {
             entity.numero = question.numero;
             entity.point = question.point;
             entity.zone = question.zone;
+            entity.type = question.type;
             entity.exam = question.exam;
         }
         return entity;

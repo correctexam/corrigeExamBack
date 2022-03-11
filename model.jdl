@@ -28,6 +28,13 @@ entity Question {
     point Integer
 }
 
+entity QuestionType {
+	algoName String required
+    endpoint String //rest endppoint to send the Question scan (back execution)
+    jsFunction String //js function to send the Question scan (front execution)
+}
+
+
 entity ExamSheet {
 	name String required
     pagemin Integer
@@ -67,6 +74,7 @@ relationship ManyToOne {
     FinalResult{exam(name)} to Exam
     StudentResponse{question(numero)} to Question
     StudentResponse{student(name)} to Student
+    Question{type(algoName)} to QuestionType
 
 }
 
