@@ -32,31 +32,31 @@ public class Exam extends PanacheEntityBase implements Serializable {
     @Column(name = "name", nullable = false)
     public String name;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(unique = true)
     public Template template;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(unique = true)
     public Zone idzone;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(unique = true)
     public Zone namezone;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(unique = true)
     public Zone firstnamezone;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(unique = true)
     public Zone notezone;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(unique = true)
     public Scan scanfile;
 
-    @OneToMany(mappedBy = "exam")
+    @OneToMany(mappedBy = "exam", cascade = CascadeType.REMOVE)
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     public Set<Question> questions = new HashSet<>();
 
@@ -128,6 +128,10 @@ public class Exam extends PanacheEntityBase implements Serializable {
         } else {
             return update(exam);
         }
+    }
+
+    public static PanacheQuery<Exam> findExambyCourseId( long courseId) {
+        return find("select exam from Exam exam where exam.course.id =?1", courseId);
     }
 
 

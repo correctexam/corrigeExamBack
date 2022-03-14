@@ -54,7 +54,7 @@ public class ExamService {
     public Optional<ExamDTO> findOne(Long id) {
         log.debug("Request to get Exam : {}", id);
         return Exam.findByIdOptional(id)
-            .map(exam -> examMapper.toDto((Exam) exam)); 
+            .map(exam -> examMapper.toDto((Exam) exam));
     }
 
     /**
@@ -65,6 +65,11 @@ public class ExamService {
     public Paged<ExamDTO> findAll(Page page) {
         log.debug("Request to get all Exams");
         return new Paged<>(Exam.findAll().page(page))
+            .map(exam -> examMapper.toDto((Exam) exam));
+    }
+    public Paged<ExamDTO> findExambyCourseId(Page page, long courseId) {
+        log.debug("Request to get all Exams");
+        return new Paged<>(Exam.findExambyCourseId(courseId).page(page))
             .map(exam -> examMapper.toDto((Exam) exam));
     }
 
