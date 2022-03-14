@@ -108,7 +108,15 @@ public class ExamResource {
         log.debug("REST request to get a page of Exams");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
-        Paged<ExamDTO> result = examService.findAll(page);
+        Paged<ExamDTO> result =null;
+        MultivaluedMap param =  uriInfo.getQueryParameters();
+        if (param.containsKey("courseId")){
+            List id = (List) param.get("courseId");
+            result =examService.findExambyCourseId(page, Long.parseLong("" + id.get(0)));
+        }
+        else {
+            result = examService.findAll(page);
+        }
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
         return response.build();

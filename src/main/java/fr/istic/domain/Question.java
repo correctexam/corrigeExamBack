@@ -33,7 +33,7 @@ public class Question extends PanacheEntityBase implements Serializable {
     @Column(name = "point")
     public Integer point;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(unique = true)
     public Zone zone;
 

@@ -23,7 +23,6 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -115,7 +114,9 @@ public class CourseResource {
     @Path("/{id}")
     public Response deleteCourse(@PathParam("id") Long id) {
         log.debug("REST request to delete Course : {}", id);
+
         courseService.delete(id);
+
         var response = Response.noContent();
         HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()).forEach(response::header);
         return response.build();
@@ -145,7 +146,7 @@ public class CourseResource {
     Paged<CourseDTO> result = null;
         if (user.get().authorities.size() == 1 && user.get().authorities.stream().anyMatch(e1-> e1.equals(new Authority("ROLE_USER")))){
             result = courseService.findAll4User(page,user.get());
-            System.err.println(result);
+
         } else {
 
         result = courseService.findAll(page);
