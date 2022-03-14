@@ -4,12 +4,14 @@ import static javax.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.domain.Course;
 import fr.istic.domain.CourseGroup;
+import fr.istic.domain.Student;
 import fr.istic.domain.User;
 import fr.istic.service.CommentsService;
 import fr.istic.service.CourseGroupService;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
 import fr.istic.web.util.ResponseUtil;
+import io.quarkus.cache.CacheInvalidateAll;
 import fr.istic.service.dto.CommentsDTO;
 import fr.istic.service.dto.CourseGroupDTO;
 import fr.istic.service.dto.StudentDTO;
@@ -26,9 +28,13 @@ import fr.istic.web.util.PaginationUtil;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
+import com.fasterxml.jackson.core.format.InputAccessor.Std;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +72,7 @@ public class ExtendedAPI {
 
     @POST
     @Path("createstudentmasse")
+    @Transactional
     public Response createAllStudent(StudentMassDTO dto, @Context SecurityContext ctx){
         var userLogin = Optional
         .ofNullable(ctx.getUserPrincipal().getName());
@@ -100,5 +107,64 @@ public class ExtendedAPI {
         return Response.ok().build();
 
     }
+
+    @GET
+    @Path("getstudentcours/{courseid}")
+    @Transactional
+    public Response getAllStudent4Course(@PathParam("courseid") long courseid , @Context SecurityContext ctx){
+        var userLogin = Optional
+        .ofNullable(ctx.getUserPrincipal().getName());
+    if (!userLogin.isPresent()){
+        throw new AccountResourceException("Current user login not found");
+    }
+    var user = User.findOneByLogin(userLogin.get());
+    if (!user.isPresent()) {
+        throw new AccountResourceException("User could not be found");
+    }
+
+        Course c = Course.findById(courseid);
+        List<fr.istic.service.customdto.StudentDTO> students = new ArrayList<>();
+        c.groups.forEach(g-> {
+            CourseGroup.findOneWithEagerRelationships(g.id).get().students.forEach(s->{
+                fr.istic.service.customdto.StudentDTO sdto = new fr.istic.service.customdto.StudentDTO();
+                sdto.setIne(s.ine);
+                sdto.setNom(s.name);
+                sdto.setPrenom(s.firstname);
+                sdto.setMail(s.mail);
+                sdto.setGroupe(g.groupName);
+                students.add(sdto);
+            });
+        });
+
+        return Response.ok().entity(students).build();
+    }
+
+
+    @DELETE
+    @Path("deletegroupstudents/{courseid}")
+    @Transactional
+    public Response deleteAllStudent4Course(@PathParam("courseid") long courseid , @Context SecurityContext ctx){
+        var userLogin = Optional
+        .ofNullable(ctx.getUserPrincipal().getName());
+    if (!userLogin.isPresent()){
+        throw new AccountResourceException("Current user login not found");
+    }
+    var user = User.findOneByLogin(userLogin.get());
+    if (!user.isPresent()) {
+        throw new AccountResourceException("User could not be found");
+    }
+        Course c = Course.findById(courseid);
+        c.groups.forEach(g-> {
+            g.students.forEach(st -> {
+                st.groups.remove(g);
+                Student.update(st);
+            });
+            CourseGroup.deleteById(g.id);
+        });
+        c.groups.clear();
+        Course.update(c);
+        return Response.ok().build();
+    }
+
 
 }
