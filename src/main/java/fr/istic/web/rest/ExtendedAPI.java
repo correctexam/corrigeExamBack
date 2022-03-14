@@ -50,12 +50,11 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class ExtendedAPI {
 
+    @Inject
+    CourseGroupService courseGroupService;
 
     @Inject
-    CourseGroupService  courseGroupService;
-
-    @Inject
-    StudentService  studentService;
+    StudentService studentService;
 
     private static class AccountResourceException extends RuntimeException {
 
@@ -63,29 +62,28 @@ public class ExtendedAPI {
             super(message);
         }
     }
-    private final Logger log = LoggerFactory.getLogger(ExtendedAPI.class);
 
+    private final Logger log = LoggerFactory.getLogger(ExtendedAPI.class);
 
     @ConfigProperty(name = "application.name")
     String applicationName;
 
-
     @POST
     @Path("createstudentmasse")
     @Transactional
-    public Response createAllStudent(StudentMassDTO dto, @Context SecurityContext ctx){
+    public Response createAllStudent(StudentMassDTO dto, @Context SecurityContext ctx) {
         var userLogin = Optional
-        .ofNullable(ctx.getUserPrincipal().getName());
-    if (!userLogin.isPresent()){
-        throw new AccountResourceException("Current user login not found");
-    }
-    var user = User.findOneByLogin(userLogin.get());
-    if (!user.isPresent()) {
-        throw new AccountResourceException("User could not be found");
-    }
+                .ofNullable(ctx.getUserPrincipal().getName());
+        if (!userLogin.isPresent()) {
+            throw new AccountResourceException("Current user login not found");
+        }
+        var user = User.findOneByLogin(userLogin.get());
+        if (!user.isPresent()) {
+            throw new AccountResourceException("User could not be found");
+        }
         Course c = Course.findById(dto.getCourse());
         List<String> groupes = dto.getStudents().stream().map(e -> e.getGroupe()).distinct()
-        .collect(Collectors.toList());
+                .collect(Collectors.toList());
         Map<String, CourseGroupDTO> groupesdto = new HashMap<>();
         groupes.forEach(g -> {
             CourseGroupDTO g1 = new CourseGroupDTO();
@@ -94,12 +92,12 @@ public class ExtendedAPI {
             groupesdto.put(g, g1);
         });
         dto.getStudents().forEach(s -> {
-           StudentDTO sdto  = new StudentDTO();
+            StudentDTO sdto = new StudentDTO();
             sdto.ine = s.getIne();
             sdto.name = s.getNom();
             sdto.firstname = s.getPrenom();
             sdto.mail = s.getMail();
-            StudentDTO sdto1 =this.studentService.persistOrUpdate(sdto);
+            StudentDTO sdto1 = this.studentService.persistOrUpdate(sdto);
             groupesdto.get(s.getGroupe()).students.add(sdto1);
         });
 
@@ -111,50 +109,51 @@ public class ExtendedAPI {
     @GET
     @Path("getstudentcours/{courseid}")
     @Transactional
-    public Response getAllStudent4Course(@PathParam("courseid") long courseid , @Context SecurityContext ctx){
+    public Response getAllStudent4Course(@PathParam("courseid") long courseid, @Context SecurityContext ctx) {
         var userLogin = Optional
-        .ofNullable(ctx.getUserPrincipal().getName());
-    if (!userLogin.isPresent()){
-        throw new AccountResourceException("Current user login not found");
-    }
-    var user = User.findOneByLogin(userLogin.get());
-    if (!user.isPresent()) {
-        throw new AccountResourceException("User could not be found");
-    }
+                .ofNullable(ctx.getUserPrincipal().getName());
+        if (!userLogin.isPresent()) {
+            throw new AccountResourceException("Current user login not found");
+        }
+        var user = User.findOneByLogin(userLogin.get());
+        if (!user.isPresent()) {
+            throw new AccountResourceException("User could not be found");
+        }
 
         Course c = Course.findById(courseid);
         List<fr.istic.service.customdto.StudentDTO> students = new ArrayList<>();
-        c.groups.forEach(g-> {
-            CourseGroup.findOneWithEagerRelationships(g.id).get().students.forEach(s->{
-                fr.istic.service.customdto.StudentDTO sdto = new fr.istic.service.customdto.StudentDTO();
-                sdto.setIne(s.ine);
-                sdto.setNom(s.name);
-                sdto.setPrenom(s.firstname);
-                sdto.setMail(s.mail);
-                sdto.setGroupe(g.groupName);
-                students.add(sdto);
+        if (c != null) {
+            c.groups.forEach(g -> {
+                CourseGroup.findOneWithEagerRelationships(g.id).get().students.forEach(s -> {
+                    fr.istic.service.customdto.StudentDTO sdto = new fr.istic.service.customdto.StudentDTO();
+                    sdto.setIne(s.ine);
+                    sdto.setNom(s.name);
+                    sdto.setPrenom(s.firstname);
+                    sdto.setMail(s.mail);
+                    sdto.setGroupe(g.groupName);
+                    students.add(sdto);
+                });
             });
-        });
 
+        }
         return Response.ok().entity(students).build();
     }
-
 
     @DELETE
     @Path("deletegroupstudents/{courseid}")
     @Transactional
-    public Response deleteAllStudent4Course(@PathParam("courseid") long courseid , @Context SecurityContext ctx){
+    public Response deleteAllStudent4Course(@PathParam("courseid") long courseid, @Context SecurityContext ctx) {
         var userLogin = Optional
-        .ofNullable(ctx.getUserPrincipal().getName());
-    if (!userLogin.isPresent()){
-        throw new AccountResourceException("Current user login not found");
-    }
-    var user = User.findOneByLogin(userLogin.get());
-    if (!user.isPresent()) {
-        throw new AccountResourceException("User could not be found");
-    }
+                .ofNullable(ctx.getUserPrincipal().getName());
+        if (!userLogin.isPresent()) {
+            throw new AccountResourceException("Current user login not found");
+        }
+        var user = User.findOneByLogin(userLogin.get());
+        if (!user.isPresent()) {
+            throw new AccountResourceException("User could not be found");
+        }
         Course c = Course.findById(courseid);
-        c.groups.forEach(g-> {
+        c.groups.forEach(g -> {
             g.students.forEach(st -> {
                 st.groups.remove(g);
                 Student.update(st);
@@ -165,6 +164,5 @@ public class ExtendedAPI {
         Course.update(c);
         return Response.ok().build();
     }
-
 
 }
