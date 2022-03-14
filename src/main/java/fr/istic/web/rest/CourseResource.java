@@ -2,6 +2,7 @@ package fr.istic.web.rest;
 
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
+import fr.istic.domain.User;
 import fr.istic.service.CourseService;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
@@ -33,6 +34,14 @@ import java.util.Optional;
 @ApplicationScoped
 public class CourseResource {
 
+
+
+    private static class AccountResourceException extends RuntimeException {
+
+        private AccountResourceException(String message) {
+            super(message);
+        }
+    }
     private final Logger log = LoggerFactory.getLogger(CourseResource.class);
 
     private static final String ENTITY_NAME = "course";
@@ -50,11 +59,25 @@ public class CourseResource {
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new courseDTO, or with status {@code 400 (Bad Request)} if the course has already an ID.
      */
     @POST
-    public Response createCourse(@Valid CourseDTO courseDTO, @Context UriInfo uriInfo) {
+    public Response createCourse(@Valid CourseDTO courseDTO, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to save Course : {}", courseDTO);
         if (courseDTO.id != null) {
             throw new BadRequestAlertException("A new course cannot already have an ID", ENTITY_NAME, "idexists");
         }
+
+        var userLogin = Optional
+            .ofNullable(ctx.getUserPrincipal().getName());
+        if (!userLogin.isPresent()){
+            throw new AccountResourceException("Current user login not found");
+        }
+        var user = User.findOneByLogin(userLogin.get());
+        if (!user.isPresent()) {
+            throw new AccountResourceException("User could not be found");
+        }
+        if (courseDTO.profId == null && !userLogin.equals("system")){
+            courseDTO.profId =user.get().id;
+        }
+
         var result = courseService.persistOrUpdate(courseDTO);
         var response = Response.created(fromPath(uriInfo.getPath()).path(result.id.toString()).build()).entity(result);
         HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.id.toString()).forEach(response::header);
