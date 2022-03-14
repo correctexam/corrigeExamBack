@@ -106,8 +106,8 @@ public class Course extends PanacheEntityBase implements Serializable {
         }
     }
 
-    public static PanacheQuery<Course> findByProfIsCurrentUser() {
-        return find("select course from Course course where course.prof.login = ?#{principal.username}");
+    public static PanacheQuery<Course> findByProfIsCurrentUser( String login) {
+        return find("select course from Course course where course.prof.login =?1", login);
     }
 
 }
