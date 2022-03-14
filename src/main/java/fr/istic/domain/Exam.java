@@ -57,7 +57,7 @@ public class Exam extends PanacheEntityBase implements Serializable {
     public Scan scanfile;
 
     @OneToMany(mappedBy = "exam", cascade = CascadeType.REMOVE)
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    //@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     public Set<Question> questions = new HashSet<>();
 
     @ManyToOne
