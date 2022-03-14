@@ -17,6 +17,10 @@ public class JsonbConfiguration implements JsonbConfigCustomizer {
     public void customize(JsonbConfig config) {
         config
         .withDateFormat(Constants.DATE_TIME_FORMAT, Locale.getDefault());
+        config.withSerializers(new FooSerializer());
+        config.withDeserializers(new FooDeserializer());
+
+        //config.withSerializers(new FooSerializer());
     }
 
 }

@@ -2,6 +2,7 @@ package fr.istic.web.rest;
 
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
+import fr.istic.domain.Authority;
 import fr.istic.domain.User;
 import fr.istic.service.CourseService;
 import fr.istic.web.rest.errors.BadRequestAlertException;
@@ -127,11 +128,29 @@ public class CourseResource {
      * @return the {@link Response} with status {@code 200 (OK)} and the list of courses in body.
      */
     @GET
-    public Response getAllCourses(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo) {
+    public Response getAllCourses(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo , @Context SecurityContext ctx) {
         log.debug("REST request to get a page of Courses");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
-        Paged<CourseDTO> result = courseService.findAll(page);
+
+        var userLogin = Optional
+        .ofNullable(ctx.getUserPrincipal().getName());
+    if (!userLogin.isPresent()){
+        throw new AccountResourceException("Current user login not found");
+    }
+    var user = User.findOneByLogin(userLogin.get());
+    if (!user.isPresent()) {
+        throw new AccountResourceException("User could not be found");
+    }
+    Paged<CourseDTO> result = null;
+        if (user.get().authorities.size() == 1 && user.get().authorities.stream().anyMatch(e1-> e1.equals(new Authority("ROLE_USER")))){
+            result = courseService.findAll4User(page,user.get());
+            System.err.println(result);
+        } else {
+
+        result = courseService.findAll(page);
+        }
+
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
         return response.build();

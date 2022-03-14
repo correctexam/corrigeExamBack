@@ -2,6 +2,7 @@ package fr.istic.service;
 
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.Course;
+import fr.istic.domain.User;
 import fr.istic.service.dto.CourseDTO;
 import fr.istic.service.mapper.CourseMapper;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
@@ -54,7 +55,7 @@ public class CourseService {
     public Optional<CourseDTO> findOne(Long id) {
         log.debug("Request to get Course : {}", id);
         return Course.findByIdOptional(id)
-            .map(course -> courseMapper.toDto((Course) course)); 
+            .map(course -> courseMapper.toDto((Course) course));
     }
 
     /**
@@ -67,6 +68,18 @@ public class CourseService {
         return new Paged<>(Course.findAll().page(page))
             .map(course -> courseMapper.toDto((Course) course));
     }
+
+        /**
+     * Get all the courses.
+     * @param page the pagination information.
+     * @return the list of entities.
+     */
+    public Paged<CourseDTO> findAll4User(Page page, User u) {
+        log.debug("Request to get all Courses");
+        return new Paged<>(Course.findByProfIsCurrentUser(u.login).page(page))
+            .map(course -> courseMapper.toDto((Course) course));
+    }
+
 
 
 
