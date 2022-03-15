@@ -1,6 +1,9 @@
 # gradeScopeIstic
 
-This application was generated using JHipster 6.10.5 and JHipster Quarkus 1.1.1, you can find documentation and help at [https://www.jhipster.tech/documentation-archive/v6.10.5](https://www.jhipster.tech/documentation-archive/v6.10.5).
+This application was generated using JHipster 6.10.5 and JHipster Quarkus 1.1.1 (manually upgraded to quarkus 2.7.3.Final), you can find documentation and help at [https://www.jhipster.tech/documentation-archive/v6.10.5](https://www.jhipster.tech/documentation-archive/v6.10.5).
+
+Note on the project could be found [here](https://hackmd.diverse-team.fr/s/HkFi-Um-c)
+
 
 ## Development
 
