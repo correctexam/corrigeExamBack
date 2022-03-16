@@ -109,5 +109,12 @@ public class Question extends PanacheEntityBase implements Serializable {
         }
     }
 
+    public static PanacheQuery<Question> findQuestionbyExamId( long examId) {
+        return find("select question from Question question where question.exam.id =?1", examId);
+    }
+    public static PanacheQuery<Question> findQuestionbyZoneId( long zoneId) {
+        return find("select question from Question question where question.zone.id =?1", zoneId);
+    }
+
 
 }

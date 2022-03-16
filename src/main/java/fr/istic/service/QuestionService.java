@@ -54,7 +54,7 @@ public class QuestionService {
     public Optional<QuestionDTO> findOne(Long id) {
         log.debug("Request to get Question : {}", id);
         return Question.findByIdOptional(id)
-            .map(question -> questionMapper.toDto((Question) question)); 
+            .map(question -> questionMapper.toDto((Question) question));
     }
 
     /**
@@ -65,6 +65,12 @@ public class QuestionService {
     public Paged<QuestionDTO> findAll(Page page) {
         log.debug("Request to get all Questions");
         return new Paged<>(Question.findAll().page(page))
+            .map(question -> questionMapper.toDto((Question) question));
+    }
+
+    public Paged<QuestionDTO> findQuestionbyExamId(Page page, long examId) {
+        log.debug("Request to get Questions by ExamID");
+        return new Paged<>(Question.findQuestionbyExamId(examId).page(page))
             .map(question -> questionMapper.toDto((Question) question));
     }
 

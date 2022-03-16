@@ -61,10 +61,11 @@ entity Comments {
 
 
 entity Zone {
+    page Integer
 	xInit Integer
 	yInit Integer
-	xFinal Integer
-	yFinal Integer
+	width Integer
+	height Integer
 }
 
 

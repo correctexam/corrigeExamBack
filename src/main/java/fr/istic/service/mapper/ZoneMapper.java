@@ -22,4 +22,6 @@ public interface ZoneMapper extends EntityMapper<ZoneDTO, Zone> {
         zone.id = id;
         return zone;
     }
+
+
 }

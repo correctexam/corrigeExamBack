@@ -3,6 +3,7 @@ package fr.istic.web.rest;
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.service.ZoneService;
+import fr.istic.service.customdto.ResizeZoneDTO;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
 import fr.istic.web.util.ResponseUtil;
@@ -11,6 +12,8 @@ import fr.istic.service.dto.ZoneDTO;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import fr.istic.domain.Zone;
 import fr.istic.service.Paged;
 import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
@@ -21,6 +24,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -127,5 +131,52 @@ public class ZoneResource {
         log.debug("REST request to get Zone : {}", id);
         Optional<ZoneDTO> zoneDTO = zoneService.findOne(id);
         return ResponseUtil.wrapOrNotFound(zoneDTO);
+    }
+
+    /**
+     * {@code PATCH  /zones/:id} : Partial updates given fields of an existing zone, field will ignore if it is null
+     *
+     * @param id the id of the zoneDTO to save.
+     * @param zoneDTO the zoneDTO to update.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and with body the updated zoneDTO,
+     * or with status {@code 400 (Bad Request)} if the zoneDTO is not valid,
+     * or with status {@code 404 (Not Found)} if the zoneDTO is not found,
+     * or with status {@code 500 (Internal Server Error)} if the zoneDTO couldn't be updated.
+     * @throws URISyntaxException if the Location URI syntax is incorrect.
+     */
+    @PATCH
+    @Path(value = "/{id}")
+    public Response partialUpdateZone(
+        @PathParam(value = "id") final Long id,
+        ZoneDTO zoneDTO
+    ) {
+        log.debug("REST request to partial update Zone partially : {}, {}", id, zoneDTO);
+        if (zoneDTO.id == null) {
+            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
+        }
+        if (!Objects.equals(id, zoneDTO.id)) {
+            throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
+        }
+        Optional<ZoneDTO> result = zoneService.partialUpdate(zoneDTO);
+        return ResponseUtil.wrapOrNotFound(
+            result,
+            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, zoneDTO.id.toString())
+        );
+    }
+
+    @PATCH
+    @Path(value = "/scaling/{id}")
+    public Response partialResizeZone(
+        @PathParam(value = "id") final Long id,
+        ResizeZoneDTO rzoneDTO
+    ) {
+        log.debug("REST request to partial update Zone partially : {}, {}", id, rzoneDTO);
+        System.err.println(rzoneDTO);
+        Optional<ZoneDTO> result = zoneService.partialResizeUpdate(rzoneDTO, id);
+        System.err.println(rzoneDTO.getX());
+        return ResponseUtil.wrapOrNotFound(
+            result,
+            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, id.toString())
+        );
     }
 }

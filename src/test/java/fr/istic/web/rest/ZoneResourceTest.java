@@ -19,7 +19,7 @@ import org.junit.jupiter.api.*;
 import javax.inject.Inject;
 
 import java.util.List;
-    
+
 @QuarkusTest
 public class ZoneResourceTest {
 
@@ -84,8 +84,8 @@ public class ZoneResourceTest {
         var zoneDTO = new ZoneDTO();
         zoneDTO.xInit = DEFAULT_X_INIT;
         zoneDTO.yInit = DEFAULT_Y_INIT;
-        zoneDTO.xFinal = DEFAULT_X_FINAL;
-        zoneDTO.yFinal = DEFAULT_Y_FINAL;
+        zoneDTO.width = DEFAULT_X_FINAL;
+        zoneDTO.height = DEFAULT_Y_FINAL;
         return zoneDTO;
     }
 
@@ -140,8 +140,8 @@ public class ZoneResourceTest {
         var testZoneDTO = zoneDTOList.stream().filter(it -> zoneDTO.id.equals(it.id)).findFirst().get();
         assertThat(testZoneDTO.xInit).isEqualTo(DEFAULT_X_INIT);
         assertThat(testZoneDTO.yInit).isEqualTo(DEFAULT_Y_INIT);
-        assertThat(testZoneDTO.xFinal).isEqualTo(DEFAULT_X_FINAL);
-        assertThat(testZoneDTO.yFinal).isEqualTo(DEFAULT_Y_FINAL);
+        assertThat(testZoneDTO.width).isEqualTo(DEFAULT_X_FINAL);
+        assertThat(testZoneDTO.height).isEqualTo(DEFAULT_Y_FINAL);
     }
 
     @Test
@@ -237,8 +237,8 @@ public class ZoneResourceTest {
         // Update the zone
         updatedZoneDTO.xInit = UPDATED_X_INIT;
         updatedZoneDTO.yInit = UPDATED_Y_INIT;
-        updatedZoneDTO.xFinal = UPDATED_X_FINAL;
-        updatedZoneDTO.yFinal = UPDATED_Y_FINAL;
+        updatedZoneDTO.width = UPDATED_X_FINAL;
+        updatedZoneDTO.height = UPDATED_Y_FINAL;
 
         given()
             .auth()
@@ -269,8 +269,8 @@ public class ZoneResourceTest {
         var testZoneDTO = zoneDTOList.stream().filter(it -> updatedZoneDTO.id.equals(it.id)).findFirst().get();
         assertThat(testZoneDTO.xInit).isEqualTo(UPDATED_X_INIT);
         assertThat(testZoneDTO.yInit).isEqualTo(UPDATED_Y_INIT);
-        assertThat(testZoneDTO.xFinal).isEqualTo(UPDATED_X_FINAL);
-        assertThat(testZoneDTO.yFinal).isEqualTo(UPDATED_Y_FINAL);
+        assertThat(testZoneDTO.width).isEqualTo(UPDATED_X_FINAL);
+        assertThat(testZoneDTO.height).isEqualTo(UPDATED_Y_FINAL);
     }
 
     @Test
@@ -445,7 +445,7 @@ public class ZoneResourceTest {
             .statusCode(OK.getStatusCode())
             .contentType(APPLICATION_JSON)
             .body("id", is(zoneDTO.id.intValue()))
-            
+
                 .body("xInit", is(DEFAULT_X_INIT.intValue()))
                 .body("yInit", is(DEFAULT_Y_INIT.intValue()))
                 .body("xFinal", is(DEFAULT_X_FINAL.intValue()))

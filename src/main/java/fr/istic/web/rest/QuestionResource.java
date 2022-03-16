@@ -106,9 +106,18 @@ public class QuestionResource {
     @GET
     public Response getAllQuestions(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo) {
         log.debug("REST request to get a page of Questions");
-        var page = pageRequest.toPage();
-        var sort = sortRequest.toSort();
-        Paged<QuestionDTO> result = questionService.findAll(page);
+            var page = pageRequest.toPage();
+            var sort = sortRequest.toSort();
+            Paged<QuestionDTO> result =null;
+            MultivaluedMap param =  uriInfo.getQueryParameters();
+            if (param.containsKey("examId")){
+                List id = (List) param.get("examId");
+                result =questionService.findQuestionbyExamId(page, Long.parseLong("" + id.get(0)));
+            }
+            else {
+        result = questionService.findAll(page);
+
+                    }
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
         return response.build();

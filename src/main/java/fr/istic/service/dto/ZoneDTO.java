@@ -10,16 +10,18 @@ import java.util.Objects;
  */
 @RegisterForReflection
 public class ZoneDTO implements Serializable {
-    
+
     public Long id;
+
+    public Integer page;
 
     public Integer xInit;
 
     public Integer yInit;
 
-    public Integer xFinal;
+    public Integer width;
 
-    public Integer yFinal;
+    public Integer height;
 
 
     @Override
@@ -43,10 +45,11 @@ public class ZoneDTO implements Serializable {
     public String toString() {
         return "ZoneDTO{" +
             "id=" + id +
+            ", page=" + page +
             ", xInit=" + xInit +
             ", yInit=" + yInit +
-            ", xFinal=" + xFinal +
-            ", yFinal=" + yFinal +
+            ", width=" + width +
+            ", height=" + height +
             "}";
     }
 }

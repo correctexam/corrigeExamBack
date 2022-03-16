@@ -1,10 +1,6 @@
 package fr.istic.domain;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import javax.json.bind.annotation.JsonbTransient;
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 
@@ -25,17 +21,21 @@ public class Zone extends PanacheEntityBase implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
 
+    @Column(name = "page")
+    public Integer page;
+
+
     @Column(name = "x_init")
     public Integer xInit;
 
     @Column(name = "y_init")
     public Integer yInit;
 
-    @Column(name = "x_final")
-    public Integer xFinal;
+    @Column(name = "width")
+    public Integer width;
 
-    @Column(name = "y_final")
-    public Integer yFinal;
+    @Column(name = "height")
+    public Integer height;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
 
@@ -59,10 +59,11 @@ public class Zone extends PanacheEntityBase implements Serializable {
     public String toString() {
         return "Zone{" +
             "id=" + id +
+            ", page=" + page +
             ", xInit=" + xInit +
             ", yInit=" + yInit +
-            ", xFinal=" + xFinal +
-            ", yFinal=" + yFinal +
+            ", width=" + width +
+            ", height=" + height +
             "}";
     }
 
@@ -80,10 +81,11 @@ public class Zone extends PanacheEntityBase implements Serializable {
         }
         var entity = Zone.<Zone>findById(zone.id);
         if (entity != null) {
+            entity.page = zone.page;
             entity.xInit = zone.xInit;
             entity.yInit = zone.yInit;
-            entity.xFinal = zone.xFinal;
-            entity.yFinal = zone.yFinal;
+            entity.width = zone.width;
+            entity.height = zone.height;
         }
         return entity;
     }
