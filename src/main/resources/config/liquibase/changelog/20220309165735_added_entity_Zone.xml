@@ -16,16 +16,19 @@
             <column name="id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
+            <column name="page" type="integer">
+                <constraints nullable="true" />
+            </column>
             <column name="x_init" type="integer">
                 <constraints nullable="true" />
             </column>
             <column name="y_init" type="integer">
                 <constraints nullable="true" />
             </column>
-            <column name="x_final" type="integer">
+            <column name="width" type="integer">
                 <constraints nullable="true" />
             </column>
-            <column name="y_final" type="integer">
+            <column name="height" type="integer">
                 <constraints nullable="true" />
             </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
@@ -51,10 +54,11 @@
                   separator=";"
                   tableName="zone">
             <column name="id" type="numeric"/>
+            <column name="page" type="numeric"/>
             <column name="x_init" type="numeric"/>
             <column name="y_init" type="numeric"/>
-            <column name="x_final" type="numeric"/>
-            <column name="y_final" type="numeric"/>
+            <column name="width" type="numeric"/>
+            <column name="height" type="numeric"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here -->
         </loadData>
     </changeSet>

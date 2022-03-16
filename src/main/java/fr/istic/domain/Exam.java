@@ -133,6 +133,11 @@ public class Exam extends PanacheEntityBase implements Serializable {
     public static PanacheQuery<Exam> findExambyCourseId( long courseId) {
         return find("select exam from Exam exam where exam.course.id =?1", courseId);
     }
+    public static PanacheQuery<Exam> findExamThatMatchZoneId( long zoneId) {
+        return find("select exam from Exam exam join fetch exam.namezone where exam.idzone.id =?1 or exam.namezone.id =?1 or exam.firstnamezone.id =?1 or exam.notezone.id =?1", zoneId);
+    }
+
+
 
 
 }
