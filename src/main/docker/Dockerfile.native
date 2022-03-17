@@ -20,8 +20,9 @@ RUN chown 1001 /work \
     && chmod "g+rwX" /work \
     && chown 1001:root /work
 COPY --chown=1001:root target/*-runner /work/application
-
+# COPY --chown=1001:root ./src/main/resources/db/migration/ /work/migration
 EXPOSE 8080
 USER 1001
 
-CMD ["./application", "-Dquarkus.http.host=0.0.0.0"]
+CMD ["./application", "-Dquarkus.http.host=0.0.0.0", "-Dquarkus.datasource.jdbc.url=jdbc:mysql://gradescopeistic-mysql:3306/gradeScopeIstic?useUnicode=true&characterEncoding=utf8&useSSL=false"]
+#, "-Dquarkus.flyway.locations=filesystem:/work/migration/"]

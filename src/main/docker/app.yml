@@ -1,7 +1,7 @@
 version: '2'
 services:
   gradescopeistic-app:
-    image: gradescopeistic
+    image: barais/grade-scope-istic
     environment:
       - _JAVA_OPTIONS=-Xmx512m -Xms256m
       - SPRING_PROFILES_ACTIVE=prod,swagger
@@ -10,6 +10,7 @@ services:
       - JHIPSTER_SLEEP=30 # gives time for other services to boot before the application
     ports:
       - 8080:8080
+    restart: always
   gradescopeistic-mysql:
     extends:
       file: mysql.yml
