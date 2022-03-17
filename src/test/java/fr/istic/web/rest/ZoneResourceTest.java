@@ -401,7 +401,7 @@ public class ZoneResourceTest {
             .statusCode(OK.getStatusCode())
             .contentType(APPLICATION_JSON)
             .body("id", hasItem(zoneDTO.id.intValue()))
-            .body("xInit", hasItem(DEFAULT_X_INIT.intValue()))            .body("yInit", hasItem(DEFAULT_Y_INIT.intValue()))            .body("xFinal", hasItem(DEFAULT_X_FINAL.intValue()))            .body("yFinal", hasItem(DEFAULT_Y_FINAL.intValue()));
+            .body("xInit", hasItem(DEFAULT_X_INIT.intValue()))            .body("yInit", hasItem(DEFAULT_Y_INIT.intValue()))            .body("width", hasItem(DEFAULT_X_FINAL.intValue()))            .body("height", hasItem(DEFAULT_Y_FINAL.intValue()));
     }
 
     @Test
@@ -448,8 +448,8 @@ public class ZoneResourceTest {
 
                 .body("xInit", is(DEFAULT_X_INIT.intValue()))
                 .body("yInit", is(DEFAULT_Y_INIT.intValue()))
-                .body("xFinal", is(DEFAULT_X_FINAL.intValue()))
-                .body("yFinal", is(DEFAULT_Y_FINAL.intValue()));
+                .body("width", is(DEFAULT_X_FINAL.intValue()))
+                .body("height", is(DEFAULT_Y_FINAL.intValue()));
     }
 
     @Test
