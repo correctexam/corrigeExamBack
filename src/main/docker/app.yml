@@ -8,10 +8,23 @@ services:
       - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
       - SPRING_DATASOURCE_URL=jdbc:mysql://gradescopeistic-mysql:3306/gradescopeistic?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC&createDatabaseIfNotExist=true
       - JHIPSTER_SLEEP=30 # gives time for other services to boot before the application
-    ports:
-      - 8080:8080
     restart: always
   gradescopeistic-mysql:
     extends:
       file: mysql.yml
       service: gradescopeistic-mysql
+  mail:
+    image: bytemark/smtp
+    restart: always
+  front:
+    image: barais/grade-scope-istic-front
+    ports:
+      - 90:80
+    volumes:
+      -  ./exampleconf/exam.conf:/etc/nginx/conf.d/exam.conf
+      -  ./exampleconf/myadmin.conf:/etc/nginx/conf.d/myadmin.conf
+  myadmin:
+    image: phpmyadmin
+    container_name: myadmin
+    environment:
+      -  PMA_HOST=gradescopeistic-mysql
