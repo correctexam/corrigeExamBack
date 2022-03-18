@@ -6,7 +6,7 @@
 <web-app>
     <display-name>My Web Application</display-name>
 
-  <servlet>
+  <!--  <servlet>
         <servlet-name>h2-console</servlet-name>
         <servlet-class>org.h2.server.web.WebServlet</servlet-class>
            <init-param>
@@ -18,6 +18,6 @@
     <servlet-mapping>
         <servlet-name>h2-console</servlet-name>
         <url-pattern>/h2-console/*</url-pattern>
-    </servlet-mapping>
+    </servlet-mapping>-->
 
 </web-app>

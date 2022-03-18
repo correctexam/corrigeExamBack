@@ -7,7 +7,7 @@ Note on the project could be found [here](https://hackmd.diverse-team.fr/s/HkFi-
 
 ## Development
 
-To start your application in the dev profile, run:
+To start your application in the dev profile, run: 
 
     ./mvnw
 
