@@ -31,9 +31,10 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-        file: src/main/docker/Dockerfile.native
     - name: Build and push
       uses: docker/build-push-action@v2
       with:
+        context: ./
+        file: ./src/main/docker/Dockerfile.native
         push: true
         tags: barais/grade-scope-istic:latest

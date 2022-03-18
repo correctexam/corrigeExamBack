@@ -13,18 +13,19 @@ services:
     extends:
       file: mysql.yml
       service: gradescopeistic-mysql
-  mail:
-    image: bytemark/smtp
-    restart: always
-  front:
-    image: barais/grade-scope-istic-front
-    ports:
-      - 90:80
-    volumes:
-      -  ./exampleconf/exam.conf:/etc/nginx/conf.d/exam.conf
-      -  ./exampleconf/myadmin.conf:/etc/nginx/conf.d/myadmin.conf
-  myadmin:
-    image: phpmyadmin
-    container_name: myadmin
-    environment:
-      -  PMA_HOST=gradescopeistic-mysql
+#  mail:
+#    image: bytemark/smtp
+#    restart: always
+#  front:
+#    image: barais/grade-scope-istic-front
+#    ports:
+#      - 90:80
+#    volumes:
+#      -  ./exampleconf/exam.conf:/etc/nginx/conf.d/exam.conf
+#      -  ./exampleconf/myadmin.conf:/etc/nginx/conf.d/myadmin.conf
+#  myadmin:
+#    image: phpmyadmin
+#    container_name: myadmin
+#    environment:
+#      -  PMA_HOST=gradescopeistic-mysql
+
