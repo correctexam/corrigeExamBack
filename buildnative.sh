@@ -10,4 +10,5 @@ sleep 10
 cp web.xml.dev src/main/resources/META-INF/web.xml
 sudo docker image rm barais/grade-scope-istic
 sudo docker build -f src/main/docker/Dockerfile.native -t barais/grade-scope-istic .
-
+#sudo docker-compose pull
+#sudo docker-compose up -d --no-deps gradescopeistic-app
