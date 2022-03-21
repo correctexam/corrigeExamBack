@@ -40,14 +40,16 @@ public class QuestionResource {
     @ConfigProperty(name = "application.name")
     String applicationName;
 
-
     @Inject
     QuestionService questionService;
+
     /**
      * {@code POST  /questions} : Create a new question.
      *
      * @param questionDTO the questionDTO to create.
-     * @return the {@link Response} with status {@code 201 (Created)} and with body the new questionDTO, or with status {@code 400 (Bad Request)} if the question has already an ID.
+     * @return the {@link Response} with status {@code 201 (Created)} and with body
+     *         the new questionDTO, or with status {@code 400 (Bad Request)} if the
+     *         question has already an ID.
      */
     @POST
     public Response createQuestion(@Valid QuestionDTO questionDTO, @Context UriInfo uriInfo) {
@@ -57,7 +59,8 @@ public class QuestionResource {
         }
         var result = questionService.persistOrUpdate(questionDTO);
         var response = Response.created(fromPath(uriInfo.getPath()).path(result.id.toString()).build()).entity(result);
-        HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.id.toString()).forEach(response::header);
+        HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.id.toString())
+                .forEach(response::header);
         return response.build();
     }
 
@@ -65,9 +68,12 @@ public class QuestionResource {
      * {@code PUT  /questions} : Updates an existing question.
      *
      * @param questionDTO the questionDTO to update.
-     * @return the {@link Response} with status {@code 200 (OK)} and with body the updated questionDTO,
-     * or with status {@code 400 (Bad Request)} if the questionDTO is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the questionDTO couldn't be updated.
+     * @return the {@link Response} with status {@code 200 (OK)} and with body the
+     *         updated questionDTO,
+     *         or with status {@code 400 (Bad Request)} if the questionDTO is not
+     *         valid,
+     *         or with status {@code 500 (Internal Server Error)} if the questionDTO
+     *         couldn't be updated.
      */
     @PUT
     public Response updateQuestion(@Valid QuestionDTO questionDTO) {
@@ -77,7 +83,8 @@ public class QuestionResource {
         }
         var result = questionService.persistOrUpdate(questionDTO);
         var response = Response.ok().entity(result);
-        HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, questionDTO.id.toString()).forEach(response::header);
+        HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, questionDTO.id.toString())
+                .forEach(response::header);
         return response.build();
     }
 
@@ -93,7 +100,8 @@ public class QuestionResource {
         log.debug("REST request to delete Question : {}", id);
         questionService.delete(id);
         var response = Response.noContent();
-        HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()).forEach(response::header);
+        HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())
+                .forEach(response::header);
         return response.build();
     }
 
@@ -101,34 +109,40 @@ public class QuestionResource {
      * {@code GET  /questions} : get all the questions.
      *
      * @param pageRequest the pagination information.
-     * @return the {@link Response} with status {@code 200 (OK)} and the list of questions in body.
+     * @return the {@link Response} with status {@code 200 (OK)} and the list of
+     *         questions in body.
      */
     @GET
-    public Response getAllQuestions(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo) {
+    public Response getAllQuestions(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest,
+            @Context UriInfo uriInfo) {
         log.debug("REST request to get a page of Questions");
-            var page = pageRequest.toPage();
-            var sort = sortRequest.toSort();
-            Paged<QuestionDTO> result =null;
-            MultivaluedMap param =  uriInfo.getQueryParameters();
-            if (param.containsKey("examId")){
-                List id = (List) param.get("examId");
-                result =questionService.findQuestionbyExamId(page, Long.parseLong("" + id.get(0)));
-            }
-            else {
-        result = questionService.findAll(page);
+        var page = pageRequest.toPage();
+        var sort = sortRequest.toSort();
+        Paged<QuestionDTO> result = null;
+        MultivaluedMap param = uriInfo.getQueryParameters();
+        if (param.containsKey("examId")) {
+            List id = (List) param.get("examId");
+            result = questionService.findQuestionbyExamId(page, Long.parseLong("" + id.get(0)));
+        } else if (param.containsKey("zoneId")) {
+            List id = (List) param.get("zoneId");
+            result = questionService.findQuestionbyZoneId(page, Long.parseLong("" + id.get(0)));
+        }
 
-                    }
+        else {
+            result = questionService.findAll(page);
+
+        }
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
         return response.build();
     }
 
-
     /**
      * {@code GET  /questions/:id} : get the "id" question.
      *
      * @param id the id of the questionDTO to retrieve.
-     * @return the {@link Response} with status {@code 200 (OK)} and with body the questionDTO, or with status {@code 404 (Not Found)}.
+     * @return the {@link Response} with status {@code 200 (OK)} and with body the
+     *         questionDTO, or with status {@code 404 (Not Found)}.
      */
     @GET
     @Path("/{id}")

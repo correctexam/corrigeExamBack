@@ -7,6 +7,7 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
+import javax.transaction.Transactional;
 import javax.validation.constraints.*;
 
 import java.io.Serializable;
@@ -130,11 +131,62 @@ public class Exam extends PanacheEntityBase implements Serializable {
         }
     }
 
+    @Transactional
+    public static long removeNameZoneId(Exam exam) {
+        if (exam == null) {
+            throw new IllegalArgumentException("exam can't be null");
+        }
+        if (exam.id == null) {
+            return 0;
+        } else {
+            return  update("namezone = ?1 where id = ?2", null, exam.id);
+
+        }
+    }
+    @Transactional
+    public static long removeFirstNameZoneId(Exam exam) {
+        if (exam == null) {
+            throw new IllegalArgumentException("exam can't be null");
+        }
+        if (exam.id == null) {
+            return 0;
+        } else {
+            return  update("firstnamezone = ?1 where id = ?2", null, exam.id);
+
+        }
+    }
+    @Transactional
+    public static long removeIdZoneId(Exam exam) {
+        if (exam == null) {
+            throw new IllegalArgumentException("exam can't be null");
+        }
+        if (exam.id == null) {
+            return 0;
+        } else {
+            return  update("idzone = ?1 where id = ?2", null, exam.id);
+
+        }
+    }
+    @Transactional
+    public static long removeNoteZoneId(Exam exam) {
+        if (exam == null) {
+            throw new IllegalArgumentException("exam can't be null");
+        }
+        if (exam.id == null) {
+            return 0;
+        } else {
+            return  update("notezone = ?1 where id = ?2", null, exam.id);
+
+        }
+    }
+
+
     public static PanacheQuery<Exam> findExambyCourseId( long courseId) {
         return find("select exam from Exam exam where exam.course.id =?1", courseId);
     }
     public static PanacheQuery<Exam> findExamThatMatchZoneId( long zoneId) {
-        return find("select exam from Exam exam join fetch exam.namezone where exam.idzone.id =?1 or exam.namezone.id =?1 or exam.firstnamezone.id =?1 or exam.notezone.id =?1", zoneId);
+        // join fetch exam.namezone join fetch exam.firstnamezone  join fetch exam.idzone  join fetch exam.notezone
+        return find("select exam from Exam exam where exam.idzone.id =?1 or exam.namezone.id =?1 or exam.firstnamezone.id =?1 or exam.notezone.id =?1", zoneId);
     }
 
 

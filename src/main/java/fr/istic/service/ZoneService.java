@@ -7,17 +7,12 @@ import fr.istic.domain.Zone;
 import fr.istic.service.customdto.ResizeZoneDTO;
 import fr.istic.service.dto.ZoneDTO;
 import fr.istic.service.mapper.ZoneMapper;
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.sound.midi.SysexMessage;
 import javax.transaction.Transactional;
-import javax.transaction.Transactional.TxType;
-
-import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -38,10 +33,7 @@ public class ZoneService {
     }
 
 
-    @Transactional
-    void updateExam(Exam exam) {
-        Exam.persistOrUpdate(exam);
-    }
+
 
     @Transactional
     void deleteZone (long id){
@@ -60,20 +52,29 @@ public class ZoneService {
             q.delete();
         }, new Runnable() {
             public void run() {
-                Exam.findExamThatMatchZoneId(id).firstResultOptional().ifPresent(exam-> {
+                Exam.findExamThatMatchZoneId(id).firstResultOptional().ifPresentOrElse(exam-> {
                     if (exam.namezone != null && exam.namezone.id.equals(id)){
-                        exam.namezone=null;
+                        Exam.removeNameZoneId(exam);
                     }
-                    else if (exam.firstnamezone != null &&  exam.firstnamezone.id.equals(id))
-                        exam.firstnamezone =null;
-                    else if (exam.idzone != null && exam.idzone.id.equals(id))
-                        exam.idzone =null;
+                    else if (exam.firstnamezone != null &&  exam.firstnamezone.id.equals(id)){
+                        Exam.removeFirstNameZoneId(exam);
+
+                    }
+                    else if (exam.idzone != null && exam.idzone.id.equals(id)){
+                        Exam.removeIdZoneId(exam);
+                    }
                     else if (exam.notezone != null && exam.notezone.id.equals(id))
-                        exam.notezone =null;
-                    ZoneService.this.updateExam(exam);
+                    {
+                        Exam.removeNoteZoneId(exam);
+                    }
+                    ZoneService.this.deleteZone(id);
+                },  new Runnable() {
+
+                    public void run() {
+                        ZoneService.this.deleteZone(id);
+                    }
                 }
                 );
-                ZoneService.this.deleteZone(id);
 
 
             }
@@ -114,6 +115,7 @@ public class ZoneService {
     public Optional<ZoneDTO> partialUpdate(ZoneDTO zoneDTO) {
         log.debug("Request to partially update Zone : {}", zoneDTO);
         Zone existingZone = Zone.findById(zoneDTO.id);
+
         zoneMapper.partialUpdate(existingZone, zoneDTO);
         Zone z1 = Zone.update(existingZone);
         return Optional.of(zoneMapper.toDto(z1));
