@@ -21,9 +21,8 @@ public class Zone extends PanacheEntityBase implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
 
-    @Column(name = "page")
-    public Integer page;
-
+    @Column(name = "page_number")
+    public Integer pageNumber;
 
     @Column(name = "x_init")
     public Integer xInit;
@@ -59,7 +58,7 @@ public class Zone extends PanacheEntityBase implements Serializable {
     public String toString() {
         return "Zone{" +
             "id=" + id +
-            ", page=" + page +
+            ", pageNumber=" + pageNumber +
             ", xInit=" + xInit +
             ", yInit=" + yInit +
             ", width=" + width +
@@ -81,7 +80,7 @@ public class Zone extends PanacheEntityBase implements Serializable {
         }
         var entity = Zone.<Zone>findById(zone.id);
         if (entity != null) {
-            entity.page = zone.page;
+            entity.pageNumber = zone.pageNumber;
             entity.xInit = zone.xInit;
             entity.yInit = zone.yInit;
             entity.width = zone.width;

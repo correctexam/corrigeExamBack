@@ -1,2 +1,2 @@
-id;name;content;content_content_type
-1;Summit Dakota interactive;../fake-data/blob/example.pdf;application/pdf
+id;name;content;content_content_type;mark;auto_map_student_copy_to_list
+1;Summit Dakota interactive;../fake-data/blob/example.pdf;application/pdf;true;true

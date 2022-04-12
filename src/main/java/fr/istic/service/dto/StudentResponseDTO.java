@@ -17,8 +17,8 @@ public class StudentResponseDTO implements Serializable {
 
     public Long questionId;
     public String questionNumero;
-    public Long studentId;
-    public String studentName;
+    public Long sheetId;
+    public String sheetName;
 
     @Override
     public boolean equals(Object o) {
@@ -44,8 +44,8 @@ public class StudentResponseDTO implements Serializable {
             ", note=" + note +
             ", questionId=" + questionId +
             ", questionNumero='" + questionNumero + "'" +
-            ", studentId=" + studentId +
-            ", studentName='" + studentName + "'" +
+            ", sheetId=" + sheetId +
+            ", sheetName='" + sheetName + "'" +
             "}";
     }
 }

@@ -25,6 +25,12 @@
             <column name="content_content_type" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
+            <column name="mark" type="boolean">
+                <constraints nullable="true" />
+            </column>
+            <column name="auto_map_student_copy_to_list" type="boolean">
+                <constraints nullable="true" />
+            </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
         </createTable>
     </changeSet>
@@ -51,6 +57,8 @@
             <column name="name" type="string"/>
             <column name="content" type="blob"/>
             <column name="content_content_type" type="string"/>
+            <column name="mark" type="boolean"/>
+            <column name="auto_map_student_copy_to_list" type="boolean"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here -->
         </loadData>
     </changeSet>

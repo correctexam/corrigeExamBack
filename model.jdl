@@ -63,7 +63,7 @@ entity Comments {
 
 
 entity Zone {
-    page Integer
+    pageNumber Integer
 	xInit Integer
 	yInit Integer
 	width Integer

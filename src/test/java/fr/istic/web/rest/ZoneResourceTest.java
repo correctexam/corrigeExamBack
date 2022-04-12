@@ -29,17 +29,20 @@ public class ZoneResourceTest {
     private static final TypeRef<List<ZoneDTO>> LIST_OF_ENTITY_TYPE = new TypeRef<>() {
     };
 
+    private static final Integer DEFAULT_PAGE_NUMBER = 1;
+    private static final Integer UPDATED_PAGE_NUMBER = 2;
+
     private static final Integer DEFAULT_X_INIT = 1;
     private static final Integer UPDATED_X_INIT = 2;
 
     private static final Integer DEFAULT_Y_INIT = 1;
     private static final Integer UPDATED_Y_INIT = 2;
 
-    private static final Integer DEFAULT_X_FINAL = 1;
-    private static final Integer UPDATED_X_FINAL = 2;
+    private static final Integer DEFAULT_WIDTH = 1;
+    private static final Integer UPDATED_WIDTH = 2;
 
-    private static final Integer DEFAULT_Y_FINAL = 1;
-    private static final Integer UPDATED_Y_FINAL = 2;
+    private static final Integer DEFAULT_HEIGHT = 1;
+    private static final Integer UPDATED_HEIGHT = 2;
 
 
 
@@ -82,10 +85,11 @@ public class ZoneResourceTest {
      */
     public static ZoneDTO createEntity() {
         var zoneDTO = new ZoneDTO();
+        zoneDTO.pageNumber = DEFAULT_PAGE_NUMBER;
         zoneDTO.xInit = DEFAULT_X_INIT;
         zoneDTO.yInit = DEFAULT_Y_INIT;
-        zoneDTO.width = DEFAULT_X_FINAL;
-        zoneDTO.height = DEFAULT_Y_FINAL;
+        zoneDTO.width = DEFAULT_WIDTH;
+        zoneDTO.height = DEFAULT_HEIGHT;
         return zoneDTO;
     }
 
@@ -138,10 +142,11 @@ public class ZoneResourceTest {
 
         assertThat(zoneDTOList).hasSize(databaseSizeBeforeCreate + 1);
         var testZoneDTO = zoneDTOList.stream().filter(it -> zoneDTO.id.equals(it.id)).findFirst().get();
+        assertThat(testZoneDTO.pageNumber).isEqualTo(DEFAULT_PAGE_NUMBER);
         assertThat(testZoneDTO.xInit).isEqualTo(DEFAULT_X_INIT);
         assertThat(testZoneDTO.yInit).isEqualTo(DEFAULT_Y_INIT);
-        assertThat(testZoneDTO.width).isEqualTo(DEFAULT_X_FINAL);
-        assertThat(testZoneDTO.height).isEqualTo(DEFAULT_Y_FINAL);
+        assertThat(testZoneDTO.width).isEqualTo(DEFAULT_WIDTH);
+        assertThat(testZoneDTO.height).isEqualTo(DEFAULT_HEIGHT);
     }
 
     @Test
@@ -235,10 +240,11 @@ public class ZoneResourceTest {
             .extract().body().as(ENTITY_TYPE);
 
         // Update the zone
+        updatedZoneDTO.pageNumber = UPDATED_PAGE_NUMBER;
         updatedZoneDTO.xInit = UPDATED_X_INIT;
         updatedZoneDTO.yInit = UPDATED_Y_INIT;
-        updatedZoneDTO.width = UPDATED_X_FINAL;
-        updatedZoneDTO.height = UPDATED_Y_FINAL;
+        updatedZoneDTO.width = UPDATED_WIDTH;
+        updatedZoneDTO.height = UPDATED_HEIGHT;
 
         given()
             .auth()
@@ -267,10 +273,11 @@ public class ZoneResourceTest {
 
         assertThat(zoneDTOList).hasSize(databaseSizeBeforeUpdate);
         var testZoneDTO = zoneDTOList.stream().filter(it -> updatedZoneDTO.id.equals(it.id)).findFirst().get();
+        assertThat(testZoneDTO.pageNumber).isEqualTo(UPDATED_PAGE_NUMBER);
         assertThat(testZoneDTO.xInit).isEqualTo(UPDATED_X_INIT);
         assertThat(testZoneDTO.yInit).isEqualTo(UPDATED_Y_INIT);
-        assertThat(testZoneDTO.width).isEqualTo(UPDATED_X_FINAL);
-        assertThat(testZoneDTO.height).isEqualTo(UPDATED_Y_FINAL);
+        assertThat(testZoneDTO.width).isEqualTo(UPDATED_WIDTH);
+        assertThat(testZoneDTO.height).isEqualTo(UPDATED_HEIGHT);
     }
 
     @Test
@@ -401,7 +408,7 @@ public class ZoneResourceTest {
             .statusCode(OK.getStatusCode())
             .contentType(APPLICATION_JSON)
             .body("id", hasItem(zoneDTO.id.intValue()))
-            .body("xInit", hasItem(DEFAULT_X_INIT.intValue()))            .body("yInit", hasItem(DEFAULT_Y_INIT.intValue()))            .body("width", hasItem(DEFAULT_X_FINAL.intValue()))            .body("height", hasItem(DEFAULT_Y_FINAL.intValue()));
+            .body("pageNumber", hasItem(DEFAULT_PAGE_NUMBER.intValue()))            .body("xInit", hasItem(DEFAULT_X_INIT.intValue()))            .body("yInit", hasItem(DEFAULT_Y_INIT.intValue()))            .body("width", hasItem(DEFAULT_WIDTH.intValue()))            .body("height", hasItem(DEFAULT_HEIGHT.intValue()));
     }
 
     @Test
@@ -445,11 +452,12 @@ public class ZoneResourceTest {
             .statusCode(OK.getStatusCode())
             .contentType(APPLICATION_JSON)
             .body("id", is(zoneDTO.id.intValue()))
-
+            
+                .body("pageNumber", is(DEFAULT_PAGE_NUMBER.intValue()))
                 .body("xInit", is(DEFAULT_X_INIT.intValue()))
                 .body("yInit", is(DEFAULT_Y_INIT.intValue()))
-                .body("width", is(DEFAULT_X_FINAL.intValue()))
-                .body("height", is(DEFAULT_Y_FINAL.intValue()));
+                .body("width", is(DEFAULT_WIDTH.intValue()))
+                .body("height", is(DEFAULT_HEIGHT.intValue()));
     }
 
     @Test

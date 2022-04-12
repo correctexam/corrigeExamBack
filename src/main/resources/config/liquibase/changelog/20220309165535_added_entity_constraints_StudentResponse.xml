@@ -14,11 +14,11 @@
                                  referencedColumnNames="id"
                                  referencedTableName="question"/>
 
-        <addForeignKeyConstraint baseColumnNames="student_id"
+        <addForeignKeyConstraint baseColumnNames="sheet_id"
                                  baseTableName="student_response"
-                                 constraintName="fk_student_response_student_id"
+                                 constraintName="fk_student_response_sheet_id"
                                  referencedColumnNames="id"
-                                 referencedTableName="student"/>
+                                 referencedTableName="exam_sheet"/>
 
     </changeSet>
 </databaseChangeLog>
