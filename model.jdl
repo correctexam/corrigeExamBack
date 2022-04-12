@@ -21,6 +21,8 @@ entity Exam {
 entity Template {
 	name String required
 	content Blob
+    mark Boolean
+    autoMapStudentCopyToList Boolean
 }
 
 entity Question {
@@ -74,7 +76,7 @@ relationship ManyToOne {
     FinalResult{student(name)} to Student
     FinalResult{exam(name)} to Exam
     StudentResponse{question(numero)} to Question
-    StudentResponse{student(name)} to Student
+    StudentResponse{sheet(name)} to ExamSheet
     Question{type(algoName)} to QuestionType
 
 }
@@ -92,7 +94,6 @@ relationship OneToMany{
 relationship ManyToMany {
 	CourseGroup{students(name)} to Student{groups(groupName)}
     Student{examSheets(name)} to ExamSheet{students(name)}
-
 }
 
 relationship OneToOne {

@@ -110,10 +110,18 @@ public class StudentResource {
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
         Paged<StudentDTO> result;
-        if (eagerload) {
-            result = studentService.findAllWithEagerRelationships(page);
-        } else {
-            result = studentService.findAll(page);
+
+        MultivaluedMap param =  uriInfo.getQueryParameters();
+        if (param.containsKey("courseId")){
+            List id = (List) param.get("courseId");
+            result =studentService.findStudentsbyCourseId(page, Long.parseLong("" + id.get(0)));
+        }
+        else {
+            if (eagerload) {
+                result = studentService.findAllWithEagerRelationships(page);
+            } else {
+                result = studentService.findAll(page);
+            }
         }
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
