@@ -54,7 +54,7 @@ public class StudentService {
     public Optional<StudentDTO> findOne(Long id) {
         log.debug("Request to get Student : {}", id);
         return Student.findOneWithEagerRelationships(id)
-            .map(student -> studentMapper.toDto((Student) student)); 
+            .map(student -> studentMapper.toDto((Student) student));
     }
 
     /**
@@ -64,6 +64,17 @@ public class StudentService {
      */
     public Paged<StudentDTO> findAll(Page page) {
         log.debug("Request to get all Students");
+        return new Paged<>(Student.findAll().page(page))
+            .map(student -> studentMapper.toDto((Student) student));
+    }
+
+        /**
+     * Get all the students.
+     * @param page the pagination information.
+     * @return the list of entities.
+     */
+    public Paged<StudentDTO> findStudentsbyCourseId(Page page, long courseId) {
+        log.debug("Request to get all Students by courseId");
         return new Paged<>(Student.findAll().page(page))
             .map(student -> studentMapper.toDto((Student) student));
     }
