@@ -39,6 +39,12 @@ public class Template extends PanacheEntityBase implements Serializable {
     @Column(name = "content_content_type")
       public String contentContentType;
 
+    @Column(name = "mark")
+    public Boolean mark;
+
+    @Column(name = "auto_map_student_copy_to_list")
+    public Boolean autoMapStudentCopyToList;
+
     @OneToOne(mappedBy = "template")
     @JsonIgnore
     public Exam exam;
@@ -67,7 +73,9 @@ public class Template extends PanacheEntityBase implements Serializable {
             "id=" + id +
             ", name='" + name + "'" +
             ", content='" + content + "'" +
-            ", contentContentType='" + contentContentType + "'" +
+            ", contentContentType='" + contentContentType() + "'" +
+            ", mark='" + mark + "'" +
+            ", autoMapStudentCopyToList='" + autoMapStudentCopyToList + "'" +
             "}";
     }
 
@@ -87,6 +95,8 @@ public class Template extends PanacheEntityBase implements Serializable {
         if (entity != null) {
             entity.name = template.name;
             entity.content = template.content;
+            entity.mark = template.mark;
+            entity.autoMapStudentCopyToList = template.autoMapStudentCopyToList;
             entity.exam = template.exam;
         }
         return entity;

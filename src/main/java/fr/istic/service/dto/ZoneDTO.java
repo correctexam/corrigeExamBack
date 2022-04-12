@@ -13,7 +13,7 @@ public class ZoneDTO implements Serializable {
 
     public Long id;
 
-    public Integer page;
+    public Integer pageNumber;
 
     public Integer xInit;
 
@@ -45,7 +45,7 @@ public class ZoneDTO implements Serializable {
     public String toString() {
         return "ZoneDTO{" +
             "id=" + id +
-            ", page=" + page +
+            ", pageNumber=" + pageNumber +
             ", xInit=" + xInit +
             ", yInit=" + yInit +
             ", width=" + width +

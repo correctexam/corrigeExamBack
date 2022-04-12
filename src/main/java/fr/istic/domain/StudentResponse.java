@@ -40,9 +40,9 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     public Question question;
 
     @ManyToOne
-    @JoinColumn(name = "student_id")
+    @JoinColumn(name = "sheet_id")
     @JsonbTransient
-    public Student student;
+    public ExamSheet sheet;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
 
@@ -87,7 +87,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
             entity.note = studentResponse.note;
             entity.comments = studentResponse.comments;
             entity.question = studentResponse.question;
-            entity.student = studentResponse.student;
+            entity.sheet = studentResponse.sheet;
         }
         return entity;
     }

@@ -23,6 +23,10 @@ public class TemplateDTO implements Serializable {
 
     public String contentContentType;
 
+    public Boolean mark;
+
+    public Boolean autoMapStudentCopyToList;
+
 
     @Override
     public boolean equals(Object o) {
@@ -47,6 +51,8 @@ public class TemplateDTO implements Serializable {
             "id=" + id +
             ", name='" + name + "'" +
             ", content='" + content + "'" +
+            ", mark='" + mark + "'" +
+            ", autoMapStudentCopyToList='" + autoMapStudentCopyToList + "'" +
             "}";
     }
 }
