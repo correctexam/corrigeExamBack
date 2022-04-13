@@ -19,7 +19,6 @@ import java.util.Optional;
  */
 @Entity
 @Table(name = "student")
-@Cacheable
 @RegisterForReflection
 public class Student extends PanacheEntityBase implements Serializable {
 

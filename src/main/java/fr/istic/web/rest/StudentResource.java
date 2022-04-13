@@ -107,7 +107,9 @@ public class StudentResource {
     @GET
     public Response getAllStudents(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @QueryParam(value = "eagerload") boolean eagerload) {
         log.debug("REST request to get a page of Students");
+
         var page = pageRequest.toPage();
+
         var sort = sortRequest.toSort();
         Paged<StudentDTO> result;
 

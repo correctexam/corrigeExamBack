@@ -14,7 +14,7 @@ public class PageRequestVM {
     public  int index;
 
     @QueryParam("size")
-    @DefaultValue("50")
+    @DefaultValue("500")
     @Positive
     public int size;
 
