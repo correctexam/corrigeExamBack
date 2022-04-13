@@ -73,7 +73,7 @@ public class Template extends PanacheEntityBase implements Serializable {
             "id=" + id +
             ", name='" + name + "'" +
             ", content='" + content + "'" +
-            ", contentContentType='" + contentContentType() + "'" +
+            ", contentContentType='" + contentContentType + "'" +
             ", mark='" + mark + "'" +
             ", autoMapStudentCopyToList='" + autoMapStudentCopyToList + "'" +
             "}";
