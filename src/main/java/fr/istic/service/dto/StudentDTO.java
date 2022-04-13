@@ -6,14 +6,13 @@ import javax.validation.constraints.*;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Objects;
 
 /**
  * A DTO for the {@link fr.istic.domain.Student} entity.
  */
 @RegisterForReflection
 public class StudentDTO implements Serializable {
-    
+
     public Long id;
 
     @NotNull
