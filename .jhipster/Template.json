@@ -1,0 +1,43 @@
+{
+  "name": "Template",
+  "fields": [
+    {
+      "fieldName": "name",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "content",
+      "fieldType": "byte[]",
+      "fieldTypeBlobContent": "any"
+    },
+    {
+      "fieldName": "mark",
+      "fieldType": "Boolean"
+    },
+    {
+      "fieldName": "autoMapStudentCopyToList",
+      "fieldType": "Boolean"
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipType": "one-to-one",
+      "otherEntityName": "exam",
+      "otherEntityRelationshipName": "template",
+      "relationshipName": "exam",
+      "ownerSide": false
+    }
+  ],
+  "changelogDate": "20220309165035",
+  "entityTableName": "template",
+  "dto": "mapstruct",
+  "pagination": "pagination",
+  "service": "serviceClass",
+  "jpaMetamodelFiltering": false,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "clientRootFolder": "",
+  "applications": "*"
+}

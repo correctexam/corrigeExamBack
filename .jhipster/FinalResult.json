@@ -1,0 +1,36 @@
+{
+  "name": "FinalResult",
+  "fields": [
+    {
+      "fieldName": "note",
+      "fieldType": "Integer"
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "student",
+      "otherEntityRelationshipName": "finalResult",
+      "relationshipName": "student",
+      "otherEntityField": "name"
+    },
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "exam",
+      "otherEntityRelationshipName": "finalResult",
+      "relationshipName": "exam",
+      "otherEntityField": "name"
+    }
+  ],
+  "changelogDate": "20220309165435",
+  "entityTableName": "final_result",
+  "dto": "mapstruct",
+  "pagination": "pagination",
+  "service": "serviceClass",
+  "jpaMetamodelFiltering": false,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "clientRootFolder": "",
+  "applications": "*"
+}

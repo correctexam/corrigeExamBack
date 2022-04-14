@@ -1,0 +1,43 @@
+{
+  "name": "Course",
+  "fields": [
+    {
+      "fieldName": "name",
+      "fieldType": "String",
+      "fieldValidateRules": ["required"]
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipType": "one-to-many",
+      "otherEntityName": "exam",
+      "otherEntityRelationshipName": "course",
+      "relationshipName": "exam"
+    },
+    {
+      "relationshipType": "one-to-many",
+      "otherEntityName": "courseGroup",
+      "otherEntityRelationshipName": "course",
+      "relationshipName": "groups"
+    },
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "user",
+      "otherEntityRelationshipName": "course",
+      "relationshipValidateRules": "required",
+      "relationshipName": "prof",
+      "otherEntityField": "login"
+    }
+  ],
+  "changelogDate": "20220309164635",
+  "entityTableName": "course",
+  "dto": "mapstruct",
+  "pagination": "pagination",
+  "service": "serviceClass",
+  "jpaMetamodelFiltering": false,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "clientRootFolder": "",
+  "applications": "*"
+}

@@ -1,0 +1,42 @@
+{
+  "name": "StudentResponse",
+  "fields": [
+    {
+      "fieldName": "note",
+      "fieldType": "Integer"
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipType": "one-to-many",
+      "otherEntityName": "comments",
+      "otherEntityRelationshipName": "studentResponse",
+      "relationshipName": "comments"
+    },
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "question",
+      "otherEntityRelationshipName": "studentResponse",
+      "relationshipName": "question",
+      "otherEntityField": "numero"
+    },
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "examSheet",
+      "otherEntityRelationshipName": "studentResponse",
+      "relationshipName": "sheet",
+      "otherEntityField": "name"
+    }
+  ],
+  "changelogDate": "20220309165535",
+  "entityTableName": "student_response",
+  "dto": "mapstruct",
+  "pagination": "pagination",
+  "service": "serviceClass",
+  "jpaMetamodelFiltering": false,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "clientRootFolder": "",
+  "applications": "*"
+}

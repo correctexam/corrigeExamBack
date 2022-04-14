@@ -1,0 +1,49 @@
+{
+  "name": "Question",
+  "fields": [
+    {
+      "fieldName": "numero",
+      "fieldType": "Integer",
+      "fieldValidateRules": ["required"]
+    },
+    {
+      "fieldName": "point",
+      "fieldType": "Integer"
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipType": "one-to-one",
+      "otherEntityName": "zone",
+      "otherEntityRelationshipName": "question",
+      "relationshipName": "zone",
+      "otherEntityField": "id",
+      "ownerSide": true
+    },
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "questionType",
+      "otherEntityRelationshipName": "question",
+      "relationshipName": "type",
+      "otherEntityField": "algoName"
+    },
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "exam",
+      "otherEntityRelationshipName": "question",
+      "relationshipName": "exam",
+      "otherEntityField": "name"
+    }
+  ],
+  "changelogDate": "20220309165135",
+  "entityTableName": "question",
+  "dto": "mapstruct",
+  "pagination": "pagination",
+  "service": "serviceClass",
+  "jpaMetamodelFiltering": false,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "clientRootFolder": "",
+  "applications": "*"
+}
