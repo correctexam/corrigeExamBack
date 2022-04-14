@@ -1,0 +1,37 @@
+{
+  "name": "Zone",
+  "fields": [
+    {
+      "fieldName": "page",
+      "fieldType": "Integer"
+    },
+    {
+      "fieldName": "xInit",
+      "fieldType": "Integer"
+    },
+    {
+      "fieldName": "yInit",
+      "fieldType": "Integer"
+    },
+    {
+      "fieldName": "width",
+      "fieldType": "Integer"
+    },
+    {
+      "fieldName": "height",
+      "fieldType": "Integer"
+    }
+  ],
+  "relationships": [],
+  "changelogDate": "20220309165735",
+  "entityTableName": "zone",
+  "dto": "mapstruct",
+  "pagination": "pagination",
+  "service": "serviceClass",
+  "jpaMetamodelFiltering": false,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "clientRootFolder": "",
+  "applications": "*"
+}

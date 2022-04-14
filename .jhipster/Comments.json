@@ -1,0 +1,29 @@
+{
+  "name": "Comments",
+  "fields": [
+    {
+      "fieldName": "jsonData",
+      "fieldType": "String"
+    }
+  ],
+  "relationships": [
+    {
+      "relationshipType": "many-to-one",
+      "otherEntityName": "studentResponse",
+      "otherEntityRelationshipName": "comments",
+      "relationshipName": "studentResponse",
+      "otherEntityField": "id"
+    }
+  ],
+  "changelogDate": "20220309165635",
+  "entityTableName": "comments",
+  "dto": "mapstruct",
+  "pagination": "pagination",
+  "service": "serviceClass",
+  "jpaMetamodelFiltering": false,
+  "fluentMethods": true,
+  "readOnly": false,
+  "embedded": false,
+  "clientRootFolder": "",
+  "applications": "*"
+}
