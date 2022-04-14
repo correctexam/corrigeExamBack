@@ -54,7 +54,7 @@ public class StudentResponseService {
     public Optional<StudentResponseDTO> findOne(Long id) {
         log.debug("Request to get StudentResponse : {}", id);
         return StudentResponse.findByIdOptional(id)
-            .map(studentResponse -> studentResponseMapper.toDto((StudentResponse) studentResponse)); 
+            .map(studentResponse -> studentResponseMapper.toDto((StudentResponse) studentResponse));
     }
 
     /**
@@ -67,6 +67,19 @@ public class StudentResponseService {
         return new Paged<>(StudentResponse.findAll().page(page))
             .map(studentResponse -> studentResponseMapper.toDto((StudentResponse) studentResponse));
     }
+
+
+    /**
+     * Get all the studentResponses.
+     * @param page the pagination information.
+     * @return the list of entities.
+     */
+    public Paged<StudentResponseDTO> findStudentResponsesbysheetIdAndquestionId(Page page, Long sheetId, Long questionId) {
+        log.debug("Request to get all StudentResponses");
+        return new Paged<>(StudentResponse.findStudentResponsesbysheetIdAndquestionId(sheetId, questionId).page(page))
+            .map(studentResponse -> studentResponseMapper.toDto((StudentResponse) studentResponse));
+    }
+
 
 
 

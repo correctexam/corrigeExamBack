@@ -73,6 +73,13 @@ public class QuestionService {
         return new Paged<>(Question.findQuestionbyExamId(examId).page(page))
             .map(question -> questionMapper.toDto((Question) question));
     }
+    public Paged<QuestionDTO> findQuestionbyExamIdAndNumero(Page page, long examId, int numero) {
+        log.debug("Request to get Questions by ExamID");
+        return new Paged<>(Question.findQuestionbyExamIdandnumero(examId,numero).page(page))
+            .map(question -> questionMapper.toDto((Question) question));
+    }
+
+
     public Paged<QuestionDTO> findQuestionbyZoneId(Page page, long zoneId) {
         log.debug("Request to get Questions by ZoneId");
         return new Paged<>(Question.findQuestionbyZoneId(zoneId).page(page))
