@@ -120,7 +120,14 @@ public class QuestionResource {
         var sort = sortRequest.toSort();
         Paged<QuestionDTO> result = null;
         MultivaluedMap param = uriInfo.getQueryParameters();
-        if (param.containsKey("examId")) {
+        if (param.containsKey("examId") && param.containsKey("numero")) {
+            List id = (List) param.get("examId");
+            List numero = (List) param.get("numero");
+            result = questionService.findQuestionbyExamIdAndNumero(page, Long.parseLong("" + id.get(0)),
+            Integer.parseInt("" + numero.get(0))
+            );
+        }
+        else if (param.containsKey("examId")) {
             List id = (List) param.get("examId");
             result = questionService.findQuestionbyExamId(page, Long.parseLong("" + id.get(0)));
         } else if (param.containsKey("zoneId")) {

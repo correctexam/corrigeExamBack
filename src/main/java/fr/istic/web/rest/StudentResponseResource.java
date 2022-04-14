@@ -107,7 +107,22 @@ public class StudentResponseResource {
         log.debug("REST request to get a page of StudentResponses");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
-        Paged<StudentResponseDTO> result = studentResponseService.findAll(page);
+        Paged<StudentResponseDTO> result = null;
+
+        MultivaluedMap param = uriInfo.getQueryParameters();
+
+        if (param.containsKey("sheetId") && param.containsKey("questionId")) {
+            List sheetId = (List) param.get("sheetId");
+            List questionId = (List) param.get("questionId");
+            result = studentResponseService.findStudentResponsesbysheetIdAndquestionId(page, Long.parseLong("" + sheetId.get(0)),
+            Long.parseLong("" + questionId.get(0))
+            );
+        } else{
+            result =studentResponseService.findAll(page);
+        }
+
+
+
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
         return response.build();

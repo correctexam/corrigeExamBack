@@ -108,7 +108,11 @@ public class ExamSheetResource {
         log.debug("REST request to get a page of ExamSheets");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
-        Paged<ExamSheetDTO> result = examSheetService.findAll(page);
+        Paged<ExamSheetDTO> result = null;
+        MultivaluedMap param = uriInfo.getQueryParameters();
+        result =examSheetService.findAll(page);
+
+
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
         return response.build();
