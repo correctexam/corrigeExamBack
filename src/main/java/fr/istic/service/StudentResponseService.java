@@ -53,7 +53,7 @@ public class StudentResponseService {
      */
     public Optional<StudentResponseDTO> findOne(Long id) {
         log.debug("Request to get StudentResponse : {}", id);
-        return StudentResponse.findByIdOptional(id)
+        return StudentResponse.findOneWithEagerRelationships(id)
             .map(studentResponse -> studentResponseMapper.toDto((StudentResponse) studentResponse));
     }
 
@@ -70,6 +70,19 @@ public class StudentResponseService {
 
 
     /**
+     * Get all the studentResponses with eager load of many-to-many relationships.
+     * @param page the pagination information.
+     * @return the list of entities.
+     */
+    public Paged<StudentResponseDTO> findAllWithEagerRelationships(Page page) {
+        var studentResponses = StudentResponse.findAllWithEagerRelationships().page(page).list();
+        var totalCount = StudentResponse.findAll().count();
+        var pageCount = StudentResponse.findAll().page(page).pageCount();
+        return new Paged<>(page.index, page.size, totalCount, pageCount, studentResponses)
+            .map(studentResponse -> studentResponseMapper.toDto((StudentResponse) studentResponse));
+    }
+
+        /**
      * Get all the studentResponses.
      * @param page the pagination information.
      * @return the list of entities.
@@ -79,8 +92,5 @@ public class StudentResponseService {
         return new Paged<>(StudentResponse.findStudentResponsesbysheetIdAndquestionId(sheetId, questionId).page(page))
             .map(studentResponse -> studentResponseMapper.toDto((StudentResponse) studentResponse));
     }
-
-
-
 
 }

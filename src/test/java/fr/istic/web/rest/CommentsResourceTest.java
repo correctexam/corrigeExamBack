@@ -29,6 +29,9 @@ public class CommentsResourceTest {
     private static final TypeRef<List<CommentsDTO>> LIST_OF_ENTITY_TYPE = new TypeRef<>() {
     };
 
+    private static final String DEFAULT_ZONEGENERATEDID = "AAAAAAAAAA";
+    private static final String UPDATED_ZONEGENERATEDID = "BBBBBBBBBB";
+
     private static final String DEFAULT_JSON_DATA = "AAAAAAAAAA";
     private static final String UPDATED_JSON_DATA = "BBBBBBBBBB";
 
@@ -73,6 +76,7 @@ public class CommentsResourceTest {
      */
     public static CommentsDTO createEntity() {
         var commentsDTO = new CommentsDTO();
+        commentsDTO.zonegeneratedid = DEFAULT_ZONEGENERATEDID;
         commentsDTO.jsonData = DEFAULT_JSON_DATA;
         return commentsDTO;
     }
@@ -126,6 +130,7 @@ public class CommentsResourceTest {
 
         assertThat(commentsDTOList).hasSize(databaseSizeBeforeCreate + 1);
         var testCommentsDTO = commentsDTOList.stream().filter(it -> commentsDTO.id.equals(it.id)).findFirst().get();
+        assertThat(testCommentsDTO.zonegeneratedid).isEqualTo(DEFAULT_ZONEGENERATEDID);
         assertThat(testCommentsDTO.jsonData).isEqualTo(DEFAULT_JSON_DATA);
     }
 
@@ -220,6 +225,7 @@ public class CommentsResourceTest {
             .extract().body().as(ENTITY_TYPE);
 
         // Update the comments
+        updatedCommentsDTO.zonegeneratedid = UPDATED_ZONEGENERATEDID;
         updatedCommentsDTO.jsonData = UPDATED_JSON_DATA;
 
         given()
@@ -249,6 +255,7 @@ public class CommentsResourceTest {
 
         assertThat(commentsDTOList).hasSize(databaseSizeBeforeUpdate);
         var testCommentsDTO = commentsDTOList.stream().filter(it -> updatedCommentsDTO.id.equals(it.id)).findFirst().get();
+        assertThat(testCommentsDTO.zonegeneratedid).isEqualTo(UPDATED_ZONEGENERATEDID);
         assertThat(testCommentsDTO.jsonData).isEqualTo(UPDATED_JSON_DATA);
     }
 
@@ -380,7 +387,7 @@ public class CommentsResourceTest {
             .statusCode(OK.getStatusCode())
             .contentType(APPLICATION_JSON)
             .body("id", hasItem(commentsDTO.id.intValue()))
-            .body("jsonData", hasItem(DEFAULT_JSON_DATA));
+            .body("zonegeneratedid", hasItem(DEFAULT_ZONEGENERATEDID))            .body("jsonData", hasItem(DEFAULT_JSON_DATA));
     }
 
     @Test
@@ -425,6 +432,7 @@ public class CommentsResourceTest {
             .contentType(APPLICATION_JSON)
             .body("id", is(commentsDTO.id.intValue()))
             
+                .body("zonegeneratedid", is(DEFAULT_ZONEGENERATEDID))
                 .body("jsonData", is(DEFAULT_JSON_DATA));
     }
 

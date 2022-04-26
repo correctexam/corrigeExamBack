@@ -20,5 +20,29 @@
                                  referencedColumnNames="id"
                                  referencedTableName="exam_sheet"/>
 
+        <addForeignKeyConstraint baseColumnNames="student_response_id"
+                                 baseTableName="student_response_textcomments"
+                                 constraintName="fk_student_response_textcomments_student_response_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="student_response"/>
+
+        <addForeignKeyConstraint baseColumnNames="textcomments_id"
+                                 baseTableName="student_response_textcomments"
+                                 constraintName="fk_student_response_textcomments_textcomments_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="text_comment"/>
+        
+        <addForeignKeyConstraint baseColumnNames="student_response_id"
+                                 baseTableName="student_response_gradedcomments"
+                                 constraintName="fk_student_response_gradedcomments_student_response_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="student_response"/>
+
+        <addForeignKeyConstraint baseColumnNames="gradedcomments_id"
+                                 baseTableName="student_response_gradedcomments"
+                                 constraintName="fk_student_response_gradedcomments_gradedcomments_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="graded_comment"/>
+        
     </changeSet>
 </databaseChangeLog>

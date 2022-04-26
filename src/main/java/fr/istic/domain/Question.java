@@ -10,6 +10,10 @@ import javax.persistence.*;
 import javax.validation.constraints.*;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+
+import fr.istic.domain.enumeration.GradeType;
 
 /**
  * A Question.
@@ -33,9 +37,24 @@ public class Question extends PanacheEntityBase implements Serializable {
     @Column(name = "point")
     public Integer point;
 
-    @OneToOne(cascade = CascadeType.REMOVE)
+    @Column(name = "step")
+    public Integer step;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "grade_type")
+    public GradeType gradeType;
+
+    @OneToOne
     @JoinColumn(unique = true)
     public Zone zone;
+
+    @OneToMany(mappedBy = "question")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    public Set<TextComment> textcomments = new HashSet<>();
+
+    @OneToMany(mappedBy = "question")
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    public Set<GradedComment> gradedcomments = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "type_id")
@@ -71,6 +90,8 @@ public class Question extends PanacheEntityBase implements Serializable {
             "id=" + id +
             ", numero=" + numero +
             ", point=" + point +
+            ", step=" + step +
+            ", gradeType='" + gradeType + "'" +
             "}";
     }
 
@@ -90,7 +111,11 @@ public class Question extends PanacheEntityBase implements Serializable {
         if (entity != null) {
             entity.numero = question.numero;
             entity.point = question.point;
+            entity.step = question.step;
+            entity.gradeType = question.gradeType;
             entity.zone = question.zone;
+            entity.textcomments = question.textcomments;
+            entity.gradedcomments = question.gradedcomments;
             entity.type = question.type;
             entity.exam = question.exam;
         }

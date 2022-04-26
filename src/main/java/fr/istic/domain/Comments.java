@@ -25,6 +25,9 @@ public class Comments extends PanacheEntityBase implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
 
+    @Column(name = "zonegeneratedid")
+    public String zonegeneratedid;
+
     @Column(name = "json_data")
     public String jsonData;
 
@@ -55,6 +58,7 @@ public class Comments extends PanacheEntityBase implements Serializable {
     public String toString() {
         return "Comments{" +
             "id=" + id +
+            ", zonegeneratedid='" + zonegeneratedid + "'" +
             ", jsonData='" + jsonData + "'" +
             "}";
     }
@@ -73,6 +77,7 @@ public class Comments extends PanacheEntityBase implements Serializable {
         }
         var entity = Comments.<Comments>findById(comments.id);
         if (entity != null) {
+            entity.zonegeneratedid = comments.zonegeneratedid;
             entity.jsonData = comments.jsonData;
             entity.studentResponse = comments.studentResponse;
         }
