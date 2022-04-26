@@ -31,6 +31,28 @@
 
     <changeSet id="20220309165535-1-relations" author="jhipster">
 
+        <createTable tableName="student_response_textcomments">
+            <column name="textcomments_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="student_response_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="student_response_id, textcomments_id" tableName="student_response_textcomments"/>
+        
+        <createTable tableName="student_response_gradedcomments">
+            <column name="gradedcomments_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="student_response_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey columnNames="student_response_id, gradedcomments_id" tableName="student_response_gradedcomments"/>
+        
     </changeSet>
     <!-- jhipster-needle-liquibase-add-changeset - JHipster will add changesets here -->
 

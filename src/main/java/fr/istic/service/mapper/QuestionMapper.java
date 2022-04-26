@@ -20,6 +20,8 @@ public interface QuestionMapper extends EntityMapper<QuestionDTO, Question> {
     QuestionDTO toDto(Question question);
 
     @Mapping(source = "zoneId", target = "zone")
+    @Mapping(target = "textcomments", ignore = true)
+    @Mapping(target = "gradedcomments", ignore = true)
     @Mapping(source = "typeId", target = "type")
     @Mapping(source = "examId", target = "exam")
     Question toEntity(QuestionDTO questionDTO);

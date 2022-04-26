@@ -6,6 +6,8 @@ import javax.validation.constraints.*;
 import java.io.Serializable;
 import java.util.Objects;
 
+import fr.istic.domain.enumeration.GradeType;
+
 /**
  * A DTO for the {@link fr.istic.domain.Question} entity.
  */
@@ -18,6 +20,10 @@ public class QuestionDTO implements Serializable {
     public Integer numero;
 
     public Integer point;
+
+    public Integer step;
+
+    public GradeType gradeType;
 
     public Long zoneId;
     public Long typeId;
@@ -48,6 +54,8 @@ public class QuestionDTO implements Serializable {
             "id=" + id +
             ", numero=" + numero +
             ", point=" + point +
+            ", step=" + step +
+            ", gradeType='" + gradeType + "'" +
             ", zoneId=" + zoneId +
             ", typeId=" + typeId +
             ", typeAlgoName='" + typeAlgoName + "'" +

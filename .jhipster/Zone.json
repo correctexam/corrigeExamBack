@@ -2,7 +2,7 @@
   "name": "Zone",
   "fields": [
     {
-      "fieldName": "page",
+      "fieldName": "pageNumber",
       "fieldType": "Integer"
     },
     {

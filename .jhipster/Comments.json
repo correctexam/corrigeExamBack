@@ -2,6 +2,10 @@
   "name": "Comments",
   "fields": [
     {
+      "fieldName": "zonegeneratedid",
+      "fieldType": "String"
+    },
+    {
       "fieldName": "jsonData",
       "fieldType": "String"
     }

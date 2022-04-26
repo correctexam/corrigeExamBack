@@ -27,6 +27,8 @@
     <include file="config/liquibase/changelog/20220309165635_added_entity_Comments.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220309165735_added_entity_Zone.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220311140708_added_entity_QuestionType.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220422123107_added_entity_TextComment.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220422123207_added_entity_GradedComment.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-changelog - JHipster will add liquibase changelogs here -->
     <include file="config/liquibase/changelog/20220309164635_added_entity_constraints_Course.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220309164735_added_entity_constraints_CourseGroup.xml" relativeToChangelogFile="false"/>
@@ -37,6 +39,8 @@
     <include file="config/liquibase/changelog/20220309165435_added_entity_constraints_FinalResult.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220309165535_added_entity_constraints_StudentResponse.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20220309165635_added_entity_constraints_Comments.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220422123107_added_entity_constraints_TextComment.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20220422123207_added_entity_constraints_GradedComment.xml" relativeToChangelogFile="false"/>
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->
 </databaseChangeLog>

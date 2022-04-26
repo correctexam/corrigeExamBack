@@ -13,6 +13,8 @@ public class CommentsDTO implements Serializable {
     
     public Long id;
 
+    public String zonegeneratedid;
+
     public String jsonData;
 
     public Long studentResponseId;
@@ -38,6 +40,7 @@ public class CommentsDTO implements Serializable {
     public String toString() {
         return "CommentsDTO{" +
             "id=" + id +
+            ", zonegeneratedid='" + zonegeneratedid + "'" +
             ", jsonData='" + jsonData + "'" +
             ", studentResponseId=" + studentResponseId +
             "}";

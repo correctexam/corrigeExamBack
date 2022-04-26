@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 
 import fr.istic.TestUtil;
+import fr.istic.domain.enumeration.GradeType;
 import fr.istic.service.dto.QuestionDTO;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
@@ -19,7 +20,7 @@ import org.junit.jupiter.api.*;
 import javax.inject.Inject;
 
 import java.util.List;
-    
+
 @QuarkusTest
 public class QuestionResourceTest {
 
@@ -34,6 +35,12 @@ public class QuestionResourceTest {
 
     private static final Integer DEFAULT_POINT = 1;
     private static final Integer UPDATED_POINT = 2;
+
+    private static final Integer DEFAULT_STEP = 1;
+    private static final Integer UPDATED_STEP = 2;
+
+    private static final GradeType DEFAULT_GRADE_TYPE = GradeType.DIRECT;
+    private static final GradeType UPDATED_GRADE_TYPE = GradeType.POSITIVE;
 
 
 
@@ -78,6 +85,8 @@ public class QuestionResourceTest {
         var questionDTO = new QuestionDTO();
         questionDTO.numero = DEFAULT_NUMERO;
         questionDTO.point = DEFAULT_POINT;
+        questionDTO.step = DEFAULT_STEP;
+        questionDTO.gradeType = DEFAULT_GRADE_TYPE;
         return questionDTO;
     }
 
@@ -132,6 +141,8 @@ public class QuestionResourceTest {
         var testQuestionDTO = questionDTOList.stream().filter(it -> questionDTO.id.equals(it.id)).findFirst().get();
         assertThat(testQuestionDTO.numero).isEqualTo(DEFAULT_NUMERO);
         assertThat(testQuestionDTO.point).isEqualTo(DEFAULT_POINT);
+        assertThat(testQuestionDTO.step).isEqualTo(DEFAULT_STEP);
+        assertThat(testQuestionDTO.gradeType).isEqualTo(DEFAULT_GRADE_TYPE);
     }
 
     @Test
@@ -273,6 +284,8 @@ public class QuestionResourceTest {
         // Update the question
         updatedQuestionDTO.numero = UPDATED_NUMERO;
         updatedQuestionDTO.point = UPDATED_POINT;
+        updatedQuestionDTO.step = UPDATED_STEP;
+        updatedQuestionDTO.gradeType = UPDATED_GRADE_TYPE;
 
         given()
             .auth()
@@ -303,6 +316,8 @@ public class QuestionResourceTest {
         var testQuestionDTO = questionDTOList.stream().filter(it -> updatedQuestionDTO.id.equals(it.id)).findFirst().get();
         assertThat(testQuestionDTO.numero).isEqualTo(UPDATED_NUMERO);
         assertThat(testQuestionDTO.point).isEqualTo(UPDATED_POINT);
+        assertThat(testQuestionDTO.step).isEqualTo(UPDATED_STEP);
+        assertThat(testQuestionDTO.gradeType).isEqualTo(UPDATED_GRADE_TYPE);
     }
 
     @Test
@@ -433,7 +448,7 @@ public class QuestionResourceTest {
             .statusCode(OK.getStatusCode())
             .contentType(APPLICATION_JSON)
             .body("id", hasItem(questionDTO.id.intValue()))
-            .body("numero", hasItem(DEFAULT_NUMERO.intValue()))            .body("point", hasItem(DEFAULT_POINT.intValue()));
+            .body("numero", hasItem(DEFAULT_NUMERO.intValue()))            .body("point", hasItem(DEFAULT_POINT.intValue()))            .body("step", hasItem(DEFAULT_STEP.intValue()))            .body("gradeType", hasItem(DEFAULT_GRADE_TYPE.toString()));
     }
 
     @Test
@@ -477,9 +492,11 @@ public class QuestionResourceTest {
             .statusCode(OK.getStatusCode())
             .contentType(APPLICATION_JSON)
             .body("id", is(questionDTO.id.intValue()))
-            
+
                 .body("numero", is(DEFAULT_NUMERO.intValue()))
-                .body("point", is(DEFAULT_POINT.intValue()));
+                .body("point", is(DEFAULT_POINT.intValue()))
+                .body("step", is(DEFAULT_STEP.intValue()))
+                .body("gradeType", is(DEFAULT_GRADE_TYPE.toString()));
     }
 
     @Test

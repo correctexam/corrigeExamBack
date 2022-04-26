@@ -3,6 +3,8 @@ package fr.istic.service.dto;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Objects;
 
 /**
@@ -19,6 +21,8 @@ public class StudentResponseDTO implements Serializable {
     public String questionNumero;
     public Long sheetId;
     public String sheetName;
+    public Set<TextCommentDTO> textcomments = new HashSet<>();
+    public Set<GradedCommentDTO> gradedcomments = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {
@@ -46,6 +50,8 @@ public class StudentResponseDTO implements Serializable {
             ", questionNumero='" + questionNumero + "'" +
             ", sheetId=" + sheetId +
             ", sheetName='" + sheetName + "'" +
+            ", textcomments='" + textcomments + "'" +
+            ", gradedcomments='" + gradedcomments + "'" +
             "}";
     }
 }

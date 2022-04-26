@@ -54,7 +54,7 @@
                   separator=";"
                   tableName="zone">
             <column name="id" type="numeric"/>
-            <column name="page" type="numeric"/>
+            <column name="page_number" type="numeric"/>
             <column name="x_init" type="numeric"/>
             <column name="y_init" type="numeric"/>
             <column name="width" type="numeric"/>

@@ -9,6 +9,10 @@
     {
       "fieldName": "point",
       "fieldType": "Integer"
+    },
+    {
+      "fieldName": "step",
+      "fieldType": "Integer"
     }
   ],
   "relationships": [

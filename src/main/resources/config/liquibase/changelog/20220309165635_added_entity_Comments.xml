@@ -16,6 +16,9 @@
             <column name="id" type="bigint" autoIncrement="${autoIncrement}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
+            <column name="zonegeneratedid" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
             <column name="json_data" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
@@ -45,6 +48,7 @@
                   separator=";"
                   tableName="comments">
             <column name="id" type="numeric"/>
+            <column name="zonegeneratedid" type="string"/>
             <column name="json_data" type="string"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here -->
         </loadData>

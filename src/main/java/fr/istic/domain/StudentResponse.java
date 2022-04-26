@@ -11,6 +11,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Optional;
 
 /**
  * A StudentResponse.
@@ -31,7 +32,6 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     public Integer note;
 
     @OneToMany(mappedBy = "studentResponse")
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     public Set<Comments> comments = new HashSet<>();
 
     @ManyToOne
@@ -43,6 +43,22 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     @JoinColumn(name = "sheet_id")
     @JsonbTransient
     public ExamSheet sheet;
+
+    @ManyToMany
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @JoinTable(name = "student_response_textcomments",
+               joinColumns = @JoinColumn(name = "student_response_id", referencedColumnName = "id"),
+               inverseJoinColumns = @JoinColumn(name = "textcomments_id", referencedColumnName = "id"))
+    @JsonbTransient
+    public Set<TextComment> textcomments = new HashSet<>();
+
+    @ManyToMany
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @JoinTable(name = "student_response_gradedcomments",
+               joinColumns = @JoinColumn(name = "student_response_id", referencedColumnName = "id"),
+               inverseJoinColumns = @JoinColumn(name = "gradedcomments_id", referencedColumnName = "id"))
+    @JsonbTransient
+    public Set<GradedComment> gradedcomments = new HashSet<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
 
@@ -88,6 +104,8 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
             entity.comments = studentResponse.comments;
             entity.question = studentResponse.question;
             entity.sheet = studentResponse.sheet;
+            entity.textcomments = studentResponse.textcomments;
+            entity.gradedcomments = studentResponse.gradedcomments;
         }
         return entity;
     }
@@ -104,10 +122,16 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         }
     }
 
+    public static PanacheQuery<StudentResponse> findAllWithEagerRelationships() {
+        return find("select distinct studentResponse from StudentResponse studentResponse left join fetch studentResponse.textcomments left join fetch studentResponse.gradedcomments");
+    }
+
+    public static Optional<StudentResponse> findOneWithEagerRelationships(Long id) {
+        return find("select studentResponse from StudentResponse studentResponse left join fetch studentResponse.textcomments left join fetch studentResponse.gradedcomments where studentResponse.id =?1", id).firstResultOptional();
+    }
 
     public static PanacheQuery<StudentResponse> findStudentResponsesbysheetIdAndquestionId( long sheetId, long questionId) {
         return find("select sr from StudentResponse sr where sr.sheet.id =?1 and question.id=?2", sheetId, questionId);
     }
-
 
 }

@@ -28,6 +28,14 @@ entity Template {
 entity Question {
 	numero Integer required
     point Integer
+    step Integer
+    gradeType GradeType
+}
+
+enum GradeType {
+  DIRECT,
+  POSITIVE,
+  NEGATIVE
 }
 
 entity QuestionType {
@@ -57,7 +65,21 @@ entity StudentResponse {
 	note Integer
 }
 
+entity TextComment {
+	text String
+	zonegeneratedid String
+}
+
+entity GradedComment {
+	zonegeneratedid String
+	text String
+	grade Integer
+
+}
+
+
 entity Comments {
+	zonegeneratedid String
 	jsonData String
 }
 
@@ -88,12 +110,16 @@ relationship OneToMany{
 //	Exam{scan(name)} to Scan{exam(name)}
     StudentResponse{comments} to Comments{studentResponse}
     Scan{sheets} to ExamSheet{scan(name)}
+    Question{textcomments} to TextComment{question}
+    Question{gradedcomments} to GradedComment{question}
 
 }
 
 relationship ManyToMany {
 	CourseGroup{students(name)} to Student{groups(groupName)}
     Student{examSheets(name)} to ExamSheet{students(name)}
+    StudentResponse{textcomments} to TextComment{studentResponse}
+    StudentResponse{gradedcomments} to GradedComment{studentResponse}
 }
 
 relationship OneToOne {

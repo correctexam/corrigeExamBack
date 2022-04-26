@@ -9,7 +9,7 @@ import org.mapstruct.*;
 /**
  * Mapper for the entity {@link StudentResponse} and its DTO {@link StudentResponseDTO}.
  */
-@Mapper(componentModel = "cdi", uses = {QuestionMapper.class, ExamSheetMapper.class})
+@Mapper(componentModel = "cdi", uses = {QuestionMapper.class, ExamSheetMapper.class, TextCommentMapper.class, GradedCommentMapper.class})
 public interface StudentResponseMapper extends EntityMapper<StudentResponseDTO, StudentResponse> {
 
     @Mapping(source = "question.id", target = "questionId")
