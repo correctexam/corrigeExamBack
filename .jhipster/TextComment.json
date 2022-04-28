@@ -1,27 +1,26 @@
 {
-  "name": "Comments",
+  "name": "TextComment",
   "fields": [
     {
-      "fieldName": "zonegeneratedid",
+      "fieldName": "text",
       "fieldType": "String"
     },
     {
-      "fieldName": "jsonData",
-      "fieldType": "byte[]",
-      "fieldTypeBlobContent": "text"
+      "fieldName": "zonegeneratedid",
+      "fieldType": "String"
     }
   ],
   "relationships": [
     {
       "relationshipType": "many-to-one",
       "otherEntityName": "studentResponse",
-      "otherEntityRelationshipName": "comments",
+      "otherEntityRelationshipName": "textcomments",
       "relationshipName": "studentResponse",
       "otherEntityField": "id"
     }
   ],
-  "changelogDate": "20220426094348",
-  "entityTableName": "comments",
+  "changelogDate": "20220422123107",
+  "entityTableName": "text_comment",
   "dto": "mapstruct",
   "pagination": "pagination",
   "service": "serviceClass",

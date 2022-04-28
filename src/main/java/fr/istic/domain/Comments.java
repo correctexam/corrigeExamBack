@@ -28,6 +28,7 @@ public class Comments extends PanacheEntityBase implements Serializable {
     @Column(name = "zonegeneratedid")
     public String zonegeneratedid;
 
+    @Lob
     @Column(name = "json_data")
     public String jsonData;
 
@@ -95,6 +96,11 @@ public class Comments extends PanacheEntityBase implements Serializable {
             return update(comments);
         }
     }
+
+    public static PanacheQuery<Comments> findCommentsbyZonegeneratedid( String zonegeneratedid) {
+        return find("select c from Comments c where c.zonegeneratedid =?1", zonegeneratedid);
+    }
+
 
 
 }

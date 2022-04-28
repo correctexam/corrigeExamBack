@@ -4,6 +4,10 @@
     {
       "fieldName": "note",
       "fieldType": "Integer"
+    },
+    {
+      "fieldName": "star",
+      "fieldType": "Boolean"
     }
   ],
   "relationships": [
@@ -38,9 +42,25 @@
       "otherEntityRelationshipName": "studentResponse",
       "relationshipName": "sheet",
       "otherEntityField": "name"
+    },
+    {
+      "relationshipType": "many-to-many",
+      "otherEntityName": "textComment",
+      "otherEntityRelationshipName": "studentResponse",
+      "relationshipName": "textcomments",
+      "otherEntityField": "id",
+      "ownerSide": true
+    },
+    {
+      "relationshipType": "many-to-many",
+      "otherEntityName": "gradedComment",
+      "otherEntityRelationshipName": "studentResponse",
+      "relationshipName": "gradedcomments",
+      "otherEntityField": "id",
+      "ownerSide": true
     }
   ],
-  "changelogDate": "20220309165535",
+  "changelogDate": "20220426094048",
   "entityTableName": "student_response",
   "dto": "mapstruct",
   "pagination": "pagination",

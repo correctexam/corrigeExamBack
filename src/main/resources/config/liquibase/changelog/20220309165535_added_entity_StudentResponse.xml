@@ -19,6 +19,10 @@
             <column name="note" type="integer">
                 <constraints nullable="true" />
             </column>
+            <column name="star" type="boolean">
+               <constraints nullable="true" />
+            </column>
+
             <column name="question_id" type="bigint">
                 <constraints nullable="true" />
             </column>
@@ -41,7 +45,7 @@
         </createTable>
 
         <addPrimaryKey columnNames="student_response_id, textcomments_id" tableName="student_response_textcomments"/>
-        
+
         <createTable tableName="student_response_gradedcomments">
             <column name="gradedcomments_id" type="bigint">
                 <constraints nullable="false"/>
@@ -52,7 +56,7 @@
         </createTable>
 
         <addPrimaryKey columnNames="student_response_id, gradedcomments_id" tableName="student_response_gradedcomments"/>
-        
+
     </changeSet>
     <!-- jhipster-needle-liquibase-add-changeset - JHipster will add changesets here -->
 

@@ -54,7 +54,7 @@ public class CommentsService {
     public Optional<CommentsDTO> findOne(Long id) {
         log.debug("Request to get Comments : {}", id);
         return Comments.findByIdOptional(id)
-            .map(comments -> commentsMapper.toDto((Comments) comments)); 
+            .map(comments -> commentsMapper.toDto((Comments) comments));
     }
 
     /**
@@ -67,6 +67,17 @@ public class CommentsService {
         return new Paged<>(Comments.findAll().page(page))
             .map(comments -> commentsMapper.toDto((Comments) comments));
     }
+    /**
+     * Get all the comments.
+     * @param page the pagination information.
+     * @return the list of entities.
+     */
+    public Paged<CommentsDTO> findCommentsbyZonegeneratedid(Page page, String zonegeneratedid) {
+        log.debug("Request to get all Comments");
+        return new Paged<>(Comments.findCommentsbyZonegeneratedid(zonegeneratedid).page(page))
+            .map(comments -> commentsMapper.toDto((Comments) comments));
+    }
+
 
 
 

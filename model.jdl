@@ -63,14 +63,17 @@ entity FinalResult {
 
 entity StudentResponse {
 	note Integer
+    star Boolean
 }
 
 entity TextComment {
 	text String
+    // Could be removed
 	zonegeneratedid String
 }
 
 entity GradedComment {
+    // Could be removed
 	zonegeneratedid String
 	text String
 	grade Integer
@@ -80,7 +83,7 @@ entity GradedComment {
 
 entity Comments {
 	zonegeneratedid String
-	jsonData String
+	jsonData TextBlob
 }
 
 

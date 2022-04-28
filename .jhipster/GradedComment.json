@@ -1,27 +1,30 @@
 {
-  "name": "Comments",
+  "name": "GradedComment",
   "fields": [
     {
       "fieldName": "zonegeneratedid",
       "fieldType": "String"
     },
     {
-      "fieldName": "jsonData",
-      "fieldType": "byte[]",
-      "fieldTypeBlobContent": "text"
+      "fieldName": "text",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "grade",
+      "fieldType": "Integer"
     }
   ],
   "relationships": [
     {
       "relationshipType": "many-to-one",
       "otherEntityName": "studentResponse",
-      "otherEntityRelationshipName": "comments",
+      "otherEntityRelationshipName": "gradedcomments",
       "relationshipName": "studentResponse",
       "otherEntityField": "id"
     }
   ],
-  "changelogDate": "20220426094348",
-  "entityTableName": "comments",
+  "changelogDate": "20220422123207",
+  "entityTableName": "graded_comment",
   "dto": "mapstruct",
   "pagination": "pagination",
   "service": "serviceClass",
