@@ -107,7 +107,16 @@ public class CommentsResource {
         log.debug("REST request to get a page of Comments");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
-        Paged<CommentsDTO> result = commentsService.findAll(page);
+        Paged<CommentsDTO> result = null;
+        MultivaluedMap param = uriInfo.getQueryParameters();
+        if (param.containsKey("zonegeneratedid")) {
+            List<String> zonegeneratedid = (List<String>) param.get("zonegeneratedid");
+            result = commentsService.findCommentsbyZonegeneratedid(page,  zonegeneratedid.get(0));
+        }
+        else {
+
+            result =commentsService.findAll(page);
+        }
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
         return response.build();

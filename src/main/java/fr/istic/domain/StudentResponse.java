@@ -31,6 +31,9 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     @Column(name = "note")
     public Integer note;
 
+    @Column(name = "star")
+    public Boolean star;
+
     @OneToMany(mappedBy = "studentResponse")
     public Set<Comments> comments = new HashSet<>();
 
@@ -83,6 +86,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         return "StudentResponse{" +
             "id=" + id +
             ", note=" + note +
+            ", star='" + star + "'" +
             "}";
     }
 
@@ -101,6 +105,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         var entity = StudentResponse.<StudentResponse>findById(studentResponse.id);
         if (entity != null) {
             entity.note = studentResponse.note;
+            entity.star = studentResponse.star;
             entity.comments = studentResponse.comments;
             entity.question = studentResponse.question;
             entity.sheet = studentResponse.sheet;
