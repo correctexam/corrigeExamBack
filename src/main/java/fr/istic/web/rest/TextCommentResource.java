@@ -107,7 +107,19 @@ public class TextCommentResource {
         log.debug("REST request to get a page of TextComments");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
-        Paged<TextCommentDTO> result = textCommentService.findAll(page);
+        MultivaluedMap param = uriInfo.getQueryParameters();
+        Paged<TextCommentDTO> result = null;
+        if (param.containsKey("questionId") ) {
+            List questionId = (List) param.get("questionId");
+            result = textCommentService.findTextCommentByQuestionId(page, Long.parseLong("" + questionId.get(0)));
+        }
+
+
+
+        else{
+            result = textCommentService.findAll(page);
+
+        }
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
         return response.build();

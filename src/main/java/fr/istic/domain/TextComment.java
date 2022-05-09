@@ -17,7 +17,6 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "text_comment")
-@Cacheable
 @RegisterForReflection
 public class TextComment extends PanacheEntityBase implements Serializable {
 
@@ -29,6 +28,10 @@ public class TextComment extends PanacheEntityBase implements Serializable {
 
     @Column(name = "text")
     public String text;
+
+    @Lob
+    @Column(name = "description")
+     public String description;
 
     @Column(name = "zonegeneratedid")
     public String zonegeneratedid;
@@ -65,6 +68,7 @@ public class TextComment extends PanacheEntityBase implements Serializable {
         return "TextComment{" +
             "id=" + id +
             ", text='" + text + "'" +
+            ", description='" + description + "'" +
             ", zonegeneratedid='" + zonegeneratedid + "'" +
             "}";
     }
@@ -84,6 +88,7 @@ public class TextComment extends PanacheEntityBase implements Serializable {
         var entity = TextComment.<TextComment>findById(textComment.id);
         if (entity != null) {
             entity.text = textComment.text;
+            entity.description = textComment.description;
             entity.zonegeneratedid = textComment.zonegeneratedid;
             entity.question = textComment.question;
             entity.studentResponses = textComment.studentResponses;
@@ -102,6 +107,12 @@ public class TextComment extends PanacheEntityBase implements Serializable {
             return update(textComment);
         }
     }
+
+
+    public static PanacheQuery<TextComment> findByQuestionId( long qid) {
+        return find("select textcomment from TextComment textcomment where textcomment.question.id =?1", qid);
+    }
+
 
 
 }

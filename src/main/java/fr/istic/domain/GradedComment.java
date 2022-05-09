@@ -17,7 +17,6 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "graded_comment")
-@Cacheable
 @RegisterForReflection
 public class GradedComment extends PanacheEntityBase implements Serializable {
 
@@ -32,6 +31,10 @@ public class GradedComment extends PanacheEntityBase implements Serializable {
 
     @Column(name = "text")
     public String text;
+
+    @Lob
+    @Column(name = "description")
+     public String description;
 
     @Column(name = "grade")
     public Integer grade;
@@ -69,6 +72,7 @@ public class GradedComment extends PanacheEntityBase implements Serializable {
             "id=" + id +
             ", zonegeneratedid='" + zonegeneratedid + "'" +
             ", text='" + text + "'" +
+            ", description='" + description + "'" +
             ", grade=" + grade +
             "}";
     }
@@ -89,6 +93,7 @@ public class GradedComment extends PanacheEntityBase implements Serializable {
         if (entity != null) {
             entity.zonegeneratedid = gradedComment.zonegeneratedid;
             entity.text = gradedComment.text;
+            entity.description = gradedComment.description;
             entity.grade = gradedComment.grade;
             entity.question = gradedComment.question;
             entity.studentResponses = gradedComment.studentResponses;

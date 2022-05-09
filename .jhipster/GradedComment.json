@@ -10,6 +10,11 @@
       "fieldType": "String"
     },
     {
+      "fieldName": "description",
+      "fieldType": "byte[]",
+      "fieldTypeBlobContent": "text"
+    },
+    {
       "fieldName": "grade",
       "fieldType": "Integer"
     }

@@ -4,6 +4,7 @@ package fr.istic.service.dto;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.io.Serializable;
 import java.util.Objects;
+import javax.persistence.Lob;
 
 /**
  * A DTO for the {@link fr.istic.domain.GradedComment} entity.
@@ -16,6 +17,9 @@ public class GradedCommentDTO implements Serializable {
     public String zonegeneratedid;
 
     public String text;
+
+    @Lob
+    public String description;
 
     public Integer grade;
 
@@ -44,6 +48,7 @@ public class GradedCommentDTO implements Serializable {
             "id=" + id +
             ", zonegeneratedid='" + zonegeneratedid + "'" +
             ", text='" + text + "'" +
+            ", description='" + description + "'" +
             ", grade=" + grade +
             ", questionId=" + questionId +
             "}";

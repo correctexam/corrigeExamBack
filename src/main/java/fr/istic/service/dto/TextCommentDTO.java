@@ -4,6 +4,7 @@ package fr.istic.service.dto;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.io.Serializable;
 import java.util.Objects;
+import javax.persistence.Lob;
 
 /**
  * A DTO for the {@link fr.istic.domain.TextComment} entity.
@@ -14,6 +15,9 @@ public class TextCommentDTO implements Serializable {
     public Long id;
 
     public String text;
+
+    @Lob
+    public String description;
 
     public String zonegeneratedid;
 
@@ -41,6 +45,7 @@ public class TextCommentDTO implements Serializable {
         return "TextCommentDTO{" +
             "id=" + id +
             ", text='" + text + "'" +
+            ", description='" + description + "'" +
             ", zonegeneratedid='" + zonegeneratedid + "'" +
             ", questionId=" + questionId +
             "}";

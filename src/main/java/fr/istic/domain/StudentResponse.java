@@ -11,6 +11,8 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.Optional;
 
 /**
@@ -48,7 +50,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     public ExamSheet sheet;
 
     @ManyToMany
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+//    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JoinTable(name = "student_response_textcomments",
                joinColumns = @JoinColumn(name = "student_response_id", referencedColumnName = "id"),
                inverseJoinColumns = @JoinColumn(name = "textcomments_id", referencedColumnName = "id"))
@@ -56,7 +58,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     public Set<TextComment> textcomments = new HashSet<>();
 
     @ManyToMany
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+//    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JoinTable(name = "student_response_gradedcomments",
                joinColumns = @JoinColumn(name = "student_response_id", referencedColumnName = "id"),
                inverseJoinColumns = @JoinColumn(name = "gradedcomments_id", referencedColumnName = "id"))
@@ -109,8 +111,17 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
             entity.comments = studentResponse.comments;
             entity.question = studentResponse.question;
             entity.sheet = studentResponse.sheet;
-            entity.textcomments = studentResponse.textcomments;
-            entity.gradedcomments = studentResponse.gradedcomments;
+
+            var ts  = studentResponse.textcomments.stream().map(te -> te.id).collect(Collectors.toList());
+            entity.textcomments.removeIf(t -> !ts.contains(t.id));
+            var ts1  = entity.textcomments.stream().map(te -> te.id).collect(Collectors.toList());
+            entity.textcomments.addAll(studentResponse.textcomments.stream().filter(ts2 -> !ts1.contains(ts2.id)).collect(Collectors.toList()));
+
+            var gs  = studentResponse.gradedcomments.stream().map(te -> te.id).collect(Collectors.toList());
+            entity.gradedcomments.removeIf(t -> !gs.contains(t.id));
+            var gs1  = entity.gradedcomments.stream().map(te -> te.id).collect(Collectors.toList());
+            entity.gradedcomments.addAll(studentResponse.gradedcomments.stream().filter(gs2 -> !gs1.contains(gs2.id)).collect(Collectors.toList()));
+
         }
         return entity;
     }
