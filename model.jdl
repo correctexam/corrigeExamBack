@@ -68,6 +68,7 @@ entity StudentResponse {
 
 entity TextComment {
 	text String
+	description TextBlob
     // Could be removed
 	zonegeneratedid String
 }
@@ -76,8 +77,8 @@ entity GradedComment {
     // Could be removed
 	zonegeneratedid String
 	text String
+    description TextBlob
 	grade Integer
-
 }
 
 

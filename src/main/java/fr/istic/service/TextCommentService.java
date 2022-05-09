@@ -54,7 +54,7 @@ public class TextCommentService {
     public Optional<TextCommentDTO> findOne(Long id) {
         log.debug("Request to get TextComment : {}", id);
         return TextComment.findByIdOptional(id)
-            .map(textComment -> textCommentMapper.toDto((TextComment) textComment)); 
+            .map(textComment -> textCommentMapper.toDto((TextComment) textComment));
     }
 
     /**
@@ -65,6 +65,19 @@ public class TextCommentService {
     public Paged<TextCommentDTO> findAll(Page page) {
         log.debug("Request to get all TextComments");
         return new Paged<>(TextComment.findAll().page(page))
+            .map(textComment -> textCommentMapper.toDto((TextComment) textComment));
+    }
+
+
+
+    /**
+     * Get all the textComments.
+     * @param page the pagination information.
+     * @return the list of entities.
+     */
+    public Paged<TextCommentDTO> findTextCommentByQuestionId(Page page, long qId) {
+        log.debug("Request to get all TextComments by QID");
+        return new Paged<>(TextComment.findByQuestionId(qId).page(page))
             .map(textComment -> textCommentMapper.toDto((TextComment) textComment));
     }
 

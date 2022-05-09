@@ -19,6 +19,9 @@
             <column name="text" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
+            <column name="description" type="${clobType}">
+                <constraints nullable="true" />
+            </column>
             <column name="zonegeneratedid" type="varchar(255)">
                 <constraints nullable="true" />
             </column>
@@ -49,6 +52,7 @@
                   tableName="text_comment">
             <column name="id" type="numeric"/>
             <column name="text" type="string"/>
+            <column name="description" type="clob"/>
             <column name="zonegeneratedid" type="string"/>
             <!-- jhipster-needle-liquibase-add-loadcolumn - JHipster (and/or extensions) can add load columns here -->
         </loadData>

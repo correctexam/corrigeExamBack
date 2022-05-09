@@ -6,6 +6,11 @@
       "fieldType": "String"
     },
     {
+      "fieldName": "description",
+      "fieldType": "byte[]",
+      "fieldTypeBlobContent": "text"
+    },
+    {
       "fieldName": "zonegeneratedid",
       "fieldType": "String"
     }
