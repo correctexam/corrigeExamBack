@@ -14,11 +14,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.istic.domain.Zone;
+import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.Paged;
 import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -53,6 +55,7 @@ public class ZoneResource {
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new zoneDTO, or with status {@code 400 (Bad Request)} if the zone has already an ID.
      */
     @POST
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createZone(ZoneDTO zoneDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to save Zone : {}", zoneDTO);
         if (zoneDTO.id != null) {
@@ -73,6 +76,7 @@ public class ZoneResource {
      * or with status {@code 500 (Internal Server Error)} if the zoneDTO couldn't be updated.
      */
     @PUT
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateZone(ZoneDTO zoneDTO) {
         log.debug("REST request to update Zone : {}", zoneDTO);
         if (zoneDTO.id == null) {
@@ -91,6 +95,7 @@ public class ZoneResource {
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
     @DELETE
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Path("/{id}")
     public Response deleteZone(@PathParam("id") Long id) {
         log.debug("REST request to delete Zone : {}", id);
@@ -146,6 +151,7 @@ public class ZoneResource {
      */
     @PATCH
     @Path(value = "/{id}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response partialUpdateZone(
         @PathParam(value = "id") final Long id,
         ZoneDTO zoneDTO
@@ -166,6 +172,7 @@ public class ZoneResource {
 
     @PATCH
     @Path(value = "/scaling/{id}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response partialResizeZone(
         @PathParam(value = "id") final Long id,
         ResizeZoneDTO rzoneDTO

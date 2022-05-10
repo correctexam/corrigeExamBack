@@ -11,19 +11,20 @@ import fr.istic.service.dto.TemplateDTO;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.Paged;
 import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.StreamSupport;
 
 /**
  * REST controller for managing {@link fr.istic.domain.Template}.
@@ -51,6 +52,7 @@ public class TemplateResource {
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new templateDTO, or with status {@code 400 (Bad Request)} if the template has already an ID.
      */
     @POST
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createTemplate(@Valid TemplateDTO templateDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to save Template : {}", templateDTO);
         if (templateDTO.id != null) {
@@ -71,6 +73,7 @@ public class TemplateResource {
      * or with status {@code 500 (Internal Server Error)} if the templateDTO couldn't be updated.
      */
     @PUT
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateTemplate(@Valid TemplateDTO templateDTO) {
         log.debug("REST request to update Template : {}", templateDTO);
         if (templateDTO.id == null) {
@@ -89,6 +92,7 @@ public class TemplateResource {
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
     @DELETE
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Path("/{id}")
     public Response deleteTemplate(@PathParam("id") Long id) {
         log.debug("REST request to delete Template : {}", id);

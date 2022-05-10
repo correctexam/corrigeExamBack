@@ -11,11 +11,14 @@ import fr.istic.service.dto.QuestionDTO;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.Paged;
 import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -52,6 +55,8 @@ public class QuestionResource {
      *         question has already an ID.
      */
     @POST
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+
     public Response createQuestion(@Valid QuestionDTO questionDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to save Question : {}", questionDTO);
         if (questionDTO.id != null) {
@@ -76,6 +81,7 @@ public class QuestionResource {
      *         couldn't be updated.
      */
     @PUT
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateQuestion(@Valid QuestionDTO questionDTO) {
         log.debug("REST request to update Question : {}", questionDTO);
         if (questionDTO.id == null) {
@@ -96,6 +102,7 @@ public class QuestionResource {
      */
     @DELETE
     @Path("/{id}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response deleteQuestion(@PathParam("id") Long id) {
         log.debug("REST request to delete Question : {}", id);
         questionService.delete(id);

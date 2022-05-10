@@ -11,11 +11,14 @@ import fr.istic.service.dto.TextCommentDTO;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.Paged;
 import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -49,6 +52,7 @@ public class TextCommentResource {
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new textCommentDTO, or with status {@code 400 (Bad Request)} if the textComment has already an ID.
      */
     @POST
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createTextComment(TextCommentDTO textCommentDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to save TextComment : {}", textCommentDTO);
         if (textCommentDTO.id != null) {
@@ -69,6 +73,7 @@ public class TextCommentResource {
      * or with status {@code 500 (Internal Server Error)} if the textCommentDTO couldn't be updated.
      */
     @PUT
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateTextComment(TextCommentDTO textCommentDTO) {
         log.debug("REST request to update TextComment : {}", textCommentDTO);
         if (textCommentDTO.id == null) {
@@ -88,6 +93,7 @@ public class TextCommentResource {
      */
     @DELETE
     @Path("/{id}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response deleteTextComment(@PathParam("id") Long id) {
         log.debug("REST request to delete TextComment : {}", id);
         textCommentService.delete(id);

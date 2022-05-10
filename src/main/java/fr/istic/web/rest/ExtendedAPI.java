@@ -6,6 +6,7 @@ import fr.istic.domain.Course;
 import fr.istic.domain.CourseGroup;
 import fr.istic.domain.Student;
 import fr.istic.domain.User;
+import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.CommentsService;
 import fr.istic.service.CourseGroupService;
 import fr.istic.web.rest.errors.BadRequestAlertException;
@@ -26,6 +27,7 @@ import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -71,6 +73,7 @@ public class ExtendedAPI {
     @POST
     @Path("createstudentmasse")
     @Transactional
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createAllStudent(StudentMassDTO dto, @Context SecurityContext ctx) {
         var userLogin = Optional
                 .ofNullable(ctx.getUserPrincipal().getName());
@@ -141,6 +144,7 @@ public class ExtendedAPI {
 
     @DELETE
     @Path("deletegroupstudents/{courseid}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Transactional
     public Response deleteAllStudent4Course(@PathParam("courseid") long courseid, @Context SecurityContext ctx) {
         var userLogin = Optional

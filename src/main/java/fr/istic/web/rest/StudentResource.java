@@ -11,11 +11,14 @@ import fr.istic.service.dto.StudentDTO;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.Paged;
 import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -50,6 +53,7 @@ public class StudentResource {
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new studentDTO, or with status {@code 400 (Bad Request)} if the student has already an ID.
      */
     @POST
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createStudent(@Valid StudentDTO studentDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to save Student : {}", studentDTO);
         if (studentDTO.id != null) {
@@ -70,6 +74,7 @@ public class StudentResource {
      * or with status {@code 500 (Internal Server Error)} if the studentDTO couldn't be updated.
      */
     @PUT
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateStudent(@Valid StudentDTO studentDTO) {
         log.debug("REST request to update Student : {}", studentDTO);
         if (studentDTO.id == null) {
@@ -88,6 +93,7 @@ public class StudentResource {
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
     @DELETE
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Path("/{id}")
     public Response deleteStudent(@PathParam("id") Long id) {
         log.debug("REST request to delete Student : {}", id);

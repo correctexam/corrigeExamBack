@@ -113,5 +113,8 @@ public class GradedComment extends PanacheEntityBase implements Serializable {
         }
     }
 
+    public static PanacheQuery<GradedComment> findByQuestionId( long qid) {
+        return find("select gradedcomment from GradedComment gradedcomment where gradedcomment.question.id =?1", qid);
+    }
 
 }

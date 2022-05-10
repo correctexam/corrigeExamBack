@@ -3,15 +3,12 @@ import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import javax.json.bind.annotation.JsonbTransient;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.Optional;
 

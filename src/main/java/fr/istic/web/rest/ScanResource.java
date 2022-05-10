@@ -11,11 +11,14 @@ import fr.istic.service.dto.ScanDTO;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.Paged;
 import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -50,6 +53,7 @@ public class ScanResource {
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new scanDTO, or with status {@code 400 (Bad Request)} if the scan has already an ID.
      */
     @POST
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createScan(@Valid ScanDTO scanDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to save Scan : {}", scanDTO);
         if (scanDTO.id != null) {
@@ -70,6 +74,7 @@ public class ScanResource {
      * or with status {@code 500 (Internal Server Error)} if the scanDTO couldn't be updated.
      */
     @PUT
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateScan(@Valid ScanDTO scanDTO) {
         log.debug("REST request to update Scan : {}", scanDTO);
         if (scanDTO.id == null) {
@@ -89,6 +94,7 @@ public class ScanResource {
      */
     @DELETE
     @Path("/{id}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response deleteScan(@PathParam("id") Long id) {
         log.debug("REST request to delete Scan : {}", id);
         scanService.delete(id);
