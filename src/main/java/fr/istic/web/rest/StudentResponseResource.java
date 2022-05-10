@@ -11,11 +11,14 @@ import fr.istic.service.dto.StudentResponseDTO;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.Paged;
 import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -49,6 +52,7 @@ public class StudentResponseResource {
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new studentResponseDTO, or with status {@code 400 (Bad Request)} if the studentResponse has already an ID.
      */
     @POST
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createStudentResponse(StudentResponseDTO studentResponseDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to save StudentResponse : {}", studentResponseDTO);
         if (studentResponseDTO.id != null) {
@@ -69,6 +73,7 @@ public class StudentResponseResource {
      * or with status {@code 500 (Internal Server Error)} if the studentResponseDTO couldn't be updated.
      */
     @PUT
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateStudentResponse(StudentResponseDTO studentResponseDTO) {
         log.debug("REST request to update StudentResponse : {}", studentResponseDTO);
         if (studentResponseDTO.id == null) {
@@ -87,6 +92,7 @@ public class StudentResponseResource {
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
     @DELETE
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Path("/{id}")
     public Response deleteStudentResponse(@PathParam("id") Long id) {
         log.debug("REST request to delete StudentResponse : {}", id);

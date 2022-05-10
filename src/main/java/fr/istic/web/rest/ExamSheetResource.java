@@ -2,6 +2,7 @@ package fr.istic.web.rest;
 
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
+import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.ExamSheetService;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
@@ -16,6 +17,7 @@ import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -50,6 +52,7 @@ public class ExamSheetResource {
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new examSheetDTO, or with status {@code 400 (Bad Request)} if the examSheet has already an ID.
      */
     @POST
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createExamSheet(@Valid ExamSheetDTO examSheetDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to save ExamSheet : {}", examSheetDTO);
         if (examSheetDTO.id != null) {
@@ -70,6 +73,7 @@ public class ExamSheetResource {
      * or with status {@code 500 (Internal Server Error)} if the examSheetDTO couldn't be updated.
      */
     @PUT
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateExamSheet(@Valid ExamSheetDTO examSheetDTO) {
         log.debug("REST request to update ExamSheet : {}", examSheetDTO);
         if (examSheetDTO.id == null) {
@@ -89,6 +93,7 @@ public class ExamSheetResource {
      */
     @DELETE
     @Path("/{id}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response deleteExamSheet(@PathParam("id") Long id) {
         log.debug("REST request to delete ExamSheet : {}", id);
         examSheetService.delete(id);

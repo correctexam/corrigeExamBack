@@ -2,6 +2,7 @@ package fr.istic.web.rest;
 
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
+import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.GradedCommentService;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
@@ -16,6 +17,7 @@ import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -49,6 +51,7 @@ public class GradedCommentResource {
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new gradedCommentDTO, or with status {@code 400 (Bad Request)} if the gradedComment has already an ID.
      */
     @POST
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createGradedComment(GradedCommentDTO gradedCommentDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to save GradedComment : {}", gradedCommentDTO);
         if (gradedCommentDTO.id != null) {
@@ -69,6 +72,7 @@ public class GradedCommentResource {
      * or with status {@code 500 (Internal Server Error)} if the gradedCommentDTO couldn't be updated.
      */
     @PUT
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateGradedComment(GradedCommentDTO gradedCommentDTO) {
         log.debug("REST request to update GradedComment : {}", gradedCommentDTO);
         if (gradedCommentDTO.id == null) {
@@ -88,6 +92,7 @@ public class GradedCommentResource {
      */
     @DELETE
     @Path("/{id}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response deleteGradedComment(@PathParam("id") Long id) {
         log.debug("REST request to delete GradedComment : {}", id);
         gradedCommentService.delete(id);
@@ -107,7 +112,16 @@ public class GradedCommentResource {
         log.debug("REST request to get a page of GradedComments");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
-        Paged<GradedCommentDTO> result = gradedCommentService.findAll(page);
+        Paged<GradedCommentDTO> result = null;
+        MultivaluedMap param = uriInfo.getQueryParameters();
+        if (param.containsKey("questionId") ) {
+            List questionId = (List) param.get("questionId");
+            result = gradedCommentService.findGradedCommentByQuestionId(page, Long.parseLong("" + questionId.get(0)));
+        }
+        else{
+            result = gradedCommentService.findAll(page);
+
+        }
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
         return response.build();

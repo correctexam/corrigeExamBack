@@ -2,6 +2,7 @@ package fr.istic.web.rest;
 
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
+import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.FinalResultService;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
@@ -16,11 +17,11 @@ import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -49,6 +50,7 @@ public class FinalResultResource {
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new finalResultDTO, or with status {@code 400 (Bad Request)} if the finalResult has already an ID.
      */
     @POST
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createFinalResult(FinalResultDTO finalResultDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to save FinalResult : {}", finalResultDTO);
         if (finalResultDTO.id != null) {
@@ -69,6 +71,7 @@ public class FinalResultResource {
      * or with status {@code 500 (Internal Server Error)} if the finalResultDTO couldn't be updated.
      */
     @PUT
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateFinalResult(FinalResultDTO finalResultDTO) {
         log.debug("REST request to update FinalResult : {}", finalResultDTO);
         if (finalResultDTO.id == null) {
@@ -87,6 +90,7 @@ public class FinalResultResource {
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
     @DELETE
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Path("/{id}")
     public Response deleteFinalResult(@PathParam("id") Long id) {
         log.debug("REST request to delete FinalResult : {}", id);

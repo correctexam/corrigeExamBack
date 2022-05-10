@@ -54,7 +54,7 @@ public class GradedCommentService {
     public Optional<GradedCommentDTO> findOne(Long id) {
         log.debug("Request to get GradedComment : {}", id);
         return GradedComment.findByIdOptional(id)
-            .map(gradedComment -> gradedCommentMapper.toDto((GradedComment) gradedComment)); 
+            .map(gradedComment -> gradedCommentMapper.toDto((GradedComment) gradedComment));
     }
 
     /**
@@ -65,6 +65,16 @@ public class GradedCommentService {
     public Paged<GradedCommentDTO> findAll(Page page) {
         log.debug("Request to get all GradedComments");
         return new Paged<>(GradedComment.findAll().page(page))
+            .map(gradedComment -> gradedCommentMapper.toDto((GradedComment) gradedComment));
+    }
+    /**
+     * Get all the textComments.
+     * @param page the pagination information.
+     * @return the list of entities.
+     */
+    public Paged<GradedCommentDTO> findGradedCommentByQuestionId(Page page, long qId) {
+        log.debug("Request to get all GradedComments by QID");
+        return new Paged<>(GradedComment.findByQuestionId(qId).page(page))
             .map(gradedComment -> gradedCommentMapper.toDto((GradedComment) gradedComment));
     }
 

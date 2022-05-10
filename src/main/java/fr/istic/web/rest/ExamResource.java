@@ -2,6 +2,7 @@ package fr.istic.web.rest;
 
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
+import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.ExamService;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
@@ -16,6 +17,7 @@ import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -50,6 +52,7 @@ public class ExamResource {
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new examDTO, or with status {@code 400 (Bad Request)} if the exam has already an ID.
      */
     @POST
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createExam(@Valid ExamDTO examDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to save Exam : {}", examDTO);
         if (examDTO.id != null) {
@@ -70,6 +73,7 @@ public class ExamResource {
      * or with status {@code 500 (Internal Server Error)} if the examDTO couldn't be updated.
      */
     @PUT
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateExam(@Valid ExamDTO examDTO) {
         log.debug("REST request to update Exam : {}", examDTO);
         if (examDTO.id == null) {
@@ -88,6 +92,7 @@ public class ExamResource {
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
     @DELETE
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Path("/{id}")
     public Response deleteExam(@PathParam("id") Long id) {
         log.debug("REST request to delete Exam : {}", id);

@@ -11,11 +11,14 @@ import fr.istic.service.dto.QuestionTypeDTO;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.Paged;
 import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -50,6 +53,7 @@ public class QuestionTypeResource {
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new questionTypeDTO, or with status {@code 400 (Bad Request)} if the questionType has already an ID.
      */
     @POST
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createQuestionType(@Valid QuestionTypeDTO questionTypeDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to save QuestionType : {}", questionTypeDTO);
         if (questionTypeDTO.id != null) {
@@ -70,6 +74,7 @@ public class QuestionTypeResource {
      * or with status {@code 500 (Internal Server Error)} if the questionTypeDTO couldn't be updated.
      */
     @PUT
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateQuestionType(@Valid QuestionTypeDTO questionTypeDTO) {
         log.debug("REST request to update QuestionType : {}", questionTypeDTO);
         if (questionTypeDTO.id == null) {
@@ -89,6 +94,7 @@ public class QuestionTypeResource {
      */
     @DELETE
     @Path("/{id}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response deleteQuestionType(@PathParam("id") Long id) {
         log.debug("REST request to delete QuestionType : {}", id);
         questionTypeService.delete(id);

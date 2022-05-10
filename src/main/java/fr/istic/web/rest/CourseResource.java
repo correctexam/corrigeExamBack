@@ -4,6 +4,7 @@ import static javax.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.domain.Authority;
 import fr.istic.domain.User;
+import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.CourseService;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
@@ -18,6 +19,7 @@ import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.Valid;
@@ -59,6 +61,7 @@ public class CourseResource {
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new courseDTO, or with status {@code 400 (Bad Request)} if the course has already an ID.
      */
     @POST
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createCourse(@Valid CourseDTO courseDTO, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to save Course : {}", courseDTO);
         if (courseDTO.id != null) {
@@ -93,6 +96,7 @@ public class CourseResource {
      * or with status {@code 500 (Internal Server Error)} if the courseDTO couldn't be updated.
      */
     @PUT
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateCourse(@Valid CourseDTO courseDTO) {
         log.debug("REST request to update Course : {}", courseDTO);
         if (courseDTO.id == null) {
@@ -112,6 +116,7 @@ public class CourseResource {
      */
     @DELETE
     @Path("/{id}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response deleteCourse(@PathParam("id") Long id) {
         log.debug("REST request to delete Course : {}", id);
 

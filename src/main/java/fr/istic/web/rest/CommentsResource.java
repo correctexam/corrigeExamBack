@@ -2,6 +2,7 @@ package fr.istic.web.rest;
 
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
+import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.CommentsService;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
@@ -16,6 +17,7 @@ import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -49,6 +51,7 @@ public class CommentsResource {
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new commentsDTO, or with status {@code 400 (Bad Request)} if the comments has already an ID.
      */
     @POST
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createComments(CommentsDTO commentsDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to save Comments : {}", commentsDTO);
         if (commentsDTO.id != null) {
@@ -69,6 +72,7 @@ public class CommentsResource {
      * or with status {@code 500 (Internal Server Error)} if the commentsDTO couldn't be updated.
      */
     @PUT
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateComments(CommentsDTO commentsDTO) {
         log.debug("REST request to update Comments : {}", commentsDTO);
         if (commentsDTO.id == null) {
@@ -87,6 +91,7 @@ public class CommentsResource {
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
     @DELETE
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Path("/{id}")
     public Response deleteComments(@PathParam("id") Long id) {
         log.debug("REST request to delete Comments : {}", id);
