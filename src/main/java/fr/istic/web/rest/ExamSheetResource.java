@@ -115,7 +115,15 @@ public class ExamSheetResource {
         var sort = sortRequest.toSort();
         Paged<ExamSheetDTO> result = null;
         MultivaluedMap param = uriInfo.getQueryParameters();
-        result =examSheetService.findAll(page);
+
+        if (param.containsKey("name") ) {
+            List name = (List) param.get("name");
+            result = examSheetService.findExamSheetByName(page, ""+name.get(0));
+        }else {
+            result =examSheetService.findAll(page);
+
+        }
+
 
 
         var response = Response.ok().entity(result.content);

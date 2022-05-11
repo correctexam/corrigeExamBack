@@ -72,6 +72,11 @@ public class ExamService {
         return new Paged<>(Exam.findExambyCourseId(courseId).page(page))
             .map(exam -> examMapper.toDto((Exam) exam));
     }
+    public Paged<ExamDTO> findExambyScanId(Page page, long scanId) {
+        log.debug("Request to get all Exams by scanId");
+        return new Paged<>(Exam.findExambyScanId(scanId).page(page))
+            .map(exam -> examMapper.toDto((Exam) exam));
+    }
 
 
 
