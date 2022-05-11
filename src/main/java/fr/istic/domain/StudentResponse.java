@@ -146,5 +146,8 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     public static PanacheQuery<StudentResponse> findStudentResponsesbysheetIdAndquestionId( long sheetId, long questionId) {
         return find("select sr from StudentResponse sr where sr.sheet.id =?1 and question.id=?2", sheetId, questionId);
     }
+    public static PanacheQuery<StudentResponse> findStudentResponsesbysheetId( long sheetId) {
+        return find("select sr from StudentResponse sr where sr.sheet.id =?1 ", sheetId );
+    }
 
 }

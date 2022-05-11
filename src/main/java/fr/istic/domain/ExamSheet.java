@@ -114,6 +114,13 @@ public class ExamSheet extends PanacheEntityBase implements Serializable {
         return find("select e from ExamSheet e where e.name =?1", name);
     }
 
+    public static PanacheQuery<ExamSheet> findExamSheetByScan( long scanId) {
+        return find("select e from ExamSheet e where e.scan.id =?1", scanId);
+    }
+
+    public static PanacheQuery<ExamSheet> findExamSheetByScanAndStudentId( long scanId, long studentId) {
+        return find("select e from ExamSheet e join e.students as st where e.scan.id =?1 and st.id = ?2", scanId, studentId);
+    }
 
 
 

@@ -1,31 +1,25 @@
 package fr.istic.web.rest;
 
-import static javax.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.domain.Course;
 import fr.istic.domain.CourseGroup;
+import fr.istic.domain.Exam;
+import fr.istic.domain.ExamSheet;
+import fr.istic.domain.FinalResult;
 import fr.istic.domain.Student;
+import fr.istic.domain.StudentResponse;
 import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
-import fr.istic.service.CommentsService;
 import fr.istic.service.CourseGroupService;
-import fr.istic.web.rest.errors.BadRequestAlertException;
-import fr.istic.web.util.HeaderUtil;
-import fr.istic.web.util.ResponseUtil;
-import io.quarkus.cache.CacheInvalidateAll;
-import fr.istic.service.dto.CommentsDTO;
+import fr.istic.service.MailService;
 import fr.istic.service.dto.CourseGroupDTO;
 import fr.istic.service.dto.StudentDTO;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import fr.istic.service.Paged;
 import fr.istic.service.StudentService;
+import fr.istic.service.customdto.MailResultDTO;
 import fr.istic.service.customdto.StudentMassDTO;
-import fr.istic.web.rest.vm.PageRequestVM;
-import fr.istic.web.rest.vm.SortRequestVM;
-import fr.istic.web.util.PaginationUtil;
+import fr.istic.service.customdto.StudentResultDTO;
 
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
@@ -34,7 +28,6 @@ import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
-import com.fasterxml.jackson.core.format.InputAccessor.Std;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,6 +50,8 @@ public class ExtendedAPI {
 
     @Inject
     StudentService studentService;
+    @Inject
+    MailService mailService;
 
     private static class AccountResourceException extends RuntimeException {
 
@@ -65,10 +60,119 @@ public class ExtendedAPI {
         }
     }
 
-    private final Logger log = LoggerFactory.getLogger(ExtendedAPI.class);
+//    private final Logger log = LoggerFactory.getLogger(ExtendedAPI.class);
 
     @ConfigProperty(name = "application.name")
     String applicationName;
+
+
+    private Exam computeFinalNote(long examId){
+        Exam ex = Exam.findById(examId);
+        List<ExamSheet> sheets = ExamSheet.findExamSheetByScan(ex.scanfile.id).list();
+        sheets.forEach(sh -> {
+            // Compute Note
+            List<StudentResponse> resps = StudentResponse.findStudentResponsesbysheetId(sh.id).list();
+            var finalnote = 0;
+            for (StudentResponse resp : resps){
+                finalnote = finalnote+ (resp.note * 100 /  resp.question.step  );
+            }
+            final var finalnote1 = finalnote;
+            sh.students.forEach(student -> {
+                var q = FinalResult.findFinalResultByStudentIdAndExamId(student.id, examId);
+                long count = q.count();
+                if (count >0){
+                    FinalResult r = q.firstResult();
+                    r.note = finalnote1;
+                    FinalResult.update(r);
+                } else {
+                    FinalResult r = new FinalResult();
+                    r.student = student;
+                    r.exam = ex;
+                    r.note = finalnote1;
+                    FinalResult.persistOrUpdate(r);
+
+                }
+            });
+        });
+        return ex;
+    }
+    @POST
+    @Path("computeNode/{examId}")
+    @Transactional
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    public Response computeFinalNote4Exam(@PathParam("examId") long examId, @Context SecurityContext ctx) {
+
+        this.computeFinalNote(examId);
+        return Response.ok().build();
+    }
+
+    @POST
+    @Path("sendResult/{examId}")
+    @Transactional
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    public Response sendResultToStudent(MailResultDTO dto, @PathParam("examId") long examId, @Context SecurityContext ctx) {
+
+        Exam ex = this.computeFinalNote(examId);
+
+        List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
+        students.forEach(student -> {
+            long count = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).count();
+            if (count>0){
+                FinalResult r = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).firstResult();
+                ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id,student.id).firstResult();
+                String uuid = sheet.name;
+
+                // TODO Send EMAIL
+                // mailService.sendEmailFromTemplate(user, template, subject)
+
+
+            }else {
+               // TODO Send EMAIL
+
+                // Pas de copie pour cet étudiant
+            }
+        });
+
+
+        return Response.ok().build();
+    }
+
+    @GET
+    @Path("showResult/{examId}")
+    @Transactional
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    public Response showResult(@PathParam("examId") long examId, @Context SecurityContext ctx) {
+        Exam ex = this.computeFinalNote(examId);
+        List<StudentResultDTO> results = new ArrayList<>();
+        List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
+        students.forEach(student -> {
+            long count = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).count();
+            if (count>0){
+                FinalResult r = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).firstResult();
+                ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id,student.id).firstResult();
+                String uuid = sheet.name;
+                var res = new StudentResultDTO();
+                res.setNom(student.name);
+                res.setPrenom(student.firstname);
+                res.setIne(student.ine);
+                res.setMail(student.mail);
+                res.setNote(r.note);
+                res.setUuid(uuid);
+                res.setAbi(false);
+                results.add(res);
+
+            }else {
+                var res = new StudentResultDTO();
+                res.setNom(student.name);
+                res.setPrenom(student.firstname);
+                res.setIne(student.ine);
+                res.setMail(student.mail);
+                res.setAbi(true);
+                results.add(res);
+            }
+        });
+        return Response.ok().entity(results).build();
+    }
 
     @POST
     @Path("createstudentmasse")
