@@ -118,6 +118,10 @@ public class ExamResource {
         if (param.containsKey("courseId")){
             List id = (List) param.get("courseId");
             result =examService.findExambyCourseId(page, Long.parseLong("" + id.get(0)));
+        } else if (param.containsKey("scanId")){
+            List scanId = (List) param.get("scanId");
+            result =examService.findExambyScanId(page, Long.parseLong("" + scanId.get(0)));
+
         }
         else {
             result = examService.findAll(page);

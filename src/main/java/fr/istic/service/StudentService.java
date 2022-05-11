@@ -75,7 +75,14 @@ public class StudentService {
      */
     public Paged<StudentDTO> findStudentsbyCourseId(Page page, long courseId) {
         log.debug("Request to get all Students by courseId");
-        return new Paged<>(Student.findAll().page(page))
+        return new Paged<>(Student.findStudentsbyCourseId(courseId).page(page))
+            .map(student -> studentMapper.toDto((Student) student));
+    }
+
+
+    public Paged<StudentDTO> findStudentsbySheetId(Page page, long sheetId) {
+        log.debug("Request to get all Students by sheetId");
+        return new Paged<>(Student.findStudentsbySheetId(sheetId).page(page))
             .map(student -> studentMapper.toDto((Student) student));
     }
 

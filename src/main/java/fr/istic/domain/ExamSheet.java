@@ -110,6 +110,11 @@ public class ExamSheet extends PanacheEntityBase implements Serializable {
             return update(examSheet);
         }
     }
+    public static PanacheQuery<ExamSheet> findExamSheetByName( String name) {
+        return find("select e from ExamSheet e where e.name =?1", name);
+    }
+
+
 
 
 }

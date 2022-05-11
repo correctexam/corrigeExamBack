@@ -123,7 +123,11 @@ public class StudentResource {
         if (param.containsKey("courseId")){
             List id = (List) param.get("courseId");
             result =studentService.findStudentsbyCourseId(page, Long.parseLong("" + id.get(0)));
+        } else if (param.containsKey("sheetId")){
+            List id = (List) param.get("sheetId");
+            result =studentService.findStudentsbySheetId(page, Long.parseLong("" + id.get(0)));
         }
+
         else {
             if (eagerload) {
                 result = studentService.findAllWithEagerRelationships(page);

@@ -54,7 +54,7 @@ public class ExamSheetService {
     public Optional<ExamSheetDTO> findOne(Long id) {
         log.debug("Request to get ExamSheet : {}", id);
         return ExamSheet.findByIdOptional(id)
-            .map(examSheet -> examSheetMapper.toDto((ExamSheet) examSheet)); 
+            .map(examSheet -> examSheetMapper.toDto((ExamSheet) examSheet));
     }
 
     /**
@@ -68,6 +68,16 @@ public class ExamSheetService {
             .map(examSheet -> examSheetMapper.toDto((ExamSheet) examSheet));
     }
 
+      /**
+     * Get all the examSheets.
+     * @param page the pagination information.
+     * @return the list of entities by name.
+     */
+    public Paged<ExamSheetDTO> findExamSheetByName(Page page, String name) {
+        log.debug("Request to get all ExamSheets by name");
+        return new Paged<>(ExamSheet.findExamSheetByName(name).page(page))
+            .map(examSheet -> examSheetMapper.toDto((ExamSheet) examSheet));
+    }
 
 
 }
