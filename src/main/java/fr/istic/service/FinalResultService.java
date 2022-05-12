@@ -54,7 +54,7 @@ public class FinalResultService {
     public Optional<FinalResultDTO> findOne(Long id) {
         log.debug("Request to get FinalResult : {}", id);
         return FinalResult.findByIdOptional(id)
-            .map(finalResult -> finalResultMapper.toDto((FinalResult) finalResult)); 
+            .map(finalResult -> finalResultMapper.toDto((FinalResult) finalResult));
     }
 
     /**
@@ -67,6 +67,20 @@ public class FinalResultService {
         return new Paged<>(FinalResult.findAll().page(page))
             .map(finalResult -> finalResultMapper.toDto((FinalResult) finalResult));
     }
+
+
+        /**
+     * Get all the finalResults.
+     * @param page the pagination information.
+     * @return the list of entities.
+     */
+    public Paged<FinalResultDTO> findFinalResultbyExamIdAndStudentId(Page page, long examId, long  studentId) {
+        log.debug("Request to get all FinalResults");
+        return new Paged<>(FinalResult.findFinalResultByStudentIdAndExamId(studentId,examId).page(page))
+            .map(finalResult -> finalResultMapper.toDto((FinalResult) finalResult));
+    }
+
+
 
 
 

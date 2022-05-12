@@ -1,6 +1,7 @@
 package fr.istic.web.rest;
 
 
+import fr.istic.config.JHipsterProperties;
 import fr.istic.domain.Course;
 import fr.istic.domain.CourseGroup;
 import fr.istic.domain.Exam;
@@ -28,7 +29,7 @@ import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
-
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +53,10 @@ public class ExtendedAPI {
     StudentService studentService;
     @Inject
     MailService mailService;
+
+
+    @Inject
+    JHipsterProperties jHipsterProperties;
 
     private static class AccountResourceException extends RuntimeException {
 
@@ -121,8 +126,14 @@ public class ExtendedAPI {
                 FinalResult r = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).firstResult();
                 ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id,student.id).firstResult();
                 String uuid = sheet.name;
-
-                // TODO Send EMAIL
+                String body = dto.getBody();
+                body = body.replace("${url}",this.jHipsterProperties.mail.baseUrl + "/copie/" + uuid+ "/1");
+                body =body.replace("${firstname}",student.firstname);
+                body = body.replace("${lastname}",student.name);
+                final DecimalFormat df = new DecimalFormat("0.00");
+                body = body.replace("${note}",df.format(r.note / 100));
+                mailService.sendEmail(student.mail,  dto.getSubject(), body);
+                //  TODO Send EMAIL
                 // mailService.sendEmailFromTemplate(user, template, subject)
 
 
@@ -191,27 +202,84 @@ public class ExtendedAPI {
         Course c = Course.findById(dto.getCourse());
         List<String> groupes = dto.getStudents().stream().map(e -> e.getGroupe()).distinct()
                 .collect(Collectors.toList());
-        Map<String, CourseGroupDTO> groupesdto = new HashMap<>();
+        Map<String, CourseGroup> groupesentities = new HashMap<>();
         groupes.forEach(g -> {
-            CourseGroupDTO g1 = new CourseGroupDTO();
-            g1.courseId = c.id;
-            g1.groupName = g;
-            groupesdto.put(g, g1);
+            long count = CourseGroup.findByNameandCourse(c.id,g).count();
+            if (count >0){
+                CourseGroup cgdest = CourseGroup.findByNameandCourse(c.id,g).firstResult();
+                groupesentities.put(g, cgdest);
+            } else{
+                CourseGroup g1 = new CourseGroup();
+                g1.course = c;
+                g1.groupName = g;
+                groupesentities.put(g, g1);
+
+            }
+
         });
         dto.getStudents().forEach(s -> {
-            StudentDTO sdto = new StudentDTO();
-            sdto.ine = s.getIne();
-            sdto.name = s.getNom();
-            sdto.firstname = s.getPrenom();
-            sdto.mail = s.getMail();
-            StudentDTO sdto1 = this.studentService.persistOrUpdate(sdto);
-            groupesdto.get(s.getGroupe()).students.add(sdto1);
+            Student st = new Student();
+            st.ine = s.getIne();
+            st.name = s.getNom();
+            st.firstname = s.getPrenom();
+            st.mail = s.getMail();
+            Student st1 = Student.persistOrUpdate(st);
+            groupesentities.get(s.getGroupe()).students.add(st1);
         });
 
-        groupesdto.values().forEach(gdto -> this.courseGroupService.persistOrUpdate(gdto));
+        groupesentities.values().forEach(gc -> CourseGroup.persistOrUpdate(gc));
         return Response.ok().build();
 
     }
+
+
+
+    @PUT
+    @Path("updatestudent/{courseid}")
+    @Transactional
+    public Response updatestudent4Course(fr.istic.service.customdto.StudentDTO student ,@PathParam("courseid") long courseid,  @Context SecurityContext ctx) {
+        var st = Student.findStudentsbyCourseIdAndINE(courseid, student.getIne()).firstResult();
+        st.firstname = student.getPrenom();
+        st.name = student.getNom();
+        st.mail = student.getMail();
+        Student.persistOrUpdate(st);
+        return Response.ok().entity(st).build();
+    }
+
+    @PUT
+    @Path("updatestudentgroup/{courseid}")
+    @Transactional
+    public Response updatestudentgroup(fr.istic.service.customdto.StudentDTO student ,@PathParam("courseid") long courseid,  @Context SecurityContext ctx) {
+        var st = Student.findStudentsbyCourseIdAndINE(courseid, student.getIne()).firstResult();
+        CourseGroup cgorigin = CourseGroup.findByStudentINEandCourse(courseid, student.getIne()).firstResult();
+        cgorigin.students.remove(st);
+        CourseGroup.persistOrUpdate(cgorigin);
+        long count = CourseGroup.findByNameandCourse(courseid, student.getGroupe()).count();
+        if (count >0){
+            CourseGroup cgdest = CourseGroup.findByNameandCourse(courseid, student.getGroupe()).firstResult();
+            cgdest.students.add(st);
+            CourseGroup.persistOrUpdate(cgdest);
+            return Response.ok().build();
+
+        } else {
+            CourseGroup cgdest = new CourseGroup();
+            cgdest.groupName = student.getGroupe();
+            cgdest.course = Course.findById(courseid);
+            cgdest.students.add(st);
+            CourseGroup.persistOrUpdate(cgdest);
+            return Response.ok().build();
+        }
+    }
+    @PUT
+    @Path("updatestudentine/{courseid}")
+    @Transactional
+    public Response updatestudentine(fr.istic.service.customdto.StudentDTO student ,@PathParam("courseid") long courseid,  @Context SecurityContext ctx) {
+        var st = Student.findStudentsbyCourseIdAndFirsNameAndLastName(courseid, student.getPrenom(), student.getNom()).firstResult();
+        st.ine = student.getIne();
+        Student.persistOrUpdate(st);
+        return Response.ok().entity(st).build();
+    }
+
 
     @GET
     @Path("getstudentcours/{courseid}")

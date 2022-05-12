@@ -129,13 +129,6 @@ public class ZoneService {
         existingZone.yInit = rzoneDTO.getTop();
         existingZone.height = (int) Math.round(rzoneDTO.getY() * existingZone.height);
         existingZone.width = (int) Math.round(rzoneDTO.getX() * existingZone.width);
-        System.err.println( existingZone.height);
-        System.err.println(rzoneDTO.getY());
-        System.err.println( existingZone.height);
-        System.err.println(rzoneDTO.getX());
-        System.err.println( "");
-
-
         Zone z1 = Zone.update(existingZone);
         return Optional.of(zoneMapper.toDto(z1));
     }

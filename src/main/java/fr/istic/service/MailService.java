@@ -2,7 +2,10 @@ package fr.istic.service;
 
 import fr.istic.config.JHipsterProperties;
 import fr.istic.domain.User;
+import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.MailTemplate;
+import io.quarkus.mailer.Mailer;
+import io.quarkus.mailer.reactive.ReactiveMailer;
 import io.quarkus.qute.Location;
 import java.util.concurrent.CompletionStage;
 import javax.enterprise.context.ApplicationScoped;
@@ -33,6 +36,9 @@ public class MailService {
     @Location("mail/passwordResetEmail")
      MailTemplate passwordResetEmail;
 
+     @Inject
+    ReactiveMailer reactiveMailer;
+
     @Inject
     public MailService(
         JHipsterProperties jHipsterProperties
@@ -55,6 +61,15 @@ public class MailService {
                     log.debug("Sent email to User '{}'", user.email);
                 }
             );
+    }
+
+
+    public CompletionStage<Void> sendEmail(String mail, String body, String subject) {
+        return reactiveMailer.send(Mail.withText(mail,subject,body)).subscribeAsCompletionStage().thenAccept(
+            it -> {
+                log.debug("Sent email to mail '{}'", mail);
+            }
+        );
     }
 
     public CompletionStage<Void> sendActivationEmail(User user) {

@@ -114,14 +114,10 @@ public class StudentResponseResource {
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
         Paged<StudentResponseDTO> result = null;
-
         MultivaluedMap param = uriInfo.getQueryParameters();
-
         if (param.containsKey("sheetId") && param.containsKey("questionId")) {
             List sheetId = (List) param.get("sheetId");
             List questionId = (List) param.get("questionId");
-            System.err.println(""+sheetId.get(0));
-            System.err.println(""+questionId.get(0));
             result = studentResponseService.findStudentResponsesbysheetIdAndquestionId(page, Long.parseLong("" + sheetId.get(0)),
             Long.parseLong("" + questionId.get(0))
             );
