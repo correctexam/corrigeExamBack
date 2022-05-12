@@ -24,4 +24,9 @@ public class StudentDTO {
 
     public String getGroupe() { return groupe; }
     public void setGroupe(String value) { this.groupe = value; }
+    @Override
+    public String toString() {
+        return "StudentDTO [groupe=" + groupe + ", ine=" + ine + ", mail=" + mail + ", nom=" + nom + ", prenom="
+                + prenom + "]";
+    }
 }

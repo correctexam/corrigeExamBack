@@ -178,9 +178,7 @@ public class ZoneResource {
         ResizeZoneDTO rzoneDTO
     ) {
         log.debug("REST request to partial update Zone partially : {}, {}", id, rzoneDTO);
-        System.err.println(rzoneDTO);
         Optional<ZoneDTO> result = zoneService.partialResizeUpdate(rzoneDTO, id);
-        System.err.println(rzoneDTO.getX());
         return ResponseUtil.wrapOrNotFound(
             result,
             HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, id.toString())

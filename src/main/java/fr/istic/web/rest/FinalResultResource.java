@@ -22,6 +22,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -111,7 +113,18 @@ public class FinalResultResource {
         log.debug("REST request to get a page of FinalResults");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
-        Paged<FinalResultDTO> result = finalResultService.findAll(page);
+        Paged<FinalResultDTO> result = null;
+        MultivaluedMap param = uriInfo.getQueryParameters();
+        // examId: this.exam.id, studentId:
+        if (param.containsKey("examId") && param.containsKey("studentId")) {
+            List examId = (List) param.get("examId");
+            List studentId = (List) param.get("studentId");
+            result = finalResultService.findFinalResultbyExamIdAndStudentId(page, Long.parseLong("" + examId.get(0)),
+            Long.parseLong("" + studentId.get(0)));
+        }else {
+            result = finalResultService.findAll(page);
+        }
+
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
         return response.build();

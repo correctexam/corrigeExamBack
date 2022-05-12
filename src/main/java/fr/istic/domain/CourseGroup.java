@@ -12,6 +12,7 @@ import javax.validation.constraints.*;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.Optional;
 
 /**
@@ -87,7 +88,11 @@ public class CourseGroup extends PanacheEntityBase implements Serializable {
         var entity = CourseGroup.<CourseGroup>findById(courseGroup.id);
         if (entity != null) {
             entity.groupName = courseGroup.groupName;
-            entity.students = courseGroup.students;
+            // entity.students = courseGroup.students;
+            var ts  = courseGroup.students.stream().map(te -> te.id).collect(Collectors.toList());
+            entity.students.removeIf(t -> !ts.contains(t.id));
+            var ts1  = entity.students.stream().map(te -> te.id).collect(Collectors.toList());
+            entity.students.addAll(courseGroup.students.stream().filter(ts2 -> !ts1.contains(ts2.id)).collect(Collectors.toList()));
             entity.course = courseGroup.course;
         }
         return entity;
@@ -112,5 +117,14 @@ public class CourseGroup extends PanacheEntityBase implements Serializable {
     public static Optional<CourseGroup> findOneWithEagerRelationships(Long id) {
         return find("select courseGroup from CourseGroup courseGroup left join fetch courseGroup.students where courseGroup.id =?1", id).firstResultOptional();
     }
+
+    public static PanacheQuery<CourseGroup> findByNameandCourse( long courseId, String name) {
+        return find("select c from CourseGroup c where c.course.id =?1 and c.groupName = ?2", courseId, name);
+    }
+
+    public static PanacheQuery<CourseGroup> findByStudentINEandCourse( long courseId, String ine) {
+        return find("select c from CourseGroup c join c.students s where c.course.id =?1 and s.ine = ?2", courseId, ine);
+    }
+
 
 }
