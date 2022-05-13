@@ -97,6 +97,12 @@ entity Zone {
 }
 
 
+entity CacheFile {
+	uuid String required
+	content Blob
+}
+
+
 relationship ManyToOne {
 	Course{prof(login) required} to User
     FinalResult{student(name)} to Student
@@ -104,6 +110,7 @@ relationship ManyToOne {
     StudentResponse{question(numero)} to Question
     StudentResponse{sheet(name)} to ExamSheet
     Question{type(algoName)} to QuestionType
+    CacheFile{question} to Question
 
 }
 
@@ -134,6 +141,8 @@ relationship OneToOne {
     Exam{firstnamezone} to Zone
     Exam{notezone} to Zone
     Exam{scanfile(name)} to Scan
+    CacheFile{question} to ExamSheet
+
 }
 
 
