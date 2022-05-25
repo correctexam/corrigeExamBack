@@ -161,15 +161,26 @@ public class ExtendedAPI {
             if (count>0){
                 FinalResult r = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).firstResult();
                 ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id,student.id).firstResult();
+
                 String uuid = sheet.name;
                 var res = new StudentResultDTO();
                 res.setNom(student.name);
                 res.setPrenom(student.firstname);
                 res.setIne(student.ine);
                 res.setMail(student.mail);
-                res.setNote(r.note);
+                final DecimalFormat df = new DecimalFormat("0.00");
+                res.setNote(df.format(r.note.doubleValue() / 100.0));
                 res.setUuid(uuid);
                 res.setAbi(false);
+                res.setNotequestions(new HashMap<>());
+                List<StudentResponse> resp =StudentResponse.findStudentResponsesbysheetId(sheet.id).list();
+                resp.forEach(resp1->{
+
+                    res.getNotequestions().put(resp1.question.numero,
+                    df.format(
+                    (resp1.note.doubleValue() *100.0 / resp1.question.step)/100.0));
+
+                });
                 results.add(res);
 
             }else {
