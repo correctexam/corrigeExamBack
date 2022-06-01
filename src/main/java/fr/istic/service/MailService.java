@@ -4,7 +4,6 @@ import fr.istic.config.JHipsterProperties;
 import fr.istic.domain.User;
 import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.MailTemplate;
-import io.quarkus.mailer.Mailer;
 import io.quarkus.mailer.reactive.ReactiveMailer;
 import io.quarkus.qute.Location;
 import java.util.concurrent.CompletionStage;
@@ -74,16 +73,16 @@ public class MailService {
 
     public CompletionStage<Void> sendActivationEmail(User user) {
         log.debug("Sending activation email to '{}'", user.email);
-        return sendEmailFromTemplate(user, activationEmail, "jhipsterSampleApplication account activation is required");
+        return sendEmailFromTemplate(user, activationEmail, "CorrectExam account activation is required");
     }
 
     public CompletionStage<Void> sendCreationEmail(User user) {
         log.debug("Sending creation email to '{}'", user.email);
-        return sendEmailFromTemplate(user, creationEmail, "jhipsterSampleApplication account activation is required");
+        return sendEmailFromTemplate(user, creationEmail, "CorrectExam account activation is required");
     }
 
     public CompletionStage<Void> sendPasswordResetMail(User user) {
         log.debug("Sending password reset email to '{}'", user.email);
-        return sendEmailFromTemplate(user, passwordResetEmail, "jhipsterSampleApplication password reset");
+        return sendEmailFromTemplate(user, passwordResetEmail, "CorrectExam password reset");
     }
 }
