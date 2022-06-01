@@ -1,8 +1,24 @@
-# gradeScopeIstic
+# correctExamBack
+
+Deliver and Grade Your Assessments Anywhere
+
+This application helps you seamlessly administer and grade all of your in-class assessments (long exam or short). Save time grading and get a clear picture of how your students are doing. Provide a clear feedback to your students.
+
+# Feature
+
+Main feature are:
+
+- automatically align your scan
+- automatically recognize your student name and firstname on sheet
+- identify zones for question to support horizontal or vertical correction
+- create generic comment per question with associated bonus or malus to efficiently correct each question
+- use your tablet and your pen to annotate student sheet
+- provide clear feedback to your students
+
+# Technical stack
+
 
 This application was generated using JHipster 6.10.5 and JHipster Quarkus 1.1.1 (manually upgraded to quarkus 2.7.3.Final), you can find documentation and help at [https://www.jhipster.tech/documentation-archive/v6.10.5](https://www.jhipster.tech/documentation-archive/v6.10.5).
-
-Note on the project could be found [here](https://hackmd.diverse-team.fr/s/HkFi-Um-c)
 
 
 ## Development
