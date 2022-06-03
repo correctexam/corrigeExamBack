@@ -104,7 +104,6 @@ entity CacheFile {
 
 
 relationship ManyToOne {
-	Course{prof(login) required} to User
     FinalResult{student(name)} to Student
     FinalResult{exam(name)} to Exam
     StudentResponse{question(numero)} to Question
@@ -127,6 +126,7 @@ relationship OneToMany{
 }
 
 relationship ManyToMany {
+    Course{prof(login) required} to User
 	CourseGroup{students(name)} to Student{groups(groupName)}
     Student{examSheets(name)} to ExamSheet{students(name)}
     StudentResponse{textcomments} to TextComment{studentResponse}
