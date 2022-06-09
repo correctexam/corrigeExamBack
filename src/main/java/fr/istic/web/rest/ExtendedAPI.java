@@ -13,8 +13,6 @@ import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.CourseGroupService;
 import fr.istic.service.MailService;
-import fr.istic.service.dto.CourseGroupDTO;
-import fr.istic.service.dto.StudentDTO;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import fr.istic.service.StudentService;
@@ -163,6 +161,7 @@ public class ExtendedAPI {
                 ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id,student.id).firstResult();
 
                 String uuid = sheet.name;
+                int studentnumber = (sheet.pagemin / (sheet.pagemax -  sheet.pagemin +1)) +1 ;
                 var res = new StudentResultDTO();
                 res.setNom(student.name);
                 res.setPrenom(student.firstname);
@@ -171,6 +170,7 @@ public class ExtendedAPI {
                 final DecimalFormat df = new DecimalFormat("0.00");
                 res.setNote(df.format(r.note.doubleValue() / 100.0));
                 res.setUuid(uuid);
+                res.setStudentNumber(""+studentnumber);
                 res.setAbi(false);
                 res.setNotequestions(new HashMap<>());
                 List<StudentResponse> resp =StudentResponse.findStudentResponsesbysheetId(sheet.id).list();
