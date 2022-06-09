@@ -33,7 +33,7 @@ For further instructions on how to develop with JHipster, have a look at [Using 
 
 ### Packaging as thin jar
 
-To build the final jar and optimize the gradeScopeIstic application for production, run:
+To build the final jar and optimize the correctExam application for production, run:
 
 ```
 ./mvnw -Pprod clean package

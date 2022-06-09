@@ -1,6 +1,6 @@
 version: '2'
 services:
-  gradescopeistic-prometheus:
+  correctExam-prometheus:
     image: prom/prometheus:v2.18.1
     volumes:
       - ./prometheus/:/etc/prometheus/
@@ -11,7 +11,7 @@ services:
     # On MacOS, remove next line and replace localhost by host.docker.internal in prometheus/prometheus.yml and
     # grafana/provisioning/datasources/datasource.yml
     network_mode: 'host' # to test locally running service
-  gradescopeistic-grafana:
+  correctExam-grafana:
     image: grafana/grafana:7.0.1
     volumes:
       - ./grafana/provisioning/:/etc/grafana/provisioning/
