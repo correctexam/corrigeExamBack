@@ -8,6 +8,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class StudentResultDTO extends StudentDTO{
     String uuid;
+    String studentNumber;
     String note;
     boolean abi;
     Map<Integer, String> notequestions =  new HashMap<>();
@@ -38,13 +39,62 @@ public class StudentResultDTO extends StudentDTO{
         this.notequestions = notequestions;
     }
 
-
+    public String getStudentNumber() {
+        return studentNumber;
+    }
+    public void setStudentNumber(String studentNumber) {
+        this.studentNumber = studentNumber;
+    }
     @Override
     public String toString() {
-        return "StudentResultDTO [note=" + note + ", uuid=" + uuid +", abi=" + abi +
-        super.toString() +
-        "]";
+        return "StudentResultDTO [abi=" + abi + ", note=" + note + ", notequestions=" + notequestions
+                + ", studentNumber=" + studentNumber + ", uuid=" + uuid + "]";
     }
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (abi ? 1231 : 1237);
+        result = prime * result + ((note == null) ? 0 : note.hashCode());
+        result = prime * result + ((notequestions == null) ? 0 : notequestions.hashCode());
+        result = prime * result + ((studentNumber == null) ? 0 : studentNumber.hashCode());
+        result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
+        return result;
+    }
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        StudentResultDTO other = (StudentResultDTO) obj;
+        if (abi != other.abi)
+            return false;
+        if (note == null) {
+            if (other.note != null)
+                return false;
+        } else if (!note.equals(other.note))
+            return false;
+        if (notequestions == null) {
+            if (other.notequestions != null)
+                return false;
+        } else if (!notequestions.equals(other.notequestions))
+            return false;
+        if (studentNumber == null) {
+            if (other.studentNumber != null)
+                return false;
+        } else if (!studentNumber.equals(other.studentNumber))
+            return false;
+        if (uuid == null) {
+            if (other.uuid != null)
+                return false;
+        } else if (!uuid.equals(other.uuid))
+            return false;
+        return true;
+    }
+
 
 
 
