@@ -45,8 +45,8 @@ public class Student extends PanacheEntityBase implements Serializable {
     @Column(name = "mail")
     public String mail;
 
-    @ManyToMany
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @ManyToMany(fetch = FetchType.EAGER)
+    @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
     @JoinTable(name = "student_exam_sheets",
                joinColumns = @JoinColumn(name = "student_id", referencedColumnName = "id"),
                inverseJoinColumns = @JoinColumn(name = "exam_sheets_id", referencedColumnName = "id"))
@@ -134,7 +134,9 @@ public class Student extends PanacheEntityBase implements Serializable {
     }
 
     public static PanacheQuery<Student> findStudentsbyCourseId( long courseId) {
-        return find("select distinct student from Student student join student.groups as g where g.course.id =?1", courseId);
+        return find("select distinct student from Student student LEFT join student.examSheets join student.groups as g  where g.course.id =?1", courseId);
+     //return find("select distinct e.students from ExamSheet as e join e.students as s join s.groups as g  where g.course.id =?1", courseId);
+
     }
     public static PanacheQuery<Student> findStudentsbyCourseIdAndINE( long courseId, String ine) {
         return find("select distinct student from Student student join student.groups as g where g.course.id =?1 and student.ine = ?2", courseId, ine);
@@ -148,6 +150,9 @@ public class Student extends PanacheEntityBase implements Serializable {
         return find("select distinct student from Student student join student.examSheets as e where e.id =?1", sheetId);
     }
 
+    public static PanacheQuery<Student> canAccess(long studentId, String login) {
+        return find("select s from Student s join s.groups as c where s.id =?1 and c.course.prof.login =?2", studentId, login);
+    }
 
 
 }

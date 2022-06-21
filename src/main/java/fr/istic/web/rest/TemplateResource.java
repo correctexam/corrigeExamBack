@@ -12,8 +12,10 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.istic.domain.Template;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.Paged;
+import fr.istic.service.SecurityService;
 import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
@@ -45,6 +47,10 @@ public class TemplateResource {
 
     @Inject
     TemplateService templateService;
+
+    @Inject
+    SecurityService securityService;
+
     /**
      * {@code POST  /templates} : Create a new template.
      *
@@ -74,10 +80,13 @@ public class TemplateResource {
      */
     @PUT
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response updateTemplate(@Valid TemplateDTO templateDTO) {
+    public Response updateTemplate(@Valid TemplateDTO templateDTO, @Context SecurityContext ctx) {
         log.debug("REST request to update Template : {}", templateDTO);
         if (templateDTO.id == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
+        }
+        if (!securityService.canAccess(ctx, templateDTO.id, Template.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
         }
         var result = templateService.persistOrUpdate(templateDTO);
         var response = Response.ok().entity(result);
@@ -94,8 +103,11 @@ public class TemplateResource {
     @DELETE
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Path("/{id}")
-    public Response deleteTemplate(@PathParam("id") Long id) {
+    public Response deleteTemplate(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to delete Template : {}", id);
+        if (!securityService.canAccess(ctx, id, Template.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         templateService.delete(id);
         var response = Response.noContent();
         HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()).forEach(response::header);
@@ -109,7 +121,8 @@ public class TemplateResource {
      * @return the {@link Response} with status {@code 200 (OK)} and the list of templates in body.
      */
     @GET
-    public Response getAllTemplates(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo) {
+    @RolesAllowed({AuthoritiesConstants.ADMIN})
+    public Response getAllTemplates(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of Templates");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
@@ -128,8 +141,7 @@ public class TemplateResource {
      */
     @GET
     @Path("/{id}")
-
-    public Response getTemplate(@PathParam("id") Long id) {
+    public Response getTemplate(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get Template : {}", id);
         Optional<TemplateDTO> templateDTO = templateService.findOne(id);
         return ResponseUtil.wrapOrNotFound(templateDTO);

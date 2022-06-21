@@ -3,9 +3,11 @@ package fr.istic.web.rest;
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.domain.Authority;
+import fr.istic.domain.Course;
 import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.CourseService;
+import fr.istic.web.rest.errors.AccountResourceException;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
 import fr.istic.web.util.ResponseUtil;
@@ -15,6 +17,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import fr.istic.service.Paged;
+import fr.istic.service.SecurityService;
 import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
@@ -38,12 +41,6 @@ public class CourseResource {
 
 
 
-    private static class AccountResourceException extends RuntimeException {
-
-        private AccountResourceException(String message) {
-            super(message);
-        }
-    }
     private final Logger log = LoggerFactory.getLogger(CourseResource.class);
 
     private static final String ENTITY_NAME = "course";
@@ -54,6 +51,11 @@ public class CourseResource {
 
     @Inject
     CourseService courseService;
+
+    @Inject
+    SecurityService securityService;
+
+
     /**
      * {@code POST  /courses} : Create a new course.
      *
@@ -97,11 +99,15 @@ public class CourseResource {
      */
     @PUT
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response updateCourse(@Valid CourseDTO courseDTO) {
+    public Response updateCourse(@Valid CourseDTO courseDTO, @Context SecurityContext ctx) {
         log.debug("REST request to update Course : {}", courseDTO);
         if (courseDTO.id == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
+        if (!securityService.canAccess(ctx, courseDTO.id, Course.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+
         var result = courseService.persistOrUpdate(courseDTO);
         var response = Response.ok().entity(result);
         HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, courseDTO.id.toString()).forEach(response::header);
@@ -117,9 +123,11 @@ public class CourseResource {
     @DELETE
     @Path("/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response deleteCourse(@PathParam("id") Long id) {
+    public Response deleteCourse(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to delete Course : {}", id);
-
+        if (!securityService.canAccess(ctx, id, Course.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         courseService.delete(id);
 
         var response = Response.noContent();
@@ -134,6 +142,8 @@ public class CourseResource {
      * @return the {@link Response} with status {@code 200 (OK)} and the list of courses in body.
      */
     @GET
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+
     public Response getAllCourses(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo , @Context SecurityContext ctx) {
         log.debug("REST request to get a page of Courses");
         var page = pageRequest.toPage();
@@ -171,8 +181,7 @@ public class CourseResource {
      */
     @GET
     @Path("/{id}")
-
-    public Response getCourse(@PathParam("id") Long id) {
+    public Response getCourse(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get Course : {}", id);
         Optional<CourseDTO> courseDTO = courseService.findOne(id);
         return ResponseUtil.wrapOrNotFound(courseDTO);

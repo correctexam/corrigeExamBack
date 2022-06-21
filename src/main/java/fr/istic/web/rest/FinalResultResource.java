@@ -2,8 +2,13 @@ package fr.istic.web.rest;
 
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
+import fr.istic.domain.Authority;
+import fr.istic.domain.Exam;
+import fr.istic.domain.FinalResult;
+import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.FinalResultService;
+import fr.istic.web.rest.errors.AccountResourceException;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
 import fr.istic.web.util.ResponseUtil;
@@ -13,6 +18,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import fr.istic.service.Paged;
+import fr.istic.service.SecurityService;
 import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
@@ -45,6 +51,10 @@ public class FinalResultResource {
 
     @Inject
     FinalResultService finalResultService;
+
+    @Inject
+    SecurityService securityService;
+
     /**
      * {@code POST  /final-results} : Create a new finalResult.
      *
@@ -74,11 +84,15 @@ public class FinalResultResource {
      */
     @PUT
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response updateFinalResult(FinalResultDTO finalResultDTO) {
+    public Response updateFinalResult(FinalResultDTO finalResultDTO, @Context SecurityContext ctx) {
         log.debug("REST request to update FinalResult : {}", finalResultDTO);
         if (finalResultDTO.id == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
+        if (!securityService.canAccess(ctx, finalResultDTO.id, FinalResult.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+
         var result = finalResultService.persistOrUpdate(finalResultDTO);
         var response = Response.ok().entity(result);
         HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, finalResultDTO.id.toString()).forEach(response::header);
@@ -94,8 +108,12 @@ public class FinalResultResource {
     @DELETE
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Path("/{id}")
-    public Response deleteFinalResult(@PathParam("id") Long id) {
+    public Response deleteFinalResult(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to delete FinalResult : {}", id);
+        if (!securityService.canAccess(ctx, id, FinalResult.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+
         finalResultService.delete(id);
         var response = Response.noContent();
         HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()).forEach(response::header);
@@ -109,7 +127,7 @@ public class FinalResultResource {
      * @return the {@link Response} with status {@code 200 (OK)} and the list of finalResults in body.
      */
     @GET
-    public Response getAllFinalResults(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo) {
+    public Response getAllFinalResults(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of FinalResults");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
@@ -119,10 +137,26 @@ public class FinalResultResource {
         if (param.containsKey("examId") && param.containsKey("studentId")) {
             List examId = (List) param.get("examId");
             List studentId = (List) param.get("studentId");
+
             result = finalResultService.findFinalResultbyExamIdAndStudentId(page, Long.parseLong("" + examId.get(0)),
             Long.parseLong("" + studentId.get(0)));
         }else {
-            result = finalResultService.findAll(page);
+
+            var userLogin = Optional
+            .ofNullable(ctx.getUserPrincipal().getName());
+        if (!userLogin.isPresent()){
+            throw new AccountResourceException("Current user login not found");
+        }
+        var user = User.findOneByLogin(userLogin.get());
+        if (!user.isPresent()) {
+            throw new AccountResourceException("User could not be found");
+        }
+            else if (user.get().authorities.size() >= 1 && user.get().authorities.stream().anyMatch(e1-> e1.equals(new Authority("ROLE_ADMIN")))){
+                result = finalResultService.findAll(page);
+
+            } else {
+                return Response.status(403, "Current user cannot access to this ressource").build();
+            }
         }
 
         var response = Response.ok().entity(result.content);
@@ -139,9 +173,12 @@ public class FinalResultResource {
      */
     @GET
     @Path("/{id}")
-
-    public Response getFinalResult(@PathParam("id") Long id) {
+    public Response getFinalResult(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get FinalResult : {}", id);
+        if (!securityService.canAccess(ctx, id, FinalResult.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+
         Optional<FinalResultDTO> finalResultDTO = finalResultService.findOne(id);
         return ResponseUtil.wrapOrNotFound(finalResultDTO);
     }

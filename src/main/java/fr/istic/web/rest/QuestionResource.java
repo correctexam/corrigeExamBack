@@ -3,6 +3,8 @@ package fr.istic.web.rest;
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.service.QuestionService;
+import fr.istic.service.SecurityService;
+import fr.istic.web.rest.errors.AccountResourceException;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
 import fr.istic.web.util.ResponseUtil;
@@ -12,6 +14,10 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.istic.domain.Authority;
+import fr.istic.domain.Exam;
+import fr.istic.domain.Question;
+import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.Paged;
 import fr.istic.web.rest.vm.PageRequestVM;
@@ -45,6 +51,8 @@ public class QuestionResource {
 
     @Inject
     QuestionService questionService;
+    @Inject
+    SecurityService securityService;
 
     /**
      * {@code POST  /questions} : Create a new question.
@@ -82,11 +90,14 @@ public class QuestionResource {
      */
     @PUT
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response updateQuestion(@Valid QuestionDTO questionDTO) {
+    public Response updateQuestion(@Valid QuestionDTO questionDTO, @Context SecurityContext ctx) {
         log.debug("REST request to update Question : {}", questionDTO);
         if (questionDTO.id == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
+        if (!securityService.canAccess(ctx, questionDTO.id, Question.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        };
         var result = questionService.persistOrUpdate(questionDTO);
         var response = Response.ok().entity(result);
         HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, questionDTO.id.toString())
@@ -103,8 +114,12 @@ public class QuestionResource {
     @DELETE
     @Path("/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response deleteQuestion(@PathParam("id") Long id) {
+    public Response deleteQuestion(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to delete Question : {}", id);
+        if (!securityService.canAccess(ctx, id, Question.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        };
+
         questionService.delete(id);
         var response = Response.noContent();
         HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())
@@ -121,7 +136,7 @@ public class QuestionResource {
      */
     @GET
     public Response getAllQuestions(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest,
-            @Context UriInfo uriInfo) {
+            @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of Questions");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
@@ -143,7 +158,23 @@ public class QuestionResource {
         }
 
         else {
-            result = questionService.findAll(page);
+
+            var userLogin = Optional
+            .ofNullable(ctx.getUserPrincipal().getName());
+        if (!userLogin.isPresent()){
+            throw new AccountResourceException("Current user login not found");
+        }
+        var user = User.findOneByLogin(userLogin.get());
+        if (!user.isPresent()) {
+            throw new AccountResourceException("User could not be found");
+        }
+            else if (user.get().authorities.size() >= 1 && user.get().authorities.stream().anyMatch(e1-> e1.equals(new Authority("ROLE_ADMIN")))){
+                result = questionService.findAll(page);
+
+            } else {
+                return Response.status(403, "Current user cannot access to this ressource").build();
+            }
+
 
         }
         var response = Response.ok().entity(result.content);
@@ -160,9 +191,12 @@ public class QuestionResource {
      */
     @GET
     @Path("/{id}")
-
-    public Response getQuestion(@PathParam("id") Long id) {
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    public Response getQuestion(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get Question : {}", id);
+        if (!securityService.canAccess(ctx, id, Question.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        };
         Optional<QuestionDTO> questionDTO = questionService.findOne(id);
         return ResponseUtil.wrapOrNotFound(questionDTO);
     }

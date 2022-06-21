@@ -122,6 +122,9 @@ public class ExamSheet extends PanacheEntityBase implements Serializable {
         return find("select e from ExamSheet e join e.students as st where e.scan.id =?1 and st.id = ?2", scanId, studentId);
     }
 
+    public static PanacheQuery<ExamSheet> canAccess(long courseGroupId, String login) {
+        return find("select ex from ExamSheet ex join ex.students as s join s.groups as g where  ex.id =?1 and g.course.prof.login =?2", courseGroupId, login);
+    }
 
 
 }
