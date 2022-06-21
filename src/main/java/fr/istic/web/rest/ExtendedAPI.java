@@ -13,6 +13,7 @@ import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.CourseGroupService;
 import fr.istic.service.MailService;
+import fr.istic.service.SecurityService;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import fr.istic.service.StudentService;
@@ -51,6 +52,9 @@ public class ExtendedAPI {
     StudentService studentService;
     @Inject
     MailService mailService;
+
+    @Inject
+    SecurityService securityService;
 
 
     @Inject
@@ -104,6 +108,8 @@ public class ExtendedAPI {
     @Transactional
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response computeFinalNote4Exam(@PathParam("examId") long examId, @Context SecurityContext ctx) {
+
+
 
         this.computeFinalNote(examId);
         return Response.ok().build();

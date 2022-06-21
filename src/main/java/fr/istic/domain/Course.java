@@ -110,4 +110,9 @@ public class Course extends PanacheEntityBase implements Serializable {
         return find("select course from Course course where course.prof.login =?1", login);
     }
 
+    public static PanacheQuery<Course> canAccess(long courseId, String login) {
+        return find("select course from Course course where course.prof.login =?1 and course.id = ?2", login, courseId);
+    }
+
+
 }

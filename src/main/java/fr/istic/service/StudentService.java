@@ -75,9 +75,17 @@ public class StudentService {
      */
     public Paged<StudentDTO> findStudentsbyCourseId(Page page, long courseId) {
         log.debug("Request to get all Students by courseId");
-        return new Paged<>(Student.findStudentsbyCourseId(courseId).page(page))
+
+        PanacheQuery<Student> s = Student.findStudentsbyCourseId(courseId).page(page);
+
+        var p = new Paged<>(s);
+        var res =  p
             .map(student -> studentMapper.toDto((Student) student));
+
+            return res;
     }
+
+
 
 
     public Paged<StudentDTO> findStudentsbySheetId(Page page, long sheetId) {
