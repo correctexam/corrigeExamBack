@@ -28,6 +28,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -128,7 +130,7 @@ public class TextCommentResource {
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
         MultivaluedMap param = uriInfo.getQueryParameters();
-        Paged<TextCommentDTO> result = null;
+        Paged<TextCommentDTO> result = new Paged(0,0,0,0, new ArrayList<>());
         if (param.containsKey("questionId") ) {
             List questionId = (List) param.get("questionId");
             result = textCommentService.findTextCommentByQuestionId(page, Long.parseLong("" + questionId.get(0)));
@@ -137,6 +139,7 @@ public class TextCommentResource {
 
 
         else{
+            if (ctx.getUserPrincipal().getName()!= null){
 
             var userLogin = Optional
             .ofNullable(ctx.getUserPrincipal().getName());
@@ -153,7 +156,7 @@ public class TextCommentResource {
             } else {
                 return Response.status(403, "Current user cannot access to this ressource").build();
             }
-
+        }
         }
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);

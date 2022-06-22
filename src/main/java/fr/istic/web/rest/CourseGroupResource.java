@@ -131,7 +131,8 @@ public class CourseGroupResource {
         if (eagerload) {
             result = courseGroupService.findAllWithEagerRelationships(page);
         } else {
-            result = courseGroupService.findAll(page);
+            result = courseGroupService.findAllWithEagerRelationships(page);
+//            result = courseGroupService.findAll(page);
         }
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);

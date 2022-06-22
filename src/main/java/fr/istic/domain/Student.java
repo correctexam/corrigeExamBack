@@ -46,7 +46,7 @@ public class Student extends PanacheEntityBase implements Serializable {
     public String mail;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JoinTable(name = "student_exam_sheets",
                joinColumns = @JoinColumn(name = "student_id", referencedColumnName = "id"),
                inverseJoinColumns = @JoinColumn(name = "exam_sheets_id", referencedColumnName = "id"))

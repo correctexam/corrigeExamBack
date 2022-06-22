@@ -3,6 +3,8 @@ package fr.istic.service;
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.Scan;
 import fr.istic.service.dto.ScanDTO;
+import fr.istic.service.dto.ScanDTOContent;
+import fr.istic.service.mapper.ScanContentMapper;
 import fr.istic.service.mapper.ScanMapper;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import org.slf4j.Logger;
@@ -24,12 +26,16 @@ public class ScanService {
     @Inject
     ScanMapper scanMapper;
 
+    @Inject
+    ScanContentMapper scanContentMapper;
+
+
     @Transactional
-    public ScanDTO persistOrUpdate(ScanDTO scanDTO) {
+    public ScanDTOContent persistOrUpdate(ScanDTOContent scanDTO) {
         log.debug("Request to save Scan : {}", scanDTO);
-        var scan = scanMapper.toEntity(scanDTO);
+        var scan = scanContentMapper.toEntity(scanDTO);
         scan = Scan.persistOrUpdate(scan);
-        return scanMapper.toDto(scan);
+        return scanContentMapper.toDto(scan);
     }
 
     /**
@@ -51,10 +57,10 @@ public class ScanService {
      * @param id the id of the entity.
      * @return the entity.
      */
-    public Optional<ScanDTO> findOne(Long id) {
+    public Optional<ScanDTOContent> findOne(Long id) {
         log.debug("Request to get Scan : {}", id);
         return Scan.findByIdOptional(id)
-            .map(scan -> scanMapper.toDto((Scan) scan)); 
+            .map(scan -> scanContentMapper.toDto((Scan) scan));
     }
 
     /**

@@ -34,8 +34,8 @@ public class CourseGroup extends PanacheEntityBase implements Serializable {
     @Column(name = "group_name", nullable = false)
     public String groupName;
 
-    @ManyToMany
-   // @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JoinTable(name = "course_group_students",
                joinColumns = @JoinColumn(name = "course_group_id", referencedColumnName = "id"),
                inverseJoinColumns = @JoinColumn(name = "students_id", referencedColumnName = "id"))

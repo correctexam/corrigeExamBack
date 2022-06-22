@@ -8,6 +8,7 @@ import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
 import fr.istic.web.util.ResponseUtil;
 import fr.istic.service.dto.ScanDTO;
+import fr.istic.service.dto.ScanDTOContent;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
@@ -59,7 +60,7 @@ public class ScanResource {
      */
     @POST
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response createScan(@Valid ScanDTO scanDTO, @Context UriInfo uriInfo) {
+    public Response createScan(@Valid ScanDTOContent scanDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to save Scan : {}", scanDTO);
         if (scanDTO.id != null) {
             throw new BadRequestAlertException("A new scan cannot already have an ID", ENTITY_NAME, "idexists");
@@ -80,7 +81,7 @@ public class ScanResource {
      */
     @PUT
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response updateScan(@Valid ScanDTO scanDTO, @Context SecurityContext ctx) {
+    public Response updateScan(@Valid ScanDTOContent scanDTO, @Context SecurityContext ctx) {
         log.debug("REST request to update Scan : {}", scanDTO);
         if (scanDTO.id == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -144,7 +145,7 @@ public class ScanResource {
 
     public Response getScan(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get Scan : {}", id);
-        Optional<ScanDTO> scanDTO = scanService.findOne(id);
+        Optional<ScanDTOContent> scanDTO = scanService.findOne(id);
         return ResponseUtil.wrapOrNotFound(scanDTO);
     }
 }
