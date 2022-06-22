@@ -3,6 +3,7 @@ package fr.istic.web.rest;
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.service.ScanService;
+import fr.istic.service.SecurityService;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
 import fr.istic.web.util.ResponseUtil;
@@ -12,6 +13,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.istic.domain.Scan;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.Paged;
 import fr.istic.web.rest.vm.PageRequestVM;
@@ -46,6 +48,9 @@ public class ScanResource {
 
     @Inject
     ScanService scanService;
+    @Inject
+    SecurityService securityService;
+
     /**
      * {@code POST  /scans} : Create a new scan.
      *
@@ -75,10 +80,13 @@ public class ScanResource {
      */
     @PUT
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response updateScan(@Valid ScanDTO scanDTO) {
+    public Response updateScan(@Valid ScanDTO scanDTO, @Context SecurityContext ctx) {
         log.debug("REST request to update Scan : {}", scanDTO);
         if (scanDTO.id == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
+        }
+        if (!securityService.canAccess(ctx, scanDTO.id, Scan.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
         }
         var result = scanService.persistOrUpdate(scanDTO);
         var response = Response.ok().entity(result);
@@ -95,8 +103,11 @@ public class ScanResource {
     @DELETE
     @Path("/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response deleteScan(@PathParam("id") Long id) {
+    public Response deleteScan(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to delete Scan : {}", id);
+        if (!securityService.canAccess(ctx, id, Scan.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         scanService.delete(id);
         var response = Response.noContent();
         HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()).forEach(response::header);
@@ -110,7 +121,8 @@ public class ScanResource {
      * @return the {@link Response} with status {@code 200 (OK)} and the list of scans in body.
      */
     @GET
-    public Response getAllScans(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo) {
+    @RolesAllowed({AuthoritiesConstants.ADMIN})
+    public Response getAllScans(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of Scans");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
@@ -130,7 +142,7 @@ public class ScanResource {
     @GET
     @Path("/{id}")
 
-    public Response getScan(@PathParam("id") Long id) {
+    public Response getScan(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get Scan : {}", id);
         Optional<ScanDTO> scanDTO = scanService.findOne(id);
         return ResponseUtil.wrapOrNotFound(scanDTO);

@@ -101,6 +101,9 @@ public class Comments extends PanacheEntityBase implements Serializable {
         return find("select c from Comments c where c.zonegeneratedid =?1", zonegeneratedid);
     }
 
+    public static PanacheQuery<Comments> canAccess(long commentId, String login) {
+        return find("select c from Comments c where c.id =?1 and c.studentResponse.question.exam.course.prof.login =?2", commentId, login);
+    }
 
 
 }

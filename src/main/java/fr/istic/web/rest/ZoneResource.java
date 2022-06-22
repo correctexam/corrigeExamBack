@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import fr.istic.domain.Zone;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.Paged;
+import fr.istic.service.SecurityService;
 import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
@@ -44,6 +45,9 @@ public class ZoneResource {
 
     @ConfigProperty(name = "application.name")
     String applicationName;
+
+    @Inject
+    SecurityService securityService;
 
 
     @Inject
@@ -77,10 +81,13 @@ public class ZoneResource {
      */
     @PUT
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response updateZone(ZoneDTO zoneDTO) {
+    public Response updateZone(ZoneDTO zoneDTO, @Context SecurityContext ctx) {
         log.debug("REST request to update Zone : {}", zoneDTO);
         if (zoneDTO.id == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
+        }
+        if (!securityService.canAccess(ctx, zoneDTO.id, Zone.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
         }
         var result = zoneService.persistOrUpdate(zoneDTO);
         var response = Response.ok().entity(result);
@@ -97,8 +104,11 @@ public class ZoneResource {
     @DELETE
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Path("/{id}")
-    public Response deleteZone(@PathParam("id") Long id) {
+    public Response deleteZone(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to delete Zone : {}", id);
+        if (!securityService.canAccess(ctx, id, Zone.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         zoneService.delete(id);
         var response = Response.noContent();
         HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()).forEach(response::header);
@@ -112,7 +122,9 @@ public class ZoneResource {
      * @return the {@link Response} with status {@code 200 (OK)} and the list of zones in body.
      */
     @GET
-    public Response getAllZones(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo) {
+    @RolesAllowed({AuthoritiesConstants.ADMIN})
+
+    public Response getAllZones(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of Zones");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
@@ -131,9 +143,9 @@ public class ZoneResource {
      */
     @GET
     @Path("/{id}")
-
-    public Response getZone(@PathParam("id") Long id) {
+    public Response getZone(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get Zone : {}", id);
+        // No scurity for voir copies
         Optional<ZoneDTO> zoneDTO = zoneService.findOne(id);
         return ResponseUtil.wrapOrNotFound(zoneDTO);
     }
@@ -154,14 +166,18 @@ public class ZoneResource {
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response partialUpdateZone(
         @PathParam(value = "id") final Long id,
-        ZoneDTO zoneDTO
+        ZoneDTO zoneDTO, @Context SecurityContext ctx
     ) {
         log.debug("REST request to partial update Zone partially : {}, {}", id, zoneDTO);
+
         if (zoneDTO.id == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
         if (!Objects.equals(id, zoneDTO.id)) {
             throw new BadRequestAlertException("Invalid ID", ENTITY_NAME, "idinvalid");
+        }
+        if (!securityService.canAccess(ctx, id, Zone.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
         }
         Optional<ZoneDTO> result = zoneService.partialUpdate(zoneDTO);
         return ResponseUtil.wrapOrNotFound(
@@ -175,9 +191,15 @@ public class ZoneResource {
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response partialResizeZone(
         @PathParam(value = "id") final Long id,
-        ResizeZoneDTO rzoneDTO
+        ResizeZoneDTO rzoneDTO, @Context SecurityContext ctx
     ) {
         log.debug("REST request to partial update Zone partially : {}, {}", id, rzoneDTO);
+
+        if (!securityService.canAccess(ctx, id, Zone.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+
+
         Optional<ZoneDTO> result = zoneService.partialResizeUpdate(rzoneDTO, id);
         return ResponseUtil.wrapOrNotFound(
             result,

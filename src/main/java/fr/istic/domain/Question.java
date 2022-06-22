@@ -144,5 +144,9 @@ public class Question extends PanacheEntityBase implements Serializable {
         return find("select question from Question question where question.zone.id =?1", zoneId);
     }
 
+    public static PanacheQuery<Question> canAccess(long qId, String login) {
+        return find("select q from Question q where q.id =?1 and q.exam.course.prof.login =?2", qId, login);
+    }
+
 
 }

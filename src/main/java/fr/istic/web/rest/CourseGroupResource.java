@@ -2,6 +2,7 @@ package fr.istic.web.rest;
 
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
+import fr.istic.domain.CourseGroup;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.CourseGroupService;
 import fr.istic.web.rest.errors.BadRequestAlertException;
@@ -13,6 +14,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import fr.istic.service.Paged;
+import fr.istic.service.SecurityService;
 import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
@@ -41,6 +43,8 @@ public class CourseGroupResource {
 
     @ConfigProperty(name = "application.name")
     String applicationName;
+    @Inject
+    SecurityService securityService;
 
 
     @Inject
@@ -74,11 +78,15 @@ public class CourseGroupResource {
      */
     @PUT
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response updateCourseGroup(@Valid CourseGroupDTO courseGroupDTO) {
+    public Response updateCourseGroup(@Valid CourseGroupDTO courseGroupDTO, @Context SecurityContext ctx) {
         log.debug("REST request to update CourseGroup : {}", courseGroupDTO);
         if (courseGroupDTO.id == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
+        if (!securityService.canAccess(ctx, courseGroupDTO.id, CourseGroup.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        };
+
         var result = courseGroupService.persistOrUpdate(courseGroupDTO);
         var response = Response.ok().entity(result);
         HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, courseGroupDTO.id.toString()).forEach(response::header);
@@ -94,8 +102,12 @@ public class CourseGroupResource {
     @DELETE
     @Path("/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response deleteCourseGroup(@PathParam("id") Long id) {
+    public Response deleteCourseGroup(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to delete CourseGroup : {}", id);
+        if (!securityService.canAccess(ctx, id, CourseGroup.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        };
+
         courseGroupService.delete(id);
         var response = Response.noContent();
         HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()).forEach(response::header);
@@ -110,7 +122,8 @@ public class CourseGroupResource {
      * @return the {@link Response} with status {@code 200 (OK)} and the list of courseGroups in body.
      */
     @GET
-    public Response getAllCourseGroups(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @QueryParam(value = "eagerload") boolean eagerload) {
+    @RolesAllowed({AuthoritiesConstants.ADMIN})
+    public Response getAllCourseGroups(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @QueryParam(value = "eagerload") boolean eagerload, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of CourseGroups");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
@@ -134,9 +147,12 @@ public class CourseGroupResource {
      */
     @GET
     @Path("/{id}")
-
-    public Response getCourseGroup(@PathParam("id") Long id) {
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    public Response getCourseGroup(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get CourseGroup : {}", id);
+        if (!securityService.canAccess(ctx, id, CourseGroup.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        };
         Optional<CourseGroupDTO> courseGroupDTO = courseGroupService.findOne(id);
         return ResponseUtil.wrapOrNotFound(courseGroupDTO);
     }

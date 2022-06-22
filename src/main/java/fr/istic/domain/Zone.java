@@ -1,5 +1,6 @@
 package fr.istic.domain;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 import javax.persistence.*;
@@ -101,5 +102,7 @@ public class Zone extends PanacheEntityBase implements Serializable {
         }
     }
 
-
+    public static PanacheQuery<Zone> canAccess(long zoneId, String login) {
+        return find("select q.zone from Question q where q.zone.id =?1 and q.exam.course.prof.login =?2", zoneId, login);
+    }
 }
