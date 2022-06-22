@@ -13,7 +13,6 @@ import fr.istic.domain.Exam;
 import fr.istic.domain.ExamSheet;
 import fr.istic.domain.FinalResult;
 import fr.istic.domain.GradedComment;
-import fr.istic.domain.ICanAccess;
 import fr.istic.domain.Question;
 import fr.istic.domain.Scan;
 import fr.istic.domain.Student;
@@ -33,7 +32,7 @@ public class SecurityService {
     }
 
 
-    public <T extends ICanAccess> boolean canAccess(SecurityContext ctx,long id, Class entity ){
+    public  boolean canAccess(SecurityContext ctx,long id, Class entity ){
     if (ctx.getUserPrincipal() == null ) return false;
         var userLogin = Optional
         .ofNullable(ctx.getUserPrincipal().getName());
