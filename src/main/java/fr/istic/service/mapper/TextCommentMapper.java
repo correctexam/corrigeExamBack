@@ -9,7 +9,7 @@ import org.mapstruct.*;
 /**
  * Mapper for the entity {@link TextComment} and its DTO {@link TextCommentDTO}.
  */
-@Mapper(componentModel = "cdi", uses = {QuestionMapper.class})
+@Mapper(componentModel = "cdi", uses = {QuestionMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface TextCommentMapper extends EntityMapper<TextCommentDTO, TextComment> {
 
     @Mapping(source = "question.id", target = "questionId")

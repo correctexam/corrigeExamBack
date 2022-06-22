@@ -33,6 +33,7 @@ public class Scan extends PanacheEntityBase implements Serializable {
     public String name;
 
     @Lob
+    @Basic(fetch = FetchType.LAZY)
     @Column(name = "content")
     public byte[] content;
 

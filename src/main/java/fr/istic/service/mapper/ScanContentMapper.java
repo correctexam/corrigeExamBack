@@ -2,20 +2,19 @@ package fr.istic.service.mapper;
 
 
 import fr.istic.domain.*;
-import fr.istic.service.dto.ScanDTO;
+import fr.istic.service.dto.ScanDTOContent;
 
 import org.mapstruct.*;
 
 /**
- * Mapper for the entity {@link Scan} and its DTO {@link ScanDTO}.
+ * Mapper for the entity {@link Scan} and its DTO {@link ScanDTOContent}.
  */
 @Mapper(componentModel = "cdi", uses = {}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
-public interface ScanMapper extends EntityMapper<ScanDTO, Scan> {
+public interface ScanContentMapper extends EntityMapper<ScanDTOContent, Scan> {
 
 
     @Mapping(target = "sheets", ignore = true)
-    @Mapping(target = "content", ignore = true)
-    Scan toEntity(ScanDTO scanDTO);
+    Scan toEntity(ScanDTOContent scanDTO);
 
     default Scan fromId(Long id) {
         if (id == null) {

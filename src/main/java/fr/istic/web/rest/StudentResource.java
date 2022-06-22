@@ -31,6 +31,8 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -137,7 +139,7 @@ public class StudentResource {
         var page = pageRequest.toPage();
 
         var sort = sortRequest.toSort();
-        Paged<StudentDTO> result;
+        Paged<StudentDTO> result = new Paged<>(0, 0, 0, 0, new ArrayList<>());
 
         MultivaluedMap param =  uriInfo.getQueryParameters();
         if (param.containsKey("courseId")){
@@ -151,6 +153,7 @@ public class StudentResource {
             result =studentService.findStudentsbySheetId(page, Long.parseLong("" + id.get(0)));
         }
         else {
+            if (ctx.getUserPrincipal() != null){
             var userLogin = Optional
             .ofNullable(ctx.getUserPrincipal().getName());
         if (!userLogin.isPresent()){
@@ -171,6 +174,7 @@ public class StudentResource {
                 return Response.status(403, "Current user cannot access to this ressource").build();
             }
         }
+    }
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
         return response.build();

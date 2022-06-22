@@ -12,14 +12,11 @@ import javax.persistence.Lob;
  */
 @RegisterForReflection
 public class ScanDTO implements Serializable {
-    
+
     public Long id;
 
     @NotNull
     public String name;
-
-    @Lob
-    public byte[] content;
 
     public String contentContentType;
 
@@ -46,7 +43,6 @@ public class ScanDTO implements Serializable {
         return "ScanDTO{" +
             "id=" + id +
             ", name='" + name + "'" +
-            ", content='" + content + "'" +
             "}";
     }
 }

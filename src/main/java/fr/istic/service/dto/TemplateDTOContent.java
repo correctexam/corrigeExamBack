@@ -4,17 +4,22 @@ package fr.istic.service.dto;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import javax.validation.constraints.*;
 import java.io.Serializable;
+import java.util.Objects;
+import javax.persistence.Lob;
 
 /**
  * A DTO for the {@link fr.istic.domain.Template} entity.
  */
 @RegisterForReflection
-public class TemplateDTO implements Serializable {
+public class TemplateDTOContent implements Serializable {
 
     public Long id;
 
     @NotNull
     public String name;
+
+    @Lob
+    public byte[] content;
 
     public String contentContentType;
 
@@ -45,6 +50,7 @@ public class TemplateDTO implements Serializable {
         return "TemplateDTO{" +
             "id=" + id +
             ", name='" + name + "'" +
+            ", content='" + content + "'" +
             ", mark='" + mark + "'" +
             ", autoMapStudentCopyToList='" + autoMapStudentCopyToList + "'" +
             "}";

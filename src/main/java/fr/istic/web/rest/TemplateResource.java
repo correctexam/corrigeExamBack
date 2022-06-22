@@ -7,6 +7,7 @@ import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
 import fr.istic.web.util.ResponseUtil;
 import fr.istic.service.dto.TemplateDTO;
+import fr.istic.service.dto.TemplateDTOContent;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
@@ -59,7 +60,7 @@ public class TemplateResource {
      */
     @POST
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response createTemplate(@Valid TemplateDTO templateDTO, @Context UriInfo uriInfo) {
+    public Response createTemplate(@Valid TemplateDTOContent templateDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to save Template : {}", templateDTO);
         if (templateDTO.id != null) {
             throw new BadRequestAlertException("A new template cannot already have an ID", ENTITY_NAME, "idexists");
@@ -80,7 +81,7 @@ public class TemplateResource {
      */
     @PUT
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response updateTemplate(@Valid TemplateDTO templateDTO, @Context SecurityContext ctx) {
+    public Response updateTemplate(@Valid TemplateDTOContent templateDTO, @Context SecurityContext ctx) {
         log.debug("REST request to update Template : {}", templateDTO);
         if (templateDTO.id == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -143,7 +144,7 @@ public class TemplateResource {
     @Path("/{id}")
     public Response getTemplate(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get Template : {}", id);
-        Optional<TemplateDTO> templateDTO = templateService.findOne(id);
+        Optional<TemplateDTOContent> templateDTO = templateService.findOne(id);
         return ResponseUtil.wrapOrNotFound(templateDTO);
     }
 }

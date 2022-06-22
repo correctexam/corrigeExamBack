@@ -2,20 +2,19 @@ package fr.istic.service.mapper;
 
 
 import fr.istic.domain.*;
-import fr.istic.service.dto.TemplateDTO;
+import fr.istic.service.dto.TemplateDTOContent;
 
 import org.mapstruct.*;
 
 /**
- * Mapper for the entity {@link Template} and its DTO {@link TemplateDTO}.
+ * Mapper for the entity {@link Template} and its DTO {@link TemplateDTOContent}.
  */
 @Mapper(componentModel = "cdi", uses = {}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
-public interface TemplateMapper extends EntityMapper<TemplateDTO, Template> {
+public interface TemplateContentMapper extends EntityMapper<TemplateDTOContent, Template> {
 
 
     @Mapping(target = "exam", ignore = true)
-    @Mapping(target = "content", ignore = true)
-    Template toEntity(TemplateDTO templateDTO);
+    Template toEntity(TemplateDTOContent templateDTO);
 
     default Template fromId(Long id) {
         if (id == null) {

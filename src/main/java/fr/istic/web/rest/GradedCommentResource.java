@@ -28,6 +28,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -128,7 +130,7 @@ public class GradedCommentResource {
         log.debug("REST request to get a page of GradedComments");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
-        Paged<GradedCommentDTO> result = null;
+        Paged<GradedCommentDTO> result = new Paged<>(0,0,0,0,new ArrayList<>());
         MultivaluedMap param = uriInfo.getQueryParameters();
         if (param.containsKey("questionId") ) {
             List questionId = (List) param.get("questionId");
@@ -138,6 +140,7 @@ public class GradedCommentResource {
             result = gradedCommentService.findGradedCommentByQuestionId(page, Long.parseLong("" + questionId.get(0)));
         }
         else{
+            if (ctx.getUserPrincipal().getName()!= null){
 
             var userLogin = Optional
             .ofNullable(ctx.getUserPrincipal().getName());
@@ -157,6 +160,7 @@ public class GradedCommentResource {
 
 
         }
+    }
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
         return response.build();

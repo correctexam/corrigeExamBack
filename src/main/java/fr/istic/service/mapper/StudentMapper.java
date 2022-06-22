@@ -9,7 +9,7 @@ import org.mapstruct.*;
 /**
  * Mapper for the entity {@link Student} and its DTO {@link StudentDTO}.
  */
-@Mapper(componentModel = "cdi", uses = {ExamSheetMapper.class})
+@Mapper(componentModel = "cdi", uses = {ExamSheetMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface StudentMapper extends EntityMapper<StudentDTO, Student> {
 
 

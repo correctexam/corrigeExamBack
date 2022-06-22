@@ -30,6 +30,8 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -140,7 +142,7 @@ public class QuestionResource {
         log.debug("REST request to get a page of Questions");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
-        Paged<QuestionDTO> result = null;
+        Paged<QuestionDTO> result = new Paged<>(0,0,0,0,new ArrayList<>());
         MultivaluedMap param = uriInfo.getQueryParameters();
         if (param.containsKey("examId") && param.containsKey("numero")) {
             List id = (List) param.get("examId");
@@ -158,6 +160,7 @@ public class QuestionResource {
         }
 
         else {
+            if (ctx.getUserPrincipal().getName()!= null){
 
             var userLogin = Optional
             .ofNullable(ctx.getUserPrincipal().getName());
@@ -174,7 +177,7 @@ public class QuestionResource {
             } else {
                 return Response.status(403, "Current user cannot access to this ressource").build();
             }
-
+        }
 
         }
         var response = Response.ok().entity(result.content);

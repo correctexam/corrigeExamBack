@@ -9,7 +9,7 @@ import org.mapstruct.*;
 /**
  * Mapper for the entity {@link Zone} and its DTO {@link ZoneDTO}.
  */
-@Mapper(componentModel = "cdi", uses = {})
+@Mapper(componentModel = "cdi", uses = {}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface ZoneMapper extends EntityMapper<ZoneDTO, Zone> {
 
 

@@ -33,6 +33,7 @@ public class Template extends PanacheEntityBase implements Serializable {
     public String name;
 
     @Lob
+    @Basic(fetch = FetchType.LAZY)
     @Column(name = "content")
     public byte[] content;
 

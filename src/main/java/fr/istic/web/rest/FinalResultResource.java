@@ -29,6 +29,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -131,7 +132,7 @@ public class FinalResultResource {
         log.debug("REST request to get a page of FinalResults");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
-        Paged<FinalResultDTO> result = null;
+        Paged<FinalResultDTO> result = new Paged(0,0,0,0,new ArrayList<>());
         MultivaluedMap param = uriInfo.getQueryParameters();
         // examId: this.exam.id, studentId:
         if (param.containsKey("examId") && param.containsKey("studentId")) {
@@ -141,6 +142,7 @@ public class FinalResultResource {
             result = finalResultService.findFinalResultbyExamIdAndStudentId(page, Long.parseLong("" + examId.get(0)),
             Long.parseLong("" + studentId.get(0)));
         }else {
+            if (ctx.getUserPrincipal().getName()!= null){
 
             var userLogin = Optional
             .ofNullable(ctx.getUserPrincipal().getName());
@@ -158,6 +160,7 @@ public class FinalResultResource {
                 return Response.status(403, "Current user cannot access to this ressource").build();
             }
         }
+    }
 
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
