@@ -28,6 +28,8 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -140,13 +142,14 @@ public class ExamSheetResource {
         log.debug("REST request to get a page of ExamSheets");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
-        Paged<ExamSheetDTO> result = null;
+        Paged<ExamSheetDTO> result = new Paged(0,0,0,0, new ArrayList<>());
         MultivaluedMap param = uriInfo.getQueryParameters();
 
         if (param.containsKey("name")) {
             List name = (List) param.get("name");
             result = examSheetService.findExamSheetByName(page, "" + name.get(0));
         } else {
+            if (ctx.getUserPrincipal().getName()!= null){
 
             var userLogin = Optional
                     .ofNullable(ctx.getUserPrincipal().getName());
@@ -164,6 +167,7 @@ public class ExamSheetResource {
                 return Response.status(403, "Current user cannot access to this ressource").build();
             }
         }
+    }
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
         return response.build();

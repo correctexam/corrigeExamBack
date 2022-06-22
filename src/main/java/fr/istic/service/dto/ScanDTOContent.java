@@ -4,23 +4,24 @@ package fr.istic.service.dto;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import javax.validation.constraints.*;
 import java.io.Serializable;
+import java.util.Objects;
+import javax.persistence.Lob;
 
 /**
- * A DTO for the {@link fr.istic.domain.Template} entity.
+ * A DTO for the {@link fr.istic.domain.Scan} entity.
  */
 @RegisterForReflection
-public class TemplateDTO implements Serializable {
+public class ScanDTOContent implements Serializable {
 
     public Long id;
 
     @NotNull
     public String name;
 
+    @Lob
+    public byte[] content;
+
     public String contentContentType;
-
-    public Boolean mark;
-
-    public Boolean autoMapStudentCopyToList;
 
 
     @Override
@@ -28,11 +29,11 @@ public class TemplateDTO implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof TemplateDTO)) {
+        if (!(o instanceof ScanDTO)) {
             return false;
         }
 
-        return id != null && id.equals(((TemplateDTO) o).id);
+        return id != null && id.equals(((ScanDTO) o).id);
     }
 
     @Override
@@ -42,11 +43,10 @@ public class TemplateDTO implements Serializable {
 
     @Override
     public String toString() {
-        return "TemplateDTO{" +
+        return "ScanDTO{" +
             "id=" + id +
             ", name='" + name + "'" +
-            ", mark='" + mark + "'" +
-            ", autoMapStudentCopyToList='" + autoMapStudentCopyToList + "'" +
+            ", content='" + content + "'" +
             "}";
     }
 }

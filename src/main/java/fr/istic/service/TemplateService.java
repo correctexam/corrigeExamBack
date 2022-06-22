@@ -3,6 +3,8 @@ package fr.istic.service;
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.Template;
 import fr.istic.service.dto.TemplateDTO;
+import fr.istic.service.dto.TemplateDTOContent;
+import fr.istic.service.mapper.TemplateContentMapper;
 import fr.istic.service.mapper.TemplateMapper;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import org.slf4j.Logger;
@@ -24,12 +26,16 @@ public class TemplateService {
     @Inject
     TemplateMapper templateMapper;
 
+    @Inject
+    TemplateContentMapper templateContentMapper;
+
+
     @Transactional
-    public TemplateDTO persistOrUpdate(TemplateDTO templateDTO) {
+    public TemplateDTOContent persistOrUpdate(TemplateDTOContent templateDTO) {
         log.debug("Request to save Template : {}", templateDTO);
-        var template = templateMapper.toEntity(templateDTO);
+        var template = templateContentMapper.toEntity(templateDTO);
         template = Template.persistOrUpdate(template);
-        return templateMapper.toDto(template);
+        return templateContentMapper.toDto(template);
     }
 
     /**
@@ -51,10 +57,10 @@ public class TemplateService {
      * @param id the id of the entity.
      * @return the entity.
      */
-    public Optional<TemplateDTO> findOne(Long id) {
+    public Optional<TemplateDTOContent> findOne(Long id) {
         log.debug("Request to get Template : {}", id);
         return Template.findByIdOptional(id)
-            .map(template -> templateMapper.toDto((Template) template)); 
+            .map(template -> templateContentMapper.toDto((Template) template));
     }
 
     /**

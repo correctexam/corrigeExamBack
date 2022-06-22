@@ -29,6 +29,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -131,13 +133,15 @@ public class CommentsResource {
         log.debug("REST request to get a page of Comments");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
-        Paged<CommentsDTO> result = null;
+        Paged<CommentsDTO> result = new Paged<>(0, 0, 0,0, new ArrayList<>());
         MultivaluedMap param = uriInfo.getQueryParameters();
         if (param.containsKey("zonegeneratedid")) {
             List<String> zonegeneratedid = (List<String>) param.get("zonegeneratedid");
             result = commentsService.findCommentsbyZonegeneratedid(page,  zonegeneratedid.get(0));
         }
         else {
+            if (ctx.getUserPrincipal().getName()!= null){
+
             var userLogin = Optional
             .ofNullable(ctx.getUserPrincipal().getName());
         if (!userLogin.isPresent()){
@@ -153,7 +157,7 @@ public class CommentsResource {
             } else {
                 return Response.status(403, "Current user cannot access to this ressource").build();
             }
-
+        }
          }
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);

@@ -30,6 +30,8 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -119,7 +121,6 @@ public class ExamResource {
         if (!securityService.canAccess(ctx, id, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
-        ;
 
         examService.delete(id);
         var response = Response.noContent();
@@ -141,7 +142,7 @@ public class ExamResource {
         log.debug("REST request to get a page of Exams");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
-        Paged<ExamDTO> result = null;
+        Paged<ExamDTO> result = new Paged<>(0,0,0,0, new ArrayList<>());
         MultivaluedMap param = uriInfo.getQueryParameters();
         if (param.containsKey("courseId")) {
             List id = (List) param.get("courseId");
@@ -158,6 +159,9 @@ public class ExamResource {
             result = examService.findExambyScanId(page, Long.parseLong("" + scanId.get(0)));
 
         } else {
+            if (ctx.getUserPrincipal().getName()!= null){
+
+
             var userLogin = Optional
                     .ofNullable(ctx.getUserPrincipal().getName());
             if (!userLogin.isPresent()) {
@@ -175,6 +179,7 @@ public class ExamResource {
             }
 
         }
+    }
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
         return response.build();

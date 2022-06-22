@@ -32,12 +32,12 @@ public class Course extends PanacheEntityBase implements Serializable {
     @Column(name = "name", nullable = false)
     public String name;
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     public Set<Exam> exams = new HashSet<>();
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE)
-//    @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
+    @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     public Set<CourseGroup> groups = new HashSet<>();
 
     @ManyToOne(optional = false)
