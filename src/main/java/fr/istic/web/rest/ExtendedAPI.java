@@ -109,7 +109,9 @@ public class ExtendedAPI {
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response computeFinalNote4Exam(@PathParam("examId") long examId, @Context SecurityContext ctx) {
 
-
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
 
         this.computeFinalNote(examId);
         return Response.ok().build();
@@ -120,7 +122,9 @@ public class ExtendedAPI {
     @Transactional
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response sendResultToStudent(MailResultDTO dto, @PathParam("examId") long examId, @Context SecurityContext ctx) {
-
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         Exam ex = this.computeFinalNote(examId);
 
         List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
@@ -157,6 +161,9 @@ public class ExtendedAPI {
     @Transactional
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response showResult(@PathParam("examId") long examId, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         Exam ex = this.computeFinalNote(examId);
         List<StudentResultDTO> results = new ArrayList<>();
         List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
@@ -207,15 +214,10 @@ public class ExtendedAPI {
     @Transactional
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createAllStudent(StudentMassDTO dto, @Context SecurityContext ctx) {
-        var userLogin = Optional
-                .ofNullable(ctx.getUserPrincipal().getName());
-        if (!userLogin.isPresent()) {
-            throw new AccountResourceException("Current user login not found");
+        if (!securityService.canAccess(ctx, dto.getCourse(), Course.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
         }
-        var user = User.findOneByLogin(userLogin.get());
-        if (!user.isPresent()) {
-            throw new AccountResourceException("User could not be found");
-        }
+
         Course c = Course.findById(dto.getCourse());
         List<String> groupes = dto.getStudents().stream().map(e -> e.getGroupe()).distinct()
                 .collect(Collectors.toList());
@@ -253,8 +255,12 @@ public class ExtendedAPI {
 
     @PUT
     @Path("updatestudent/{courseid}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Transactional
     public Response updatestudent4Course(fr.istic.service.customdto.StudentDTO student ,@PathParam("courseid") long courseid,  @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, courseid, Course.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         var st = Student.findStudentsbyCourseIdAndINE(courseid, student.getIne()).firstResult();
         st.firstname = student.getPrenom();
         st.name = student.getNom();
@@ -265,8 +271,13 @@ public class ExtendedAPI {
 
     @PUT
     @Path("updatestudentgroup/{courseid}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+
     @Transactional
     public Response updatestudentgroup(fr.istic.service.customdto.StudentDTO student ,@PathParam("courseid") long courseid,  @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, courseid, Course.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         var st = Student.findStudentsbyCourseIdAndINE(courseid, student.getIne()).firstResult();
         CourseGroup cgorigin = CourseGroup.findByStudentINEandCourse(courseid, student.getIne()).firstResult();
         cgorigin.students.remove(st);
@@ -289,8 +300,12 @@ public class ExtendedAPI {
     }
     @PUT
     @Path("updatestudentine/{courseid}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Transactional
     public Response updatestudentine(fr.istic.service.customdto.StudentDTO student ,@PathParam("courseid") long courseid,  @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, courseid, Course.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         var st = Student.findStudentsbyCourseIdAndFirsNameAndLastName(courseid, student.getPrenom(), student.getNom()).firstResult();
         st.ine = student.getIne();
         Student.persistOrUpdate(st);
@@ -300,16 +315,11 @@ public class ExtendedAPI {
 
     @GET
     @Path("getstudentcours/{courseid}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Transactional
     public Response getAllStudent4Course(@PathParam("courseid") long courseid, @Context SecurityContext ctx) {
-        var userLogin = Optional
-                .ofNullable(ctx.getUserPrincipal().getName());
-        if (!userLogin.isPresent()) {
-            throw new AccountResourceException("Current user login not found");
-        }
-        var user = User.findOneByLogin(userLogin.get());
-        if (!user.isPresent()) {
-            throw new AccountResourceException("User could not be found");
+        if (!securityService.canAccess(ctx, courseid, Course.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
         }
 
         Course c = Course.findById(courseid);
@@ -336,6 +346,10 @@ public class ExtendedAPI {
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Transactional
     public Response deleteAllStudent4Course(@PathParam("courseid") long courseid, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, courseid, Course.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+
         var userLogin = Optional
                 .ofNullable(ctx.getUserPrincipal().getName());
         if (!userLogin.isPresent()) {
