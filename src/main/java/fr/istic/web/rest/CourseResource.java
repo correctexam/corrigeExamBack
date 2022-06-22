@@ -180,9 +180,15 @@ public class CourseResource {
      * @return the {@link Response} with status {@code 200 (OK)} and with body the courseDTO, or with status {@code 404 (Not Found)}.
      */
     @GET
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+
     @Path("/{id}")
     public Response getCourse(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get Course : {}", id);
+        if (!securityService.canAccess(ctx, id, Course.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+
         Optional<CourseDTO> courseDTO = courseService.findOne(id);
         return ResponseUtil.wrapOrNotFound(courseDTO);
     }
