@@ -54,8 +54,8 @@ public class CourseService {
      */
     public Optional<CourseDTO> findOne(Long id) {
         log.debug("Request to get Course : {}", id);
-        return Course.findByIdOptional(id)
-            .map(course -> courseMapper.toDto((Course) course));
+        return Course.findOneWithEagerRelationships(id)
+            .map(course -> courseMapper.toDto((Course) course)); 
     }
 
     /**
@@ -66,6 +66,19 @@ public class CourseService {
     public Paged<CourseDTO> findAll(Page page) {
         log.debug("Request to get all Courses");
         return new Paged<>(Course.findAll().page(page))
+            .map(course -> courseMapper.toDto((Course) course));
+    }
+
+    /**
+     * Get all the courses with eager load of many-to-many relationships.
+     * @param page the pagination information.
+     * @return the list of entities.
+     */
+    public Paged<CourseDTO> findAllWithEagerRelationships(Page page) {
+        var courses = Course.findAllWithEagerRelationships().page(page).list();
+        var totalCount = Course.findAll().count();
+        var pageCount = Course.findAll().page(page).pageCount();
+        return new Paged<>(page.index, page.size, totalCount, pageCount, courses)
             .map(course -> courseMapper.toDto((Course) course));
     }
 

@@ -103,6 +103,6 @@ public class Zone extends PanacheEntityBase implements Serializable {
     }
 
     public static PanacheQuery<Zone> canAccess(long zoneId, String login) {
-        return find("select q.zone from Question q where q.zone.id =?1 and q.exam.course.prof.login =?2", zoneId, login);
+        return find("select q.zone from Question q join q.exam.course.profs as u where q.zone.id =?1 and u.login =?2", zoneId, login);
     }
 }

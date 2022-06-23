@@ -145,7 +145,7 @@ public class Question extends PanacheEntityBase implements Serializable {
     }
 
     public static PanacheQuery<Question> canAccess(long qId, String login) {
-        return find("select q from Question q where q.id =?1 and q.exam.course.prof.login =?2", qId, login);
+        return find("select q from Question q join q.exam.course.profs as u where q.id =?1 and u.login =?2", qId, login);
     }
 
 

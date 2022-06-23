@@ -113,7 +113,7 @@ public class TextComment extends PanacheEntityBase implements Serializable {
         return find("select textcomment from TextComment textcomment where textcomment.question.id =?1", qid);
     }
     public static PanacheQuery<TextComment> canAccess(long commentId, String login) {
-        return find("select ex from TextComment ex where ex.id =?1 and ex.question.exam.course.prof.login =?2", commentId, login);
+        return find("select ex from TextComment ex join ex.question.exam.course.profs as u where ex.id =?1 and u.login =?2", commentId, login);
     }
 
 

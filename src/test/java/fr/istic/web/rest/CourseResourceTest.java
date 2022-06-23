@@ -19,7 +19,8 @@ import org.junit.jupiter.api.*;
 import javax.inject.Inject;
 
 import java.util.List;
-    
+    import java.util.ArrayList;
+
 @QuarkusTest
 public class CourseResourceTest {
 

@@ -21,12 +21,13 @@
       "relationshipName": "groups"
     },
     {
-      "relationshipType": "many-to-one",
+      "relationshipType": "many-to-many",
       "otherEntityName": "user",
       "otherEntityRelationshipName": "course",
       "relationshipValidateRules": "required",
       "relationshipName": "prof",
-      "otherEntityField": "login"
+      "otherEntityField": "login",
+      "ownerSide": true
     }
   ],
   "changelogDate": "20220309164635",
