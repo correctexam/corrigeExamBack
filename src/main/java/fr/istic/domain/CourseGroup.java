@@ -128,7 +128,7 @@ public class CourseGroup extends PanacheEntityBase implements Serializable {
 
 
     public static PanacheQuery<CourseGroup> canAccess(long courseGroupId, String login) {
-        return find("select c from CourseGroup c where c.id =?1 and c.course.prof.login =?2", courseGroupId, login);
+        return find("select c from CourseGroup c join c.course.profs u where c.id =?1 and u.login =?2", courseGroupId, login);
     }
 
 

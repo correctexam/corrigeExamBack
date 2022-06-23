@@ -12,13 +12,13 @@ import org.mapstruct.*;
 @Mapper(componentModel = "cdi", uses = {UserMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface CourseMapper extends EntityMapper<CourseDTO, Course> {
 
-    @Mapping(source = "prof.id", target = "profId")
-    @Mapping(source = "prof.login", target = "profLogin")
-    CourseDTO toDto(Course course);
+//    @Mapping(source = "prof.id", target = "profId")
+//    @Mapping(source = "prof.login", target = "profLogin")
+//    CourseDTO toDto(Course course);
 
     @Mapping(target = "exams", ignore = true)
     @Mapping(target = "groups", ignore = true)
-    @Mapping(source = "profId", target = "prof")
+//    @Mapping(source = "profId", target = "prof")
     Course toEntity(CourseDTO courseDTO);
 
     default Course fromId(Long id) {

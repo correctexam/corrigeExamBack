@@ -118,7 +118,7 @@ public class GradedComment extends PanacheEntityBase implements Serializable {
     }
 
     public static PanacheQuery<GradedComment> canAccess(long commentId, String login) {
-        return find("select ex from GradedComment ex where ex.id =?1 and ex.question.exam.course.prof.login =?2", commentId, login);
+        return find("select ex from GradedComment ex join ex.question.exam.course.profs as u where ex.id =?1 and u.login =?2", commentId, login);
     }
 
 }
