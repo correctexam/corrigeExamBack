@@ -8,9 +8,15 @@
     -->
     <changeSet id="20220309164635-2" author="jhipster">
         
+        <addForeignKeyConstraint baseColumnNames="course_id"
+                                 baseTableName="course_prof"
+                                 constraintName="fk_course_prof_course_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="course"/>
+
         <addForeignKeyConstraint baseColumnNames="prof_id"
-                                 baseTableName="course"
-                                 constraintName="fk_course_prof_id"
+                                 baseTableName="course_prof"
+                                 constraintName="fk_course_prof_prof_id"
                                  referencedColumnNames="id"
                                  referencedTableName="jhi_user"/>
 

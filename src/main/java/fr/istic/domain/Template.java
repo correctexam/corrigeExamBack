@@ -116,7 +116,7 @@ public class Template extends PanacheEntityBase implements Serializable {
     }
 
     public static PanacheQuery<Template> canAccess( long templateId, String login) {
-        return find("select t from Template t where t.id =?1 and t.exam.course.prof.login =?2", templateId, login);
+        return find("select t from Template t join t.exam.course.profs as u where t.id =?1 and u.login =?2", templateId, login);
     }
 
 

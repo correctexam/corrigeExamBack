@@ -12,6 +12,7 @@ import javax.validation.constraints.*;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Optional;
 
 /**
  * A Course.
@@ -40,11 +41,14 @@ public class Course extends PanacheEntityBase implements Serializable {
     @Cache(usage = CacheConcurrencyStrategy.TRANSACTIONAL)
     public Set<CourseGroup> groups = new HashSet<>();
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "prof_id")
+    @ManyToMany
+    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @NotNull
+    @JoinTable(name = "course_prof",
+               joinColumns = @JoinColumn(name = "course_id", referencedColumnName = "id"),
+               inverseJoinColumns = @JoinColumn(name = "prof_id", referencedColumnName = "id"))
     @JsonbTransient
-    public User prof;
+    public Set<User> profs = new HashSet<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
 
@@ -89,7 +93,7 @@ public class Course extends PanacheEntityBase implements Serializable {
             entity.name = course.name;
             entity.exams = course.exams;
             entity.groups = course.groups;
-            entity.prof = course.prof;
+            entity.profs = course.profs;
         }
         return entity;
     }
@@ -106,12 +110,22 @@ public class Course extends PanacheEntityBase implements Serializable {
         }
     }
 
+
+    public static PanacheQuery<Course> findAllWithEagerRelationships() {
+        return find("select distinct course from Course course left join fetch course.profs");
+    }
+
+    public static Optional<Course> findOneWithEagerRelationships(Long id) {
+        return find("select course from Course course left join fetch course.profs where course.id =?1", id).firstResultOptional();
+    }
+
+
     public static PanacheQuery<Course> findByProfIsCurrentUser( String login) {
-        return find("select course from Course course where course.prof.login =?1", login);
+        return find("select course from Course course join course.profs as u where u.login =?1", login);
     }
 
     public static PanacheQuery<Course> canAccess(long courseId, String login) {
-        return find("select course from Course course where course.prof.login =?1 and course.id = ?2", login, courseId);
+        return find("select course from Course course join course.profs as u where u.login =?1 and course.id = ?2", login, courseId);
     }
 
 

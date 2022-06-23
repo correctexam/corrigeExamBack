@@ -12,6 +12,7 @@ import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
 import fr.istic.web.util.ResponseUtil;
 import fr.istic.service.dto.CourseDTO;
+import fr.istic.service.mapper.UserMapper;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
@@ -55,6 +56,9 @@ public class CourseResource {
     @Inject
     SecurityService securityService;
 
+    @Inject
+    UserMapper userMapper;
+
 
     /**
      * {@code POST  /courses} : Create a new course.
@@ -79,8 +83,9 @@ public class CourseResource {
         if (!user.isPresent()) {
             throw new AccountResourceException("User could not be found");
         }
-        if (courseDTO.profId == null && !userLogin.equals("system")){
-            courseDTO.profId =user.get().id;
+        if (!userLogin.equals("system")&& courseDTO.profs.stream().filter(c -> userLogin.equals(c.login)).count() == 0 ){
+            courseDTO.profs.add(  userMapper.userToUserDTO(user.get()));
+//            courseDTO.profId =user.get().id;
         }
 
         var result = courseService.persistOrUpdate(courseDTO);

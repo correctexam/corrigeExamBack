@@ -4,6 +4,8 @@ package fr.istic.service.dto;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import javax.validation.constraints.*;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Objects;
 
 /**
@@ -17,8 +19,7 @@ public class CourseDTO implements Serializable {
     @NotNull
     public String name;
 
-    public Long profId;
-    public String profLogin;
+    public Set<UserDTO> profs = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {
@@ -42,8 +43,7 @@ public class CourseDTO implements Serializable {
         return "CourseDTO{" +
             "id=" + id +
             ", name='" + name + "'" +
-            ", profId=" + profId +
-            ", profLogin='" + profLogin + "'" +
+            ", profs='" + profs + "'" +
             "}";
     }
 }

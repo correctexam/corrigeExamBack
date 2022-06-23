@@ -152,6 +152,6 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
 
 
     public static PanacheQuery<StudentResponse> canAccess(long srId, String login) {
-        return find("select ex from StudentResponse ex where ex.id =?1 and ex.question.exam.course.prof.login =?2", srId, login);
+        return find("select ex from StudentResponse ex join ex.question.exam.course.profs as u where ex.id =?1 and u.login =?2", srId, login);
     }
 }
