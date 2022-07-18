@@ -272,7 +272,6 @@ public class ExtendedAPI {
     @PUT
     @Path("updatestudentgroup/{courseid}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-
     @Transactional
     public Response updatestudentgroup(fr.istic.service.customdto.StudentDTO student ,@PathParam("courseid") long courseid,  @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseid, Course.class)) {
@@ -298,6 +297,24 @@ public class ExtendedAPI {
             return Response.ok().build();
         }
     }
+
+    @PUT
+    @Path("deletestudentgroup/{courseid}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @Transactional
+    public Response deletestudentgroup(fr.istic.service.customdto.StudentDTO student ,@PathParam("courseid") long courseid,  @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, courseid, Course.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        var st = Student.findStudentsbyCourseIdAndINE(courseid, student.getIne()).firstResult();
+        CourseGroup cgorigin = CourseGroup.findByStudentINEandCourse(courseid, student.getIne()).firstResult();
+        cgorigin.students.remove(st);
+        CourseGroup.persistOrUpdate(cgorigin);
+        Student.deleteById(st.id);
+        return Response.ok().entity(st).build();
+    }
+
+
     @PUT
     @Path("updatestudentine/{courseid}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
