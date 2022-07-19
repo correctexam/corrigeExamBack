@@ -33,6 +33,12 @@ public class StudentResponseResourceTest {
     private static final Integer DEFAULT_NOTE = 1;
     private static final Integer UPDATED_NOTE = 2;
 
+    private static final Boolean DEFAULT_STAR = false;
+    private static final Boolean UPDATED_STAR = true;
+
+    private static final Boolean DEFAULT_WORSTSTAR = false;
+    private static final Boolean UPDATED_WORSTSTAR = true;
+
 
 
     String adminToken;
@@ -75,6 +81,8 @@ public class StudentResponseResourceTest {
     public static StudentResponseDTO createEntity() {
         var studentResponseDTO = new StudentResponseDTO();
         studentResponseDTO.note = DEFAULT_NOTE;
+        studentResponseDTO.star = DEFAULT_STAR;
+        studentResponseDTO.worststar = DEFAULT_WORSTSTAR;
         return studentResponseDTO;
     }
 
@@ -128,6 +136,8 @@ public class StudentResponseResourceTest {
         assertThat(studentResponseDTOList).hasSize(databaseSizeBeforeCreate + 1);
         var testStudentResponseDTO = studentResponseDTOList.stream().filter(it -> studentResponseDTO.id.equals(it.id)).findFirst().get();
         assertThat(testStudentResponseDTO.note).isEqualTo(DEFAULT_NOTE);
+        assertThat(testStudentResponseDTO.star).isEqualTo(DEFAULT_STAR);
+        assertThat(testStudentResponseDTO.worststar).isEqualTo(DEFAULT_WORSTSTAR);
     }
 
     @Test
@@ -222,6 +232,8 @@ public class StudentResponseResourceTest {
 
         // Update the studentResponse
         updatedStudentResponseDTO.note = UPDATED_NOTE;
+        updatedStudentResponseDTO.star = UPDATED_STAR;
+        updatedStudentResponseDTO.worststar = UPDATED_WORSTSTAR;
 
         given()
             .auth()
@@ -251,6 +263,8 @@ public class StudentResponseResourceTest {
         assertThat(studentResponseDTOList).hasSize(databaseSizeBeforeUpdate);
         var testStudentResponseDTO = studentResponseDTOList.stream().filter(it -> updatedStudentResponseDTO.id.equals(it.id)).findFirst().get();
         assertThat(testStudentResponseDTO.note).isEqualTo(UPDATED_NOTE);
+        assertThat(testStudentResponseDTO.star).isEqualTo(UPDATED_STAR);
+        assertThat(testStudentResponseDTO.worststar).isEqualTo(UPDATED_WORSTSTAR);
     }
 
     @Test
@@ -381,7 +395,7 @@ public class StudentResponseResourceTest {
             .statusCode(OK.getStatusCode())
             .contentType(APPLICATION_JSON)
             .body("id", hasItem(studentResponseDTO.id.intValue()))
-            .body("note", hasItem(DEFAULT_NOTE.intValue()));
+            .body("note", hasItem(DEFAULT_NOTE.intValue()))            .body("star", hasItem(DEFAULT_STAR.booleanValue()))            .body("worststar", hasItem(DEFAULT_WORSTSTAR.booleanValue()));
     }
 
     @Test
@@ -426,7 +440,9 @@ public class StudentResponseResourceTest {
             .contentType(APPLICATION_JSON)
             .body("id", is(studentResponseDTO.id.intValue()))
             
-                .body("note", is(DEFAULT_NOTE.intValue()));
+                .body("note", is(DEFAULT_NOTE.intValue()))
+                .body("star", is(DEFAULT_STAR.booleanValue()))
+                .body("worststar", is(DEFAULT_WORSTSTAR.booleanValue()));
     }
 
     @Test

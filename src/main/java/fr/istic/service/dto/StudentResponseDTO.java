@@ -19,6 +19,8 @@ public class StudentResponseDTO implements Serializable {
 
     public Boolean star;
 
+    public Boolean worststar;
+
     public Long questionId;
     public String questionNumero;
     public Long sheetId;
@@ -49,6 +51,7 @@ public class StudentResponseDTO implements Serializable {
             "id=" + id +
             ", note=" + note +
             ", star='" + star + "'" +
+            ", worststar='" + worststar + "'" +
             ", questionId=" + questionId +
             ", questionNumero='" + questionNumero + "'" +
             ", sheetId=" + sheetId +
