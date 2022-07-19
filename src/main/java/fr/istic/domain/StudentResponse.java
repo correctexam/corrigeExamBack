@@ -150,6 +150,11 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         return find("select sr from StudentResponse sr where sr.sheet.id =?1 ", sheetId );
     }
 
+    public static PanacheQuery<ExamSheet> getBestAnswerforQuestionNoAndExamId( long examId, int questionNo) {
+        return find("select distinct sr.sheet from StudentResponse sr where sr.question.numero = ?2 and  sr.question.exam.id = ?1 and sr.star = true",examId,questionNo );
+    }
+
+
 
     public static PanacheQuery<StudentResponse> canAccess(long srId, String login) {
         return find("select ex from StudentResponse ex join ex.question.exam.course.profs as u where ex.id =?1 and u.login =?2", srId, login);

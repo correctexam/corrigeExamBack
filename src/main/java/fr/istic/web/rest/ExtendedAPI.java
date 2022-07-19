@@ -20,6 +20,7 @@ import fr.istic.service.StudentService;
 import fr.istic.service.customdto.MailResultDTO;
 import fr.istic.service.customdto.StudentMassDTO;
 import fr.istic.service.customdto.StudentResultDTO;
+import io.quarkus.logging.Log;
 
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
@@ -34,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -387,6 +389,17 @@ public class ExtendedAPI {
         c.groups.clear();
         Course.update(c);
         return Response.ok().build();
+    }
+
+    @GET
+    @Path("getBestAnswer/{examId}/{nume}")
+    @Transactional
+    public Response getBestAnswer(@PathParam("examId") long examId, @PathParam("nume") int nume) {
+        System.err.println(examId);
+        System.err.println(nume);
+        List<String> res= StudentResponse.getBestAnswerforQuestionNoAndExamId(examId,nume).list().stream().map(e-> e.name).collect(Collectors.toList());
+
+        return Response.ok().entity(res).build();
     }
 
 }
