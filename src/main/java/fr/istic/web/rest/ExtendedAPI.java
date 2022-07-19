@@ -20,6 +20,7 @@ import fr.istic.service.StudentService;
 import fr.istic.service.customdto.MailResultDTO;
 import fr.istic.service.customdto.StudentMassDTO;
 import fr.istic.service.customdto.StudentResultDTO;
+import fr.istic.service.customdto.WorstAndBestSolution;
 import io.quarkus.logging.Log;
 
 import javax.annotation.security.RolesAllowed;
@@ -31,6 +32,7 @@ import javax.ws.rs.core.*;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -395,11 +397,48 @@ public class ExtendedAPI {
     @Path("getBestAnswer/{examId}/{nume}")
     @Transactional
     public Response getBestAnswer(@PathParam("examId") long examId, @PathParam("nume") int nume) {
-        System.err.println(examId);
-        System.err.println(nume);
         List<String> res= StudentResponse.getBestAnswerforQuestionNoAndExamId(examId,nume).list().stream().map(e-> e.name).collect(Collectors.toList());
 
         return Response.ok().entity(res).build();
     }
+
+    @GET
+//    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @Path("getAllStarAnswer/{examId}")
+    @Transactional
+    public Response getAllStarAnswer(@PathParam("examId") long examId) {
+        Base64.Encoder encoder = Base64.getEncoder();
+
+        Map<Integer, WorstAndBestSolution> res = new HashMap<Integer, WorstAndBestSolution>();
+        List<StudentResponse> resbest= StudentResponse.getAllBestAnswerforExamId(examId).list();
+        List<StudentResponse> resworst= StudentResponse.getAllWorstAnswerforExamId(examId).list();
+
+        resbest.forEach(st-> {
+            if (!res.containsKey(st.question.numero)){
+                res.put(st.question.numero, new WorstAndBestSolution(st.question.numero));
+            }
+            WorstAndBestSolution tmp = res.get(st.question.numero);
+            // /reponse/' + btoa('/' + s1 + '/' + (this.questionno + 1) + '/')
+            byte[] encodedContent = encoder.encode(("/" + st.sheet.name + "/" + (st.question.numero) + "/").getBytes());
+            var s = new String(encodedContent);
+            tmp.getBestSolutions().add("/reponse/" + s);
+        });
+
+        resworst.forEach(st-> {
+            if (!res.containsKey(st.question.numero)){
+                res.put(st.question.numero, new WorstAndBestSolution(st.question.numero));
+            }
+            WorstAndBestSolution tmp = res.get(st.question.numero);
+            // /reponse/' + btoa('/' + s1 + '/' + (this.questionno + 1) + '/')
+            byte[] encodedContent = encoder.encode(("/" + st.sheet.name + "/" + (st.question.numero) + "/").getBytes());
+            var s = new String(encodedContent);
+            tmp.getWorstSolutions().add("/reponse/" + s);
+        });
+
+        return Response.ok().entity(res.values()).build();
+    }
+
+
+
 
 }
