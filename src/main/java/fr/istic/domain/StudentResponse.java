@@ -33,6 +33,9 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     @Column(name = "star")
     public Boolean star;
 
+    @Column(name = "worststar")
+    public Boolean worststar;
+
     @OneToMany(mappedBy = "studentResponse")
     public Set<Comments> comments = new HashSet<>();
 
@@ -86,6 +89,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
             "id=" + id +
             ", note=" + note +
             ", star='" + star + "'" +
+            ", worststar='" + worststar + "'" +
             "}";
     }
 
@@ -105,6 +109,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         if (entity != null) {
             entity.note = studentResponse.note;
             entity.star = studentResponse.star;
+            entity.worststar = studentResponse.worststar;
             entity.comments = studentResponse.comments;
             entity.question = studentResponse.question;
             entity.sheet = studentResponse.sheet;
@@ -154,6 +159,13 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         return find("select distinct sr.sheet from StudentResponse sr where sr.question.numero = ?2 and  sr.question.exam.id = ?1 and sr.star = true",examId,questionNo );
     }
 
+    public static PanacheQuery<StudentResponse> getAllBestAnswerforExamId( long examId) {
+        return find("select distinct sr from StudentResponse sr join fetch sr.question join fetch  sr.sheet where sr.question.exam.id = ?1 and sr.star = true",examId );
+    }
+
+    public static PanacheQuery<StudentResponse> getAllWorstAnswerforExamId( long examId) {
+        return find("select distinct sr from StudentResponse sr join fetch sr.question  join fetch  sr.sheet where  sr.question.exam.id = ?1 and sr.worststar = true",examId );
+    }
 
 
     public static PanacheQuery<StudentResponse> canAccess(long srId, String login) {
