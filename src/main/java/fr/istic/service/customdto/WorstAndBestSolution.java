@@ -3,6 +3,9 @@ package fr.istic.service.customdto;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+@RegisterForReflection
 public class WorstAndBestSolution {
     private long numero;
 
@@ -24,4 +27,12 @@ public class WorstAndBestSolution {
 
     public List<String> getWorstSolutions() { return worstSolutions; }
     public void setWorstSolutions(List<String> value) { this.worstSolutions = value; }
+
+    @Override
+    public String toString() {
+        return "WorstAndBestSolution [bestSolutions=" + bestSolutions + ", numero=" + numero + ", worstSolutions="
+                + worstSolutions + "]";
+    }
+
+
 }
