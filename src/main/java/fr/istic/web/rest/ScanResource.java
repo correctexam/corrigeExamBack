@@ -124,7 +124,7 @@ public class ScanResource {
      * @return the {@link Response} with status {@code 200 (OK)} and the list of scans in body.
      */
     @GET
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+//    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response getAllScans(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of Scans");
         var page = pageRequest.toPage();
