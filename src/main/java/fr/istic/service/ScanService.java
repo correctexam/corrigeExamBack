@@ -34,8 +34,25 @@ public class ScanService {
     public ScanDTOContent persistOrUpdate(ScanDTOContent scanDTO) {
         log.debug("Request to save Scan : {}", scanDTO);
         var scan = scanContentMapper.toEntity(scanDTO);
-        scan = Scan.persistOrUpdate(scan);
-        return scanContentMapper.toDto(scan);
+        if (scanDTO.name.endsWith("indexdb.json")){
+            PanacheQuery<Scan> q = Scan.findByName(scanDTO.name);
+            long number = q.count();
+            if (number > 0){
+                Scan s = q.firstResult();
+                s.content = scan.content;
+                scan = Scan.persistOrUpdate(s);
+                return scanContentMapper.toDto(s);
+            } else {
+                scan = Scan.persistOrUpdate(scan);
+                return scanContentMapper.toDto(scan);
+            }
+
+        } else {
+            scan = Scan.persistOrUpdate(scan);
+            return scanContentMapper.toDto(scan);
+
+        }
+
     }
 
     /**
@@ -74,6 +91,17 @@ public class ScanService {
             .map(scan -> scanMapper.toDto((Scan) scan));
     }
 
+
+        /**
+     * Get all the scans by Name.
+     * @param page the pagination information.
+     * @return the list of entities.
+     */
+    public Paged<ScanDTOContent> findbyName(String name, Page page) {
+        log.debug("Request to get all Scans by name");
+        return new Paged<>(Scan.findByName(name).page(page))
+            .map(scan -> scanContentMapper.toDto((Scan) scan));
+    }
 
 
 }
