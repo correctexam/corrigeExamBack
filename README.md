@@ -94,3 +94,5 @@ To stop it and remove the container, run:
 [running tests page]: https://www.jhipster.tech/documentation-archive/v6.10.5/running-tests/
 [code quality page]: https://www.jhipster.tech/documentation-archive/v6.10.5/code-quality/
 [setting up continuous integration]: https://www.jhipster.tech/documentation-archive/v6.10.5/setting-up-ci/
+
+
