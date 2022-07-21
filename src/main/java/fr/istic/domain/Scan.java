@@ -105,6 +105,11 @@ public class Scan extends PanacheEntityBase implements Serializable {
         }
     }
 
+    public static PanacheQuery<Scan> findByName( String name) {
+        return find("select scanfile from Scan scanfile where scanfile.name =?1", name);
+    }
+
+
     public static PanacheQuery<Scan> canAccess( long scanId, String login) {
         return find("select exam.scanfile from Exam exam join exam.course.profs as u where exam.scanfile.id =?1 and u.login =?2", scanId, login);
     }

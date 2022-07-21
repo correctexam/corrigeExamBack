@@ -27,6 +27,8 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -122,15 +124,31 @@ public class ScanResource {
      * @return the {@link Response} with status {@code 200 (OK)} and the list of scans in body.
      */
     @GET
-    @RolesAllowed({AuthoritiesConstants.ADMIN})
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response getAllScans(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of Scans");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
-        Paged<ScanDTO> result = scanService.findAll(page);
-        var response = Response.ok().entity(result.content);
-        response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
-        return response.build();
+
+        MultivaluedMap param = uriInfo.getQueryParameters();
+        if (param.containsKey("name")) {
+            List name = (List) param.get("name");
+            Paged<ScanDTOContent> result =  scanService.findbyName("" + name.get(0),page);
+            var response = Response.ok().entity(result.content);
+            response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
+            return response.build();
+
+        }else {
+            Paged<ScanDTO> result  = scanService.findAll(page);
+            var response = Response.ok().entity(result.content);
+            response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
+            return response.build();
+
+        }
+
+
+
+
     }
 
 
