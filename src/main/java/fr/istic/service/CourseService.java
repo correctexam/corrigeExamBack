@@ -1,8 +1,11 @@
 package fr.istic.service;
 
 import io.quarkus.panache.common.Page;
+import fr.istic.config.Constants;
 import fr.istic.domain.Course;
 import fr.istic.domain.User;
+import fr.istic.service.customdto.ListUserModelShare;
+import fr.istic.service.customdto.UserModelShare;
 import fr.istic.service.dto.CourseDTO;
 import fr.istic.service.mapper.CourseMapper;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
@@ -13,8 +16,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 @Transactional
@@ -55,7 +60,7 @@ public class CourseService {
     public Optional<CourseDTO> findOne(Long id) {
         log.debug("Request to get Course : {}", id);
         return Course.findOneWithEagerRelationships(id)
-            .map(course -> courseMapper.toDto((Course) course)); 
+            .map(course -> courseMapper.toDto((Course) course));
     }
 
     /**
@@ -91,6 +96,52 @@ public class CourseService {
         log.debug("Request to get all Courses");
         return new Paged<>(Course.findByProfIsCurrentUser(u.login).page(page))
             .map(course -> courseMapper.toDto((Course) course));
+    }
+
+
+        /**
+     * Get all the courseGroups.
+     * @param page the pagination information.
+     * @return the list of entities.
+     */
+    public ListUserModelShare getAllListUserModelShare(long courseid, String currentlogin) {
+        log.debug("Request to get all getAllListUserModelShare");
+        List<User> users  =Course.findByProfIsCurrentUserFetchProf(courseid).list();
+        List<String> logins =  users.stream().map(u -> u.login).collect(Collectors.toList());
+        logins.add("admin");
+        logins.add("user");
+        logins.add("system");
+        List<User> users1  =User.findAllByLoginNot(Constants.ANONYMOUS_USER);
+        users1 = users1.stream().filter(u -> !logins.contains(u.login)).collect(Collectors.toList());
+        users = users.stream().filter(u ->  !u.login.equals(currentlogin)).collect(Collectors.toList());
+        ListUserModelShare res = new ListUserModelShare();
+        res.setShared(users.stream().map(u-> new UserModelShare(u.lastName, u.firstName, u.login)).collect(Collectors.toList()));
+        res.setAvailables(users1.stream().map(u-> new UserModelShare(u.lastName, u.firstName, u.login)).collect(Collectors.toList()));
+        return res;
+    }
+
+
+    @Transactional
+    public void addProfs(long courseId, List<UserModelShare> profs){
+        Course c = Course.findById(courseId);
+        List<User> profsToAdd = new ArrayList<>();
+        profs.forEach(p-> {
+            profsToAdd.add(User.findOneByLogin(p.getLogin()).get());
+        });
+        c.profs.addAll(profsToAdd);
+        Course.persistOrUpdate(c);
+
+    }
+    @Transactional
+    public void removeProfs(long courseId, List<UserModelShare> profs){
+        Course c = Course.findById(courseId);
+        List<User> profsToAdd = new ArrayList<>();
+        profs.forEach(p-> {
+            profsToAdd.add(User.findOneByLogin(p.getLogin()).get());
+        });
+        c.profs.removeAll(profsToAdd);
+        Course.persistOrUpdate(c);
+
     }
 
 

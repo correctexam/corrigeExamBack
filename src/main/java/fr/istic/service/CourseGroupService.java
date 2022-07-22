@@ -1,8 +1,11 @@
 package fr.istic.service;
 
 import io.quarkus.panache.common.Page;
+import fr.istic.domain.Course;
 import fr.istic.domain.CourseGroup;
+import fr.istic.service.customdto.ListUserModelShare;
 import fr.istic.service.dto.CourseGroupDTO;
+import fr.istic.service.dto.UserDTO;
 import fr.istic.service.mapper.CourseGroupMapper;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import org.slf4j.Logger;
@@ -54,7 +57,7 @@ public class CourseGroupService {
     public Optional<CourseGroupDTO> findOne(Long id) {
         log.debug("Request to get CourseGroup : {}", id);
         return CourseGroup.findOneWithEagerRelationships(id)
-            .map(courseGroup -> courseGroupMapper.toDto((CourseGroup) courseGroup)); 
+            .map(courseGroup -> courseGroupMapper.toDto((CourseGroup) courseGroup));
     }
 
     /**
