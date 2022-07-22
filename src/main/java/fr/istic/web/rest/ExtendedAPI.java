@@ -11,17 +11,20 @@ import fr.istic.domain.Student;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
+import fr.istic.service.CacheUploadService;
 import fr.istic.service.CourseGroupService;
 import fr.istic.service.MailService;
 import fr.istic.service.SecurityService;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
+import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+
 import fr.istic.service.StudentService;
 import fr.istic.service.customdto.MailResultDTO;
 import fr.istic.service.customdto.StudentMassDTO;
 import fr.istic.service.customdto.StudentResultDTO;
 import fr.istic.service.customdto.WorstAndBestSolution;
-import io.quarkus.logging.Log;
 
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
@@ -29,7 +32,9 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -37,8 +42,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+
 
 /**
  * REST controller for managing {@link fr.istic.domain.Comments}.
@@ -48,6 +57,9 @@ import java.util.stream.Collectors;
 @Consumes(MediaType.APPLICATION_JSON)
 @ApplicationScoped
 public class ExtendedAPI {
+
+
+    private final Logger log = LoggerFactory.getLogger(ExtendedAPI.class);
 
     @Inject
     CourseGroupService courseGroupService;
@@ -64,6 +76,8 @@ public class ExtendedAPI {
     @Inject
     JHipsterProperties jHipsterProperties;
 
+    @Inject
+    CacheUploadService cacheUploadService;
     private static class AccountResourceException extends RuntimeException {
 
         private AccountResourceException(String message) {
@@ -441,4 +455,38 @@ public class ExtendedAPI {
 
 
 
+    @POST
+    @Path("/uploadCache")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response fileUpload(@MultipartForm MultipartFormDataInput
+                                       input) {
+        try {
+            cacheUploadService.uploadFile(input);
+        } catch (Exception e) {
+            return Response.serverError().build();
+
+        }
+        return Response.ok().build();
+    }
+
+
+    @GET
+    @Path("/getCache/{fileName}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response getFile(@PathParam("fileName") String fileName) {
+
+        try {
+            File nf = cacheUploadService.getFile(fileName);
+            ResponseBuilder response = Response.ok((Object) nf);
+            response.header("Content-Disposition", "attachment;filename=" + nf);
+            return response.build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.serverError().build();
+        }
 }
+}
+
+
+
