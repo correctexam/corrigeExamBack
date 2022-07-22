@@ -11,6 +11,7 @@ import javax.validation.constraints.*;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Optional;
 
@@ -127,6 +128,11 @@ public class Course extends PanacheEntityBase implements Serializable {
     public static PanacheQuery<Course> canAccess(long courseId, String login) {
         return find("select course from Course course join course.profs as u where u.login =?1 and course.id = ?2", login, courseId);
     }
+
+    public static PanacheQuery<User> findByProfIsCurrentUserFetchProf( long courseid) {
+        return find("select course.profs from Course course where course.id = ?1", courseid );
+    }
+
 
 
 }

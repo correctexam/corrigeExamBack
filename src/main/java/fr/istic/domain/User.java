@@ -205,4 +205,10 @@ public class User extends PanacheEntityBase implements Serializable {
     public static List<User> findAllByLoginNot(Page page, String login) {
         return find("login != ?1", login).page(page).list();
     }
+    public static List<User> findAllByLoginNot( String login) {
+        return find("login != ?1", login).list();
+    }
+
+
+
 }

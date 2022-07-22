@@ -13,6 +13,7 @@ import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.CacheUploadService;
 import fr.istic.service.CourseGroupService;
+import fr.istic.service.CourseService;
 import fr.istic.service.MailService;
 import fr.istic.service.SecurityService;
 
@@ -21,10 +22,13 @@ import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 
 import fr.istic.service.StudentService;
+import fr.istic.service.UserService;
+import fr.istic.service.customdto.ListUserModelShare;
 import fr.istic.service.customdto.MailResultDTO;
 import fr.istic.service.customdto.StudentMassDTO;
 import fr.istic.service.customdto.StudentResultDTO;
 import fr.istic.service.customdto.WorstAndBestSolution;
+import fr.istic.service.dto.UserDTO;
 
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
@@ -65,6 +69,9 @@ public class ExtendedAPI {
     CourseGroupService courseGroupService;
 
     @Inject
+    CourseService courseService;
+
+    @Inject
     StudentService studentService;
     @Inject
     MailService mailService;
@@ -78,6 +85,9 @@ public class ExtendedAPI {
 
     @Inject
     CacheUploadService cacheUploadService;
+
+    @Inject UserService userService;
+
     private static class AccountResourceException extends RuntimeException {
 
         private AccountResourceException(String message) {
@@ -485,6 +495,56 @@ public class ExtendedAPI {
             return Response.noContent().build();
         }
 }
+
+    /**
+     * {@code GET /users} : get all users.
+     *
+     * @param pagination the pagination information.
+     * @return the {@link Response} with status {@code 200 (OK)} and with body all users.
+     */
+    @GET
+    @Path("/getUsers/{courseId}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+
+    public Response getAllUsers(@PathParam("courseId") long courseId, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, courseId, Course.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        var login =ctx.getUserPrincipal().getName();
+
+        var res = this.courseService.getAllListUserModelShare(courseId,login);
+
+        Response.ResponseBuilder response = Response.ok().entity(res);
+        return response.build();
+    }
+
+
+
+        /**
+     * {@code POST
+     *
+     * @param pagination the pagination information.
+     * @return the {@link Response} with status {@code 200 (OK)} and with body all users.
+     */
+    @PUT
+    @Path("/updateProfs/{courseId}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    public Response updateProfs(@PathParam("courseId") long courseId,ListUserModelShare updateLists, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, courseId, Course.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        if (updateLists.getAvailables() != null && updateLists.getAvailables() .size()>0){
+            this.courseService.addProfs(courseId,updateLists.getAvailables());
+        }
+        if (updateLists.getShared() != null && updateLists.getShared() .size()>0){
+            this.courseService.removeProfs(courseId,updateLists.getShared());
+
+        }
+        Response.ResponseBuilder response = Response.ok().entity(updateLists);
+        return response.build();
+    }
+
+
 }
 
 
