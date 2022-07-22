@@ -32,7 +32,8 @@ public class ScanService {
 
     @Transactional
     public ScanDTOContent persistOrUpdate(ScanDTOContent scanDTO) {
-        log.debug("Request to save Scan : {}", scanDTO);
+        log.debug("Request to save Scan : {}", scanDTO.id);
+        log.error("content length " + scanDTO.content.length );
         var scan = scanContentMapper.toEntity(scanDTO);
         if (scanDTO.name.endsWith("indexdb.json")){
             PanacheQuery<Scan> q = Scan.findByName(scanDTO.name);
@@ -40,6 +41,7 @@ public class ScanService {
             if (number > 0){
                 Scan s = q.firstResult();
                 s.content = scan.content;
+                log.error("content length " + scan.content.length );
                 scan = Scan.persistOrUpdate(s);
                 return scanContentMapper.toDto(s);
             } else {
