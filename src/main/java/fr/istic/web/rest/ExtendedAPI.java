@@ -482,8 +482,7 @@ public class ExtendedAPI {
             response.header("Content-Disposition", "attachment;filename=" + nf);
             return response.build();
         } catch (Exception e) {
-            e.printStackTrace();
-            return Response.serverError().build();
+            return Response.noContent().build();
         }
 }
 }
