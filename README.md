@@ -18,7 +18,13 @@ Main feature are:
 # Technical stack
 
 
-This application was generated using JHipster 6.10.5 and JHipster Quarkus 1.1.1 (manually upgraded to quarkus 2.7.3.Final), you can find documentation and help at [https://www.jhipster.tech/documentation-archive/v6.10.5](https://www.jhipster.tech/documentation-archive/v6.10.5).
+This application was generated using JHipster 6.10.5 and JHipster Quarkus 1.1.1 (manually upgraded to quarkus 2.9.2.Final), you can find documentation and help at [https://www.jhipster.tech/documentation-archive/v6.10.5](https://www.jhipster.tech/documentation-archive/v6.10.5).
+
+
+## Build and deploy
+
+Documenttion to deploy your own instance is available [here](https://github.com/correctexam/documentation/blob/main/Install.md)
+
 
 
 ## Development
