@@ -1,0 +1,8 @@
+#FROM  ghcr.io/graalvm/graalvm-ce:ol8-java17@sha256:25a7e2308e3425e59886fb6b7e1371389447773e2a0e82aa9e623cc9caf05321 AS build
+FROM ghcr.io/graalvm/graalvm-ce:ol8-java11@sha256:dc9effae9a92d50e0a173f1cb8113409a4b6d7fb0c44fcf2195f0e03d6161bc5 AS build
+#FROM docker pull ghcr.io/graalvm/graalvm-ce:ol7-java11@sha256:7f65440e5040251cf6c594dfb61b4b560709ad56e6612fb9b3ec515e9ce8318c as build
+RUN gu install native-image
+WORKDIR /project
+VOLUME ["/project"]
+ENTRYPOINT ["native-image"] 
+
