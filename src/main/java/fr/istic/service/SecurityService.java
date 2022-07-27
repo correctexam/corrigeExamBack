@@ -1,6 +1,8 @@
 package fr.istic.service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.core.SecurityContext;
@@ -21,7 +23,8 @@ import fr.istic.domain.Template;
 import fr.istic.domain.TextComment;
 import fr.istic.domain.User;
 import fr.istic.domain.Zone;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class SecurityService {
     private static class AccountResourceException extends RuntimeException {
@@ -31,6 +34,7 @@ public class SecurityService {
         }
     }
 
+    private final Logger log = LoggerFactory.getLogger(SecurityService.class);
 
     public  boolean canAccess(SecurityContext ctx,long id, Class entity ){
     if (ctx.getUserPrincipal() == null ) return false;
@@ -50,7 +54,9 @@ public class SecurityService {
             } else if (entity.equals(Course.class)){
                 number = Course.canAccess(id, userLogin.get()).count();
             } else if (entity.equals(Comments.class)){
-                number = Comments.canAccess(id, userLogin.get()).count();
+                List<Exam> exams = Exam.findExambyLogin(userLogin.get()).list();
+           //     exams.stream().map(e->""+e.id).collect(Collectors.toList()).forEach(e-> log.error(e));
+                number = Comments.canAccess(id, exams.stream().map(e->""+e.id).collect(Collectors.toList())).count();
             } else if (entity.equals(CourseGroup.class)){
                 number = CourseGroup.canAccess(id, userLogin.get()).count();
             } else if (entity.equals(Exam.class)){

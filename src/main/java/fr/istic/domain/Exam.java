@@ -184,6 +184,11 @@ public class Exam extends PanacheEntityBase implements Serializable {
     public static PanacheQuery<Exam> findExambyCourseId( long courseId) {
         return find("select exam from Exam exam where exam.course.id =?1", courseId);
     }
+
+    public static PanacheQuery<Exam> findExambyLogin( String login) {
+        return find("select exam from Exam exam join exam.course.profs u where u.login =?1", login);
+    }
+
     public static PanacheQuery<Exam> findExambyScanId( long scanId) {
         return find("select exam from Exam exam where exam.scanfile.id =?1", scanId);
     }

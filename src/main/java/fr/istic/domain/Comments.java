@@ -9,6 +9,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import javax.persistence.*;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * A Comments.
@@ -101,8 +102,12 @@ public class Comments extends PanacheEntityBase implements Serializable {
         return find("select c from Comments c where c.zonegeneratedid =?1", zonegeneratedid);
     }
 
-    public static PanacheQuery<Comments> canAccess(long commentId, String login) {
-        return find("select c from Comments c  join c.studentResponse.question.exam.course.profs as u where c.id =?1 and u.login =?2", commentId, login);
+    public static PanacheQuery<Comments> canAccess(long commentId, List<String> examIdList) {
+        return find("select c from Comments c where c.id =?1 and SUBSTRING(c.zonegeneratedid, 1, LOCATE('_', c.zonegeneratedid) -1) in ?2", commentId, examIdList);
+    }
+
+    public static long deleteCommentByExamId( String examId) {
+        return delete("delete from Comments as c where SUBSTRING(c.zonegeneratedid, 1, LOCATE('_', c.zonegeneratedid) -1) =?1",examId);
     }
 
 
