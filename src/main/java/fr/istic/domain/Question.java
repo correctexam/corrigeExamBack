@@ -44,15 +44,15 @@ public class Question extends PanacheEntityBase implements Serializable {
     @Column(name = "grade_type")
     public GradeType gradeType;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(unique = true)
     public Zone zone;
 
-    @OneToMany(mappedBy = "question")
+    @OneToMany(mappedBy = "question",cascade = CascadeType.REMOVE)
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     public Set<TextComment> textcomments = new HashSet<>();
 
-    @OneToMany(mappedBy = "question")
+    @OneToMany(mappedBy = "question",cascade = CascadeType.REMOVE)
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     public Set<GradedComment> gradedcomments = new HashSet<>();
 

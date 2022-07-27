@@ -3,6 +3,9 @@ package fr.istic.service;
 import io.quarkus.panache.common.Page;
 import fr.istic.config.Constants;
 import fr.istic.domain.Course;
+import fr.istic.domain.CourseGroup;
+import fr.istic.domain.Exam;
+import fr.istic.domain.Student;
 import fr.istic.domain.User;
 import fr.istic.service.customdto.ListUserModelShare;
 import fr.istic.service.customdto.UserModelShare;
@@ -30,6 +33,10 @@ public class CourseService {
     @Inject
     CourseMapper courseMapper;
 
+    @Inject
+    ExamService examService;
+
+
     @Transactional
     public CourseDTO persistOrUpdate(CourseDTO courseDTO) {
         log.debug("Request to save Course : {}", courseDTO);
@@ -46,7 +53,18 @@ public class CourseService {
     @Transactional
     public void delete(Long id) {
         log.debug("Request to delete Course : {}", id);
+
         Course.findByIdOptional(id).ifPresent(course -> {
+            Exam.findExambyCourseId(id).list().forEach(exam-> this.examService.delete(exam.id));
+            Course c = Course.findById(id);
+            c.groups.forEach(g -> {
+                g.students.forEach(st -> {
+                    st.groups.remove(g);
+                    Student.update(st);
+                });
+                CourseGroup.deleteById(g.id);
+            });
+            c.groups.clear();
             course.delete();
         });
     }
