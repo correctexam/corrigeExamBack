@@ -87,13 +87,14 @@ public class CommentsResource {
     @PUT
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateComments(CommentsDTO commentsDTO, @Context SecurityContext ctx) {
-        log.debug("REST request to update Comments : {}", commentsDTO);
+        // log.error("REST request to update Comments : {}", commentsDTO);
         if (commentsDTO.id == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!securityService.canAccess(ctx, commentsDTO.id, Comments.class  )){
+       if (!securityService.canAccess(ctx, commentsDTO.id, Comments.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
+
 
         var result = commentsService.persistOrUpdate(commentsDTO);
         var response = Response.ok().entity(result);
