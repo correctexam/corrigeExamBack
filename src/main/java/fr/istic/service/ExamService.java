@@ -1,13 +1,13 @@
 package fr.istic.service;
 
 import io.quarkus.panache.common.Page;
+import fr.istic.domain.Comments;
 import fr.istic.domain.Exam;
 import fr.istic.domain.ExamSheet;
 import fr.istic.domain.FinalResult;
 import fr.istic.domain.StudentResponse;
 import fr.istic.service.dto.ExamDTO;
 import fr.istic.service.mapper.ExamMapper;
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +15,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -52,6 +51,8 @@ public class ExamService {
             StudentResponse.getAll4ExamId(id).list().forEach(sr -> sr.delete());
             FinalResult.getAll4ExamId(id).list().forEach(f -> f.delete());
             exam.delete();
+            Comments.deleteCommentByExamId(""+id);
+
             this.cacheService.deleteFile(id);
         });
     }
