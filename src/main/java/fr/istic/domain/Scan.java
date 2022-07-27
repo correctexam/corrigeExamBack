@@ -40,7 +40,7 @@ public class Scan extends PanacheEntityBase implements Serializable {
     @Column(name = "content_content_type")
       public String contentContentType;
 
-    @OneToMany(mappedBy = "scan")
+    @OneToMany(mappedBy = "scan",cascade = CascadeType.REMOVE)
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     public Set<ExamSheet> sheets = new HashSet<>();
 

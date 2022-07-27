@@ -5,6 +5,7 @@ import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 import javax.persistence.*;
+import javax.transaction.Transactional;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -49,7 +50,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     @JsonbTransient
     public ExamSheet sheet;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.REMOVE)
 //    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JoinTable(name = "student_response_textcomments",
                joinColumns = @JoinColumn(name = "student_response_id", referencedColumnName = "id"),
@@ -101,6 +102,18 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         return persistOrUpdate(this);
     }
 
+
+    public void clearComments(){
+        this.gradedcomments.clear();
+        this.textcomments.clear();
+        this.persistOrUpdate();
+    }
+
+    @Override
+    public void delete() {
+        super.delete();
+    }
+
     public static StudentResponse update(StudentResponse studentResponse) {
         if (studentResponse == null) {
             throw new IllegalArgumentException("studentResponse can't be null");
@@ -123,7 +136,6 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
             entity.gradedcomments.removeIf(t -> !gs.contains(t.id));
             var gs1  = entity.gradedcomments.stream().map(te -> te.id).collect(Collectors.toList());
             entity.gradedcomments.addAll(studentResponse.gradedcomments.stream().filter(gs2 -> !gs1.contains(gs2.id)).collect(Collectors.toList()));
-
         }
         return entity;
     }
@@ -140,6 +152,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         }
     }
 
+
     public static PanacheQuery<StudentResponse> findAllWithEagerRelationships() {
         return find("select distinct studentResponse from StudentResponse studentResponse left join fetch studentResponse.textcomments left join fetch studentResponse.gradedcomments");
     }
@@ -153,6 +166,10 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     }
     public static PanacheQuery<StudentResponse> findStudentResponsesbysheetId( long sheetId) {
         return find("select sr from StudentResponse sr where sr.sheet.id =?1 ", sheetId );
+    }
+
+    public static PanacheQuery<StudentResponse> getAll4ExamId( long examId) {
+        return find("select sr from StudentResponse sr where  sr.question.exam.id = ?1",examId);
     }
 
     public static PanacheQuery<ExamSheet> getBestAnswerforQuestionNoAndExamId( long examId, int questionNo) {

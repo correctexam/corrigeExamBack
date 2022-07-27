@@ -47,12 +47,28 @@ public class CacheUploadService {
         }
     }
 
+    public void deleteFile(long id) {
+        String fileName = id + "indexdb.json";
+        File customDir = new File(UPLOAD_DIR);
+        if (!customDir.exists()) {
+            customDir.mkdirs();
+        }
+        fileName = customDir.getAbsolutePath() +
+                File.separator + fileName;
+        if (Paths.get(fileName).toFile().exists()){
+            Paths.get(fileName).toFile().delete();
+        }
+
+    }
 
 
     private void writeFile(InputStream inputStream,String fileName)
             throws IOException {
         byte[] bytes = IOUtils.toByteArray(inputStream);
         File customDir = new File(UPLOAD_DIR);
+        if (!customDir.exists()) {
+            customDir.mkdirs();
+        }
         fileName = customDir.getAbsolutePath() +
                 File.separator + fileName;
         if (Paths.get(fileName).toFile().exists()){
@@ -78,6 +94,9 @@ public class CacheUploadService {
 
     public File getFile(String fileName) throws Exception{
         File customDir = new File(UPLOAD_DIR);
+        if (!customDir.exists()) {
+            customDir.mkdirs();
+        }
         fileName = customDir.getAbsolutePath() +
                 File.separator + fileName;
         if (!Paths.get(fileName).toFile().exists()){

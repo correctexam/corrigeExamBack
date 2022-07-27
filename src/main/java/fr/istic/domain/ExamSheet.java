@@ -126,5 +126,15 @@ public class ExamSheet extends PanacheEntityBase implements Serializable {
         return find("select ex from ExamSheet ex join ex.students as s join s.groups as g join g.course.profs as u where  ex.id =?1 and u.login =?2", courseGroupId, login);
     }
 
+    public static PanacheQuery<ExamSheet> getAll4ExamId( long examId) {
+        return find("select distinct ex from Exam as e join  e.scanfile.sheets  as ex  where e.id = ?1",examId);
+    }
 
+    public void cleanBeforDelete(){
+        this.students.forEach(e-> {
+            e.examSheets.remove(this);
+            e.update();
+        });
+
+    }
 }
