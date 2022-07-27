@@ -6,6 +6,7 @@ import fr.istic.domain.Authority;
 import fr.istic.domain.Course;
 import fr.istic.domain.Exam;
 import fr.istic.domain.Scan;
+import fr.istic.domain.StudentResponse;
 import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.ExamService;
@@ -121,7 +122,6 @@ public class ExamResource {
         if (!securityService.canAccess(ctx, id, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
-
         examService.delete(id);
         var response = Response.noContent();
         HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())

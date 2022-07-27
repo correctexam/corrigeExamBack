@@ -105,4 +105,9 @@ public class FinalResult extends PanacheEntityBase implements Serializable {
         return find("select ex from FinalResult ex join ex.exam.course.profs as u where ex.id =?1 and u.login =?2", finalResultId, login);
     }
 
+    public static PanacheQuery<FinalResult> getAll4ExamId( long examId) {
+        return find("select f from FinalResult f where  f.exam.id = ?1",examId);
+    }
+
+
 }

@@ -23,7 +23,7 @@ This application was generated using JHipster 6.10.5 and JHipster Quarkus 1.1.1 
 
 ## Build and deploy
 
-Documenttion to deploy your own instance is available [here](https://github.com/correctexam/documentation/blob/main/Install.md)
+Documenttion to deploy your own instance is available [here](https://correctexam.readthedocs.io/en/latest/Install.html)
 
 
 
