@@ -109,7 +109,9 @@ public class ExtendedAPI {
             List<StudentResponse> resps = StudentResponse.findStudentResponsesbysheetId(sh.id).list();
             var finalnote = 0;
             for (StudentResponse resp : resps){
-                finalnote = finalnote+ (resp.note * 100 /  resp.question.step  );
+                if (  resp.question.step> 0){
+                    finalnote = finalnote+ (resp.note * 100 /  resp.question.step  );
+                }
             }
             final var finalnote1 = finalnote;
             sh.students.forEach(student -> {

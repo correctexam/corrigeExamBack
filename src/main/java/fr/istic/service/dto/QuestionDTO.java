@@ -23,6 +23,8 @@ public class QuestionDTO implements Serializable {
 
     public Integer step;
 
+    public String validExpression;
+
     public GradeType gradeType;
 
     public Long zoneId;
@@ -55,6 +57,7 @@ public class QuestionDTO implements Serializable {
             ", numero=" + numero +
             ", point=" + point +
             ", step=" + step +
+            ", validExpression='" + validExpression + "'" +
             ", gradeType='" + gradeType + "'" +
             ", zoneId=" + zoneId +
             ", typeId=" + typeId +
