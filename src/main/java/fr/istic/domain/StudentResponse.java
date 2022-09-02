@@ -161,6 +161,11 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         return find("select studentResponse from StudentResponse studentResponse left join fetch studentResponse.textcomments left join fetch studentResponse.gradedcomments where studentResponse.id =?1", id).firstResultOptional();
     }
 
+    public static Optional<StudentResponse> findOne(Long id) {
+        return find("select studentResponse from StudentResponse studentResponse  where studentResponse.id =?1", id).firstResultOptional();
+    }
+
+
     public static PanacheQuery<StudentResponse> findStudentResponsesbysheetIdAndquestionId( long sheetId, long questionId) {
         return find("select sr from StudentResponse sr where sr.sheet.id =?1 and question.id=?2", sheetId, questionId);
     }

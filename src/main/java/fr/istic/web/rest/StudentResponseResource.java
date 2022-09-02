@@ -3,6 +3,7 @@ package fr.istic.web.rest;
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.service.StudentResponseService;
+import fr.istic.service.customdto.StudentResponseNote;
 import fr.istic.web.rest.errors.AccountResourceException;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
@@ -185,5 +186,26 @@ public class StudentResponseResource {
         log.debug("REST request to get StudentResponse : {}", id);
         Optional<StudentResponseDTO> studentResponseDTO = studentResponseService.findOne(id);
         return ResponseUtil.wrapOrNotFound(studentResponseDTO);
+    }
+
+    @PATCH
+    @Path(value = "/{id}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    public Response partialUpdateSR(
+        @PathParam(value = "id") final Long id,
+        StudentResponseNote srDTO, @Context SecurityContext ctx
+    ) {
+        log.error("REST request to partial update StudentResponse partially : {}, {}", id, srDTO);
+
+        if (!securityService.canAccess(ctx, id, StudentResponse.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        Optional<StudentResponseDTO> result = studentResponseService.partialeNoteUpdate(srDTO, id);
+        log.error("REST request to partial update StudentResponse partially : {}", result.get());
+
+        return ResponseUtil.wrapOrNotFound(
+            result,
+            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, id.toString())
+        );
     }
 }

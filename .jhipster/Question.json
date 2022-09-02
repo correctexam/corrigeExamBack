@@ -13,6 +13,15 @@
     {
       "fieldName": "step",
       "fieldType": "Integer"
+    },
+    {
+      "fieldName": "validExpression",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "gradeType",
+      "fieldType": "GradeType",
+      "fieldValues": "DIRECT,POSITIVE,NEGATIVE"
     }
   ],
   "relationships": [
@@ -23,6 +32,18 @@
       "relationshipName": "zone",
       "otherEntityField": "id",
       "ownerSide": true
+    },
+    {
+      "relationshipType": "one-to-many",
+      "otherEntityName": "textComment",
+      "otherEntityRelationshipName": "question",
+      "relationshipName": "textcomments"
+    },
+    {
+      "relationshipType": "one-to-many",
+      "otherEntityName": "gradedComment",
+      "otherEntityRelationshipName": "question",
+      "relationshipName": "gradedcomments"
     },
     {
       "relationshipType": "many-to-one",

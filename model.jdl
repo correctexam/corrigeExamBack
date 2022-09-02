@@ -29,6 +29,7 @@ entity Question {
 	numero Integer required
     point Integer
     step Integer
+    validExpression String
     gradeType GradeType
 }
 
@@ -64,6 +65,8 @@ entity FinalResult {
 entity StudentResponse {
 	note Integer
     star Boolean
+    worststar Boolean
+
 }
 
 entity TextComment {

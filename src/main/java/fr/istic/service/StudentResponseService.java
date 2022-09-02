@@ -2,6 +2,7 @@ package fr.istic.service;
 
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.StudentResponse;
+import fr.istic.service.customdto.StudentResponseNote;
 import fr.istic.service.dto.StudentResponseDTO;
 import fr.istic.service.mapper.StudentResponseMapper;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
@@ -91,6 +92,22 @@ public class StudentResponseService {
         log.debug("Request to get all StudentResponses");
         return new Paged<>(StudentResponse.findStudentResponsesbysheetIdAndquestionId(sheetId, questionId).page(page))
             .map(studentResponse -> studentResponseMapper.toDto((StudentResponse) studentResponse));
+    }
+
+    @Transactional
+    public Optional<StudentResponseDTO> partialeNoteUpdate(StudentResponseNote notedto, Long id)  {
+        log.debug("Request to patch partialeNoteUpdate " + id);
+        var rOps = StudentResponse.findOne(id);
+//        res.get()
+        if (rOps.isPresent()){
+            rOps.get().note = notedto.getCurrentNote();
+
+            return Optional.of( studentResponseMapper.toDto((StudentResponse) StudentResponse.persistOrUpdate(rOps.get())));
+        } else {
+            return Optional.empty();
+        }
+
+
     }
 
 }
