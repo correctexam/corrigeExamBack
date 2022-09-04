@@ -10,6 +10,7 @@ import fr.istic.domain.FinalResult;
 import fr.istic.domain.Student;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.User;
+import fr.istic.domain.enumeration.GradeType;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.CacheUploadService;
 import fr.istic.service.CourseGroupService;
@@ -109,8 +110,69 @@ public class ExtendedAPI {
             List<StudentResponse> resps = StudentResponse.findStudentResponsesbysheetId(sh.id).list();
             var finalnote = 0;
             for (StudentResponse resp : resps){
-                if (  resp.question.step> 0){
-                    finalnote = finalnote+ (resp.note * 100 /  resp.question.step  );
+                if (resp.question.gradeType == GradeType.DIRECT && !"QCM".equals(resp.question.type.algoName )){
+                    if (  resp.question.step> 0){
+                        finalnote = finalnote+ (resp.note * 100 /  resp.question.step  );
+                    }
+                } else if (resp.question.gradeType == GradeType.POSITIVE && !"QCM".equals(resp.question.type.algoName )){
+                    int currentNote = 0;
+                    for (var g :resp.gradedcomments ){
+                        if (g.grade != null) {
+                          currentNote = currentNote + g.grade;
+                        }
+                      };
+                      if (currentNote > resp.question.point * resp.question.step) {
+                        currentNote = resp.question.point * resp.question.step;
+                      }
+                      if (currentNote != resp.note){
+                        resp.note = currentNote;
+                        StudentResponse.update(resp);
+                      }
+                      if (  resp.question.step> 0){
+                        finalnote = finalnote+ (currentNote * 100 /  resp.question.step  );
+                    }
+
+
+                }else if (resp.question.gradeType == GradeType.NEGATIVE && !"QCM".equals(resp.question.type.algoName )){
+                    int currentNote = resp.question.point * resp.question.step;
+                    for (var g :resp.gradedcomments ){
+                        if (g.grade != null) {
+                          currentNote = currentNote - g.grade;
+                        }
+                      };
+                      if (currentNote <0) {
+                        currentNote =0;
+                      }
+                      if (currentNote != resp.note){
+                        resp.note = currentNote;
+                        StudentResponse.update(resp);
+                      }
+                      if (  resp.question.step> 0){
+                        finalnote = finalnote+ (currentNote * 100 /  resp.question.step  );
+                    }
+
+
+
+                }else if ("QCM".equals(resp.question.type.algoName )){
+                    int currentNote = 0;
+                    for (var g :resp.gradedcomments ){
+                        if (g.description.startsWith("correct")) {
+                            currentNote = currentNote + resp.question.point * resp.question.step;
+                        }else if (g.description.startsWith("incorrect")) {
+                            if ( resp.question.step >0 ){
+                              currentNote = currentNote - resp.question.point;
+                            }
+
+                      }
+                      if (currentNote != resp.note){
+                        resp.note = currentNote;
+                        StudentResponse.update(resp);
+                      }
+                      if (  resp.question.step> 0){
+                        finalnote = finalnote+ (currentNote * 100 /  resp.question.step  );
+                    }
+
+                    }
                 }
             }
             final var finalnote1 = finalnote;
@@ -127,7 +189,6 @@ public class ExtendedAPI {
                     r.exam = ex;
                     r.note = finalnote1;
                     FinalResult.persistOrUpdate(r);
-
                 }
             });
         });

@@ -195,14 +195,12 @@ public class StudentResponseResource {
         @PathParam(value = "id") final Long id,
         StudentResponseNote srDTO, @Context SecurityContext ctx
     ) {
-        log.error("REST request to partial update StudentResponse partially : {}, {}", id, srDTO);
+        log.debug("REST request to partial update StudentResponse partially : {}, {}", id, srDTO);
 
         if (!securityService.canAccess(ctx, id, StudentResponse.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
         Optional<StudentResponseDTO> result = studentResponseService.partialeNoteUpdate(srDTO, id);
-        log.error("REST request to partial update StudentResponse partially : {}", result.get());
-
         return ResponseUtil.wrapOrNotFound(
             result,
             HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, id.toString())
