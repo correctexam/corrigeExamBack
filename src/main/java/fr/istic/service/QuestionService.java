@@ -48,16 +48,17 @@ public class QuestionService {
         List<TextComment> textComments = new ArrayList<TextComment>();
         gradeComment.addAll(GradedComment.findByQuestionId(question.id).list());
         textComments.addAll(TextComment.findByQuestionId(question.id).list());
-        this.updateCorrectionAndAnswer(question, gradeComment,  textComments);
+        this.updateCorrectionAndAnswer(question, gradeComment, textComments);
         List<Long> gradeCommentids = gradeComment.stream().map(gc -> gc.id).collect(Collectors.toList());
         List<Long> textCommentsids = textComments.stream().map(gc -> gc.id).collect(Collectors.toList());
 
-        this.deleteComments(gradeCommentids,  textCommentsids);
+        this.deleteComments(gradeCommentids, textCommentsids);
 
         return questionMapper.toDto(question);
     }
 
-    protected void updateCorrectionAndAnswer (Question question,  List<GradedComment> gradeComment , List<TextComment> textComments){
+    protected void updateCorrectionAndAnswer(Question question, List<GradedComment> gradeComment,
+            List<TextComment> textComments) {
         Set<StudentResponse> srs = new HashSet(StudentResponse.findAllByQuestionId(question.id).list());
         for (GradedComment gc : gradeComment) {
             gc.studentResponses.clear();
@@ -74,39 +75,26 @@ public class QuestionService {
             srs.addAll(srs1);
         }
         for (StudentResponse sr : srs) {
-
             sr.clearCommentsAndNote();
         }
-
-
 
         question.gradedcomments.clear();
         question.textcomments.clear();
 
         Question.update(question).persistOrUpdate();
 
-
-
     }
+
     @Transactional
-    protected void deleteComments (List<Long> gradeComment , List<Long> textComments){
+    protected void deleteComments(List<Long> gradeComment, List<Long> textComments) {
 
-
-    for (Long gc : gradeComment) {
-        System.err.println("delete gc" + gc);
-        //GradedComment.deleteById(gc.id);
-        GradedComment.deleteById(gc);
-      //  gc.delete();
+        for (Long gc : gradeComment) {
+            GradedComment.deleteById(gc);
+        }
+        for (Long gc : textComments) {
+            TextComment.deleteById(gc);
+        }
     }
-    for (Long gc : textComments) {
-        System.err.println("delete gc" + gc);
-        //GradedComment.deleteById(gc.id);
-        TextComment.deleteById(gc);
-      //  gc.delete();
-    }
-}
-
-
 
     /**
      * Delete the Question by id.
@@ -130,38 +118,37 @@ public class QuestionService {
     public Optional<QuestionDTO> findOne(Long id) {
         log.debug("Request to get Question : {}", id);
         return Question.findByIdOptional(id)
-            .map(question -> questionMapper.toDto((Question) question));
+                .map(question -> questionMapper.toDto((Question) question));
     }
 
     /**
      * Get all the questions.
+     *
      * @param page the pagination information.
      * @return the list of entities.
      */
     public Paged<QuestionDTO> findAll(Page page) {
         log.debug("Request to get all Questions");
         return new Paged<>(Question.findAll().page(page))
-            .map(question -> questionMapper.toDto((Question) question));
+                .map(question -> questionMapper.toDto((Question) question));
     }
 
     public Paged<QuestionDTO> findQuestionbyExamId(Page page, long examId) {
         log.debug("Request to get Questions by ExamID");
         return new Paged<>(Question.findQuestionbyExamId(examId).page(page))
-            .map(question -> questionMapper.toDto((Question) question));
-    }
-    public Paged<QuestionDTO> findQuestionbyExamIdAndNumero(Page page, long examId, int numero) {
-        log.debug("Request to get Questions by ExamID");
-        return new Paged<>(Question.findQuestionbyExamIdandnumero(examId,numero).page(page))
-            .map(question -> questionMapper.toDto((Question) question));
+                .map(question -> questionMapper.toDto((Question) question));
     }
 
+    public Paged<QuestionDTO> findQuestionbyExamIdAndNumero(Page page, long examId, int numero) {
+        log.debug("Request to get Questions by ExamID");
+        return new Paged<>(Question.findQuestionbyExamIdandnumero(examId, numero).page(page))
+                .map(question -> questionMapper.toDto((Question) question));
+    }
 
     public Paged<QuestionDTO> findQuestionbyZoneId(Page page, long zoneId) {
         log.debug("Request to get Questions by ZoneId");
         return new Paged<>(Question.findQuestionbyZoneId(zoneId).page(page))
-            .map(question -> questionMapper.toDto((Question) question));
+                .map(question -> questionMapper.toDto((Question) question));
     }
-
-
 
 }
