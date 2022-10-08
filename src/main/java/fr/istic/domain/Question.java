@@ -52,11 +52,11 @@ public class Question extends PanacheEntityBase implements Serializable {
     public Zone zone;
 
     @OneToMany(mappedBy = "question",cascade = CascadeType.REMOVE)
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    // @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     public Set<TextComment> textcomments = new HashSet<>();
 
     @OneToMany(mappedBy = "question",cascade = CascadeType.REMOVE)
-    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    // @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     public Set<GradedComment> gradedcomments = new HashSet<>();
 
     @ManyToOne

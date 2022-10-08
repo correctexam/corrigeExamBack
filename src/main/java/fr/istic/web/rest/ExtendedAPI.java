@@ -16,6 +16,7 @@ import fr.istic.service.CacheUploadService;
 import fr.istic.service.CourseGroupService;
 import fr.istic.service.CourseService;
 import fr.istic.service.MailService;
+import fr.istic.service.QuestionService;
 import fr.istic.service.SecurityService;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -29,12 +30,16 @@ import fr.istic.service.customdto.MailResultDTO;
 import fr.istic.service.customdto.StudentMassDTO;
 import fr.istic.service.customdto.StudentResultDTO;
 import fr.istic.service.customdto.WorstAndBestSolution;
+import fr.istic.service.dto.QuestionDTO;
 import fr.istic.service.dto.UserDTO;
+import fr.istic.web.rest.errors.BadRequestAlertException;
+import fr.istic.web.util.HeaderUtil;
 
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -50,6 +55,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static javax.ws.rs.core.UriBuilder.fromPath;
 
 
 
@@ -88,6 +94,7 @@ public class ExtendedAPI {
     CacheUploadService cacheUploadService;
 
     @Inject UserService userService;
+    @Inject QuestionService questionService;
 
     private static class AccountResourceException extends RuntimeException {
 
@@ -153,26 +160,34 @@ public class ExtendedAPI {
 
 
 
-                }else if ("QCM".equals(resp.question.type.algoName )){
+                }else if ("QCM".equals(resp.question.type.algoName ) &&  resp.question.step> 0){
                     int currentNote = 0;
                     for (var g :resp.gradedcomments ){
                         if (g.description.startsWith("correct")) {
                             currentNote = currentNote + resp.question.point * resp.question.step;
                         }else if (g.description.startsWith("incorrect")) {
-                            if ( resp.question.step >0 ){
                               currentNote = currentNote - resp.question.point;
-                            }
-
                       }
                       if (currentNote != resp.note){
                         resp.note = currentNote;
                         StudentResponse.update(resp);
                       }
-                      if (  resp.question.step> 0){
                         finalnote = finalnote+ (currentNote * 100 /  resp.question.step  );
-                    }
 
                     }
+                }
+                else if ("QCM".equals(resp.question.type.algoName)  &&resp.question.step<= 0){
+                    int currentNote = 0;
+                    for (var g :resp.gradedcomments ){
+                        if (g.description.startsWith("correct")) {
+                            currentNote = currentNote + resp.question.point ;
+                        }
+                      }
+                      if (currentNote != resp.note){
+                        resp.note = currentNote;
+                        StudentResponse.update(resp);
+                      }
+                        finalnote = finalnote+ (currentNote * 100   );
                 }
             }
             final var finalnote1 = finalnote;
@@ -279,10 +294,18 @@ public class ExtendedAPI {
                 res.setNotequestions(new HashMap<>());
                 List<StudentResponse> resp =StudentResponse.findStudentResponsesbysheetId(sheet.id).list();
                 resp.forEach(resp1->{
+                    if ("QCM".equals(resp1.question.type.algoName ) && resp1.question.step< 0){
+                        res.getNotequestions().put(resp1.question.numero,
+                        df.format(
+                        resp1.note.doubleValue()));
 
-                    res.getNotequestions().put(resp1.question.numero,
-                    df.format(
-                    (resp1.note.doubleValue() *100.0 / resp1.question.step)/100.0));
+                    }else {
+                        res.getNotequestions().put(resp1.question.numero,
+                        df.format(
+                        (resp1.note.doubleValue() *100.0 / resp1.question.step)/100.0));
+
+                    }
+
 
                 });
                 results.add(res);
@@ -606,6 +629,19 @@ public class ExtendedAPI {
         Response.ResponseBuilder response = Response.ok().entity(updateLists);
         return response.build();
     }
+
+    @POST()
+    @Path("/cleanResponse")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    public Response cleanAllCorrectionAndComment(@Valid QuestionDTO questionDTO, @Context UriInfo uriInfo) {
+        log.debug("REST request to clean Question : {}", questionDTO);
+        var result = questionService.cleanAllCorrectionAndComment(questionDTO);
+        var response = Response.created(fromPath(uriInfo.getPath()).path(result.id.toString()).build()).entity(result);
+        HeaderUtil.createEntityCreationAlert(applicationName, true, "question", result.id.toString())
+                .forEach(response::header);
+        return response.build();
+    }
+
 
 
 }
