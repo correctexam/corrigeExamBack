@@ -109,6 +109,14 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         this.persistOrUpdate();
     }
 
+    public void clearCommentsAndNote(){
+        this.note = 0;
+        this.gradedcomments.clear();
+        this.textcomments.clear();
+        this.persistOrUpdate();
+    }
+
+
     @Override
     public void delete() {
         super.delete();
@@ -136,6 +144,24 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
             entity.gradedcomments.removeIf(t -> !gs.contains(t.id));
             var gs1  = entity.gradedcomments.stream().map(te -> te.id).collect(Collectors.toList());
             entity.gradedcomments.addAll(studentResponse.gradedcomments.stream().filter(gs2 -> !gs1.contains(gs2.id)).collect(Collectors.toList()));
+        }
+        return entity;
+    }
+
+    public static StudentResponse cleanCommentAndGrade(StudentResponse studentResponse) {
+        if (studentResponse == null) {
+            throw new IllegalArgumentException("studentResponse can't be null");
+        }
+        var entity = StudentResponse.<StudentResponse>findById(studentResponse.id);
+        if (entity != null) {
+            entity.note = 0;
+            entity.star = studentResponse.star;
+            entity.worststar = studentResponse.worststar;
+            entity.comments = studentResponse.comments;
+            entity.question = studentResponse.question;
+            entity.sheet = studentResponse.sheet;
+            entity.textcomments.clear();
+            entity.gradedcomments.clear();
         }
         return entity;
     }
@@ -180,6 +206,19 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     public static PanacheQuery<ExamSheet> getBestAnswerforQuestionNoAndExamId( long examId, int questionNo) {
         return find("select distinct sr.sheet from StudentResponse sr where sr.question.numero = ?2 and  sr.question.exam.id = ?1 and sr.star = true",examId,questionNo );
     }
+
+    public static PanacheQuery<StudentResponse> findAllByQuestionId( long questionId) {
+        return find("select distinct sr from StudentResponse sr where sr.question.id = ?1",questionId );
+    }
+
+    public static PanacheQuery<StudentResponse> findAllByGradedCommentsIds( long gradedCommentid) {
+        return find("select distinct sr from StudentResponse sr join sr.gradedcomments gc where gc.id = ?1",gradedCommentid );
+    }
+    public static PanacheQuery<StudentResponse> findAllByTextCommentsIds( long textcommentsid) {
+        return find("select distinct sr from StudentResponse sr join sr.textcomments gc where gc.id = ?1",textcommentsid );
+    }
+
+
 
     public static PanacheQuery<StudentResponse> getAllBestAnswerforExamId( long examId) {
         return find("select distinct sr from StudentResponse sr join fetch sr.question join fetch  sr.sheet where sr.question.exam.id = ?1 and sr.star = true",examId );
