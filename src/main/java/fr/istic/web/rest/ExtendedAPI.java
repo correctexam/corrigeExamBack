@@ -1,6 +1,5 @@
 package fr.istic.web.rest;
 
-
 import fr.istic.config.JHipsterProperties;
 import fr.istic.domain.Course;
 import fr.istic.domain.CourseGroup;
@@ -57,9 +56,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
-
-
-
 /**
  * REST controller for managing {@link fr.istic.domain.Comments}.
  */
@@ -68,7 +64,6 @@ import static javax.ws.rs.core.UriBuilder.fromPath;
 @Consumes(MediaType.APPLICATION_JSON)
 @ApplicationScoped
 public class ExtendedAPI {
-
 
     private final Logger log = LoggerFactory.getLogger(ExtendedAPI.class);
 
@@ -86,15 +81,16 @@ public class ExtendedAPI {
     @Inject
     SecurityService securityService;
 
-
     @Inject
     JHipsterProperties jHipsterProperties;
 
     @Inject
     CacheUploadService cacheUploadService;
 
-    @Inject UserService userService;
-    @Inject QuestionService questionService;
+    @Inject
+    UserService userService;
+    @Inject
+    QuestionService questionService;
 
     private static class AccountResourceException extends RuntimeException {
 
@@ -103,98 +99,97 @@ public class ExtendedAPI {
         }
     }
 
-//    private final Logger log = LoggerFactory.getLogger(ExtendedAPI.class);
+    // private final Logger log = LoggerFactory.getLogger(ExtendedAPI.class);
 
     @ConfigProperty(name = "application.name")
     String applicationName;
 
-
-    private Exam computeFinalNote(long examId){
+    private Exam computeFinalNote(long examId) {
         Exam ex = Exam.findById(examId);
         List<ExamSheet> sheets = ExamSheet.findExamSheetByScan(ex.scanfile.id).list();
         sheets.forEach(sh -> {
             // Compute Note
             List<StudentResponse> resps = StudentResponse.findStudentResponsesbysheetId(sh.id).list();
             var finalnote = 0;
-            for (StudentResponse resp : resps){
-                if (resp.question.gradeType == GradeType.DIRECT && !"QCM".equals(resp.question.type.algoName )){
-                    if (  resp.question.step> 0){
-                        finalnote = finalnote+ (resp.note * 100 /  resp.question.step  );
+            for (StudentResponse resp : resps) {
+                if (resp.question.gradeType == GradeType.DIRECT && !"QCM".equals(resp.question.type.algoName)) {
+                    if (resp.question.step > 0) {
+                        finalnote = finalnote + (resp.note * 100 / resp.question.step);
                     }
-                } else if (resp.question.gradeType == GradeType.POSITIVE && !"QCM".equals(resp.question.type.algoName )){
+                } else if (resp.question.gradeType == GradeType.POSITIVE
+                        && !"QCM".equals(resp.question.type.algoName)) {
                     int currentNote = 0;
-                    for (var g :resp.gradedcomments ){
+                    for (var g : resp.gradedcomments) {
                         if (g.grade != null) {
-                          currentNote = currentNote + g.grade;
+                            currentNote = currentNote + g.grade;
                         }
-                      };
-                      if (currentNote > resp.question.point * resp.question.step) {
+                    }
+                    ;
+                    if (currentNote > resp.question.point * resp.question.step) {
                         currentNote = resp.question.point * resp.question.step;
-                      }
-                      if (currentNote != resp.note){
+                    }
+                    if (currentNote != resp.note) {
                         resp.note = currentNote;
                         StudentResponse.update(resp);
-                      }
-                      if (  resp.question.step> 0){
-                        finalnote = finalnote+ (currentNote * 100 /  resp.question.step  );
+                    }
+                    if (resp.question.step > 0) {
+                        finalnote = finalnote + (currentNote * 100 / resp.question.step);
                     }
 
-
-                }else if (resp.question.gradeType == GradeType.NEGATIVE && !"QCM".equals(resp.question.type.algoName )){
+                } else if (resp.question.gradeType == GradeType.NEGATIVE
+                        && !"QCM".equals(resp.question.type.algoName)) {
                     int currentNote = resp.question.point * resp.question.step;
-                    for (var g :resp.gradedcomments ){
+                    for (var g : resp.gradedcomments) {
                         if (g.grade != null) {
-                          currentNote = currentNote - g.grade;
+                            currentNote = currentNote - g.grade;
                         }
-                      };
-                      if (currentNote <0) {
-                        currentNote =0;
-                      }
-                      if (currentNote != resp.note){
+                    }
+                    ;
+                    if (currentNote < 0) {
+                        currentNote = 0;
+                    }
+                    if (currentNote != resp.note) {
                         resp.note = currentNote;
                         StudentResponse.update(resp);
-                      }
-                      if (  resp.question.step> 0){
-                        finalnote = finalnote+ (currentNote * 100 /  resp.question.step  );
+                    }
+                    if (resp.question.step > 0) {
+                        finalnote = finalnote + (currentNote * 100 / resp.question.step);
                     }
 
-
-
-                }else if ("QCM".equals(resp.question.type.algoName ) &&  resp.question.step> 0){
+                } else if ("QCM".equals(resp.question.type.algoName) && resp.question.step > 0) {
                     int currentNote = 0;
-                    for (var g :resp.gradedcomments ){
+                    for (var g : resp.gradedcomments) {
                         if (g.description.startsWith("correct")) {
                             currentNote = currentNote + resp.question.point * resp.question.step;
-                        }else if (g.description.startsWith("incorrect")) {
-                              currentNote = currentNote - resp.question.point;
-                      }
-                      if (currentNote != resp.note){
-                        resp.note = currentNote;
-                        StudentResponse.update(resp);
-                      }
-                        finalnote = finalnote+ (currentNote * 100 /  resp.question.step  );
+                        } else if (g.description.startsWith("incorrect")) {
+                            currentNote = currentNote - resp.question.point;
+                        }
+                        if (currentNote != resp.note) {
+                            resp.note = currentNote;
+                            StudentResponse.update(resp);
+                        }
+                        finalnote = finalnote + (currentNote * 100 / resp.question.step);
 
                     }
-                }
-                else if ("QCM".equals(resp.question.type.algoName)  &&resp.question.step<= 0){
+                } else if ("QCM".equals(resp.question.type.algoName) && resp.question.step <= 0) {
                     int currentNote = 0;
-                    for (var g :resp.gradedcomments ){
+                    for (var g : resp.gradedcomments) {
                         if (g.description.startsWith("correct")) {
-                            currentNote = currentNote + resp.question.point ;
+                            currentNote = currentNote + resp.question.point;
                         }
-                      }
-                      if (currentNote != resp.note){
+                    }
+                    if (currentNote != resp.note) {
                         resp.note = currentNote;
                         StudentResponse.update(resp);
-                      }
-                        finalnote = finalnote+ (currentNote * 100   );
+                    }
+                    finalnote = finalnote + (currentNote * 100);
                 }
             }
             final var finalnote1 = finalnote;
             sh.students.forEach(student -> {
                 var q = FinalResult.findFinalResultByStudentIdAndExamId(student.id, examId);
                 long count = q.count();
-                if (count >0){
+                if (count > 0) {
                     FinalResult r = q.firstResult();
                     r.note = finalnote1;
                     FinalResult.update(r);
@@ -209,10 +204,11 @@ public class ExtendedAPI {
         });
         return ex;
     }
+
     @POST
     @Path("computeNode/{examId}")
     @Transactional
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response computeFinalNote4Exam(@PathParam("examId") long examId, @Context SecurityContext ctx) {
 
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
@@ -226,8 +222,9 @@ public class ExtendedAPI {
     @POST
     @Path("sendResult/{examId}")
     @Transactional
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response sendResultToStudent(MailResultDTO dto, @PathParam("examId") long examId, @Context SecurityContext ctx) {
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response sendResultToStudent(MailResultDTO dto, @PathParam("examId") long examId,
+            @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -236,28 +233,26 @@ public class ExtendedAPI {
         List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
         students.forEach(student -> {
             long count = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).count();
-            if (count>0){
+            if (count > 0) {
                 FinalResult r = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).firstResult();
-                ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id,student.id).firstResult();
+                ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id, student.id).firstResult();
                 String uuid = sheet.name;
                 String body = dto.getBody();
-                body = body.replace("${url}",this.jHipsterProperties.mail.baseUrl + "/copie/" + uuid+ "/1");
-                body =body.replace("${firstname}",student.firstname);
-                body = body.replace("${lastname}",student.name);
+                body = body.replace("${url}", this.jHipsterProperties.mail.baseUrl + "/copie/" + uuid + "/1");
+                body = body.replace("${firstname}", student.firstname);
+                body = body.replace("${lastname}", student.name);
                 final DecimalFormat df = new DecimalFormat("0.00");
-                body = body.replace("${note}",df.format(r.note / 100));
-                mailService.sendEmail(student.mail,  dto.getSubject(), body);
-                //  TODO Send EMAIL
+                body = body.replace("${note}", df.format(r.note / 100));
+                mailService.sendEmail(student.mail, dto.getSubject(), body);
+                // TODO Send EMAIL
                 // mailService.sendEmailFromTemplate(user, template, subject)
 
-
-            }else {
-               // TODO Send EMAIL
+            } else {
+                // TODO Send EMAIL
 
                 // Pas de copie pour cet étudiant
             }
         });
-
 
         return Response.ok().build();
     }
@@ -265,7 +260,7 @@ public class ExtendedAPI {
     @GET
     @Path("showResult/{examId}")
     @Transactional
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response showResult(@PathParam("examId") long examId, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -275,12 +270,12 @@ public class ExtendedAPI {
         List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
         students.forEach(student -> {
             long count = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).count();
-            if (count>0){
+            if (count > 0) {
                 FinalResult r = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).firstResult();
-                ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id,student.id).firstResult();
+                ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id, student.id).firstResult();
 
                 String uuid = sheet.name;
-                int studentnumber = (sheet.pagemin / (sheet.pagemax -  sheet.pagemin +1)) +1 ;
+                int studentnumber = (sheet.pagemin / (sheet.pagemax - sheet.pagemin + 1)) + 1;
                 var res = new StudentResultDTO();
                 res.setNom(student.name);
                 res.setPrenom(student.firstname);
@@ -289,28 +284,27 @@ public class ExtendedAPI {
                 final DecimalFormat df = new DecimalFormat("0.00");
                 res.setNote(df.format(r.note.doubleValue() / 100.0));
                 res.setUuid(uuid);
-                res.setStudentNumber(""+studentnumber);
+                res.setStudentNumber("" + studentnumber);
                 res.setAbi(false);
                 res.setNotequestions(new HashMap<>());
-                List<StudentResponse> resp =StudentResponse.findStudentResponsesbysheetId(sheet.id).list();
-                resp.forEach(resp1->{
-                    if ("QCM".equals(resp1.question.type.algoName ) && resp1.question.step< 0){
+                List<StudentResponse> resp = StudentResponse.findStudentResponsesbysheetId(sheet.id).list();
+                resp.forEach(resp1 -> {
+                    if ("QCM".equals(resp1.question.type.algoName) && resp1.question.step < 0) {
                         res.getNotequestions().put(resp1.question.numero,
-                        df.format(
-                        resp1.note.doubleValue()));
+                                df.format(
+                                        resp1.note.doubleValue()));
 
-                    }else {
+                    } else {
                         res.getNotequestions().put(resp1.question.numero,
-                        df.format(
-                        (resp1.note.doubleValue() *100.0 / resp1.question.step)/100.0));
+                                df.format(
+                                        (resp1.note.doubleValue() * 100.0 / resp1.question.step) / 100.0));
 
                     }
-
 
                 });
                 results.add(res);
 
-            }else {
+            } else {
                 var res = new StudentResultDTO();
                 res.setNom(student.name);
                 res.setPrenom(student.firstname);
@@ -326,7 +320,7 @@ public class ExtendedAPI {
     @POST
     @Path("createstudentmasse")
     @Transactional
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response createAllStudent(StudentMassDTO dto, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, dto.getCourse(), Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -337,11 +331,11 @@ public class ExtendedAPI {
                 .collect(Collectors.toList());
         Map<String, CourseGroup> groupesentities = new HashMap<>();
         groupes.forEach(g -> {
-            long count = CourseGroup.findByNameandCourse(c.id,g).count();
-            if (count >0){
-                CourseGroup cgdest = CourseGroup.findByNameandCourse(c.id,g).firstResult();
+            long count = CourseGroup.findByNameandCourse(c.id, g).count();
+            if (count > 0) {
+                CourseGroup cgdest = CourseGroup.findByNameandCourse(c.id, g).firstResult();
                 groupesentities.put(g, cgdest);
-            } else{
+            } else {
                 CourseGroup g1 = new CourseGroup();
                 g1.course = c;
                 g1.groupName = g;
@@ -365,13 +359,12 @@ public class ExtendedAPI {
 
     }
 
-
-
     @PUT
     @Path("updatestudent/{courseid}")
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Transactional
-    public Response updatestudent4Course(fr.istic.service.customdto.StudentDTO student ,@PathParam("courseid") long courseid,  @Context SecurityContext ctx) {
+    public Response updatestudent4Course(fr.istic.service.customdto.StudentDTO student,
+            @PathParam("courseid") long courseid, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseid, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -385,9 +378,10 @@ public class ExtendedAPI {
 
     @PUT
     @Path("updatestudentgroup/{courseid}")
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Transactional
-    public Response updatestudentgroup(fr.istic.service.customdto.StudentDTO student ,@PathParam("courseid") long courseid,  @Context SecurityContext ctx) {
+    public Response updatestudentgroup(fr.istic.service.customdto.StudentDTO student,
+            @PathParam("courseid") long courseid, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseid, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -396,7 +390,7 @@ public class ExtendedAPI {
         cgorigin.students.remove(st);
         CourseGroup.persistOrUpdate(cgorigin);
         long count = CourseGroup.findByNameandCourse(courseid, student.getGroupe()).count();
-        if (count >0){
+        if (count > 0) {
             CourseGroup cgdest = CourseGroup.findByNameandCourse(courseid, student.getGroupe()).firstResult();
             cgdest.students.add(st);
             CourseGroup.persistOrUpdate(cgdest);
@@ -414,9 +408,10 @@ public class ExtendedAPI {
 
     @PUT
     @Path("deletestudentgroup/{courseid}")
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Transactional
-    public Response deletestudentgroup(fr.istic.service.customdto.StudentDTO student ,@PathParam("courseid") long courseid,  @Context SecurityContext ctx) {
+    public Response deletestudentgroup(fr.istic.service.customdto.StudentDTO student,
+            @PathParam("courseid") long courseid, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseid, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -428,25 +423,25 @@ public class ExtendedAPI {
         return Response.ok().entity(st).build();
     }
 
-
     @PUT
     @Path("updatestudentine/{courseid}")
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Transactional
-    public Response updatestudentine(fr.istic.service.customdto.StudentDTO student ,@PathParam("courseid") long courseid,  @Context SecurityContext ctx) {
+    public Response updatestudentine(fr.istic.service.customdto.StudentDTO student,
+            @PathParam("courseid") long courseid, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseid, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
-        var st = Student.findStudentsbyCourseIdAndFirsNameAndLastName(courseid, student.getPrenom(), student.getNom()).firstResult();
+        var st = Student.findStudentsbyCourseIdAndFirsNameAndLastName(courseid, student.getPrenom(), student.getNom())
+                .firstResult();
         st.ine = student.getIne();
         Student.persistOrUpdate(st);
         return Response.ok().entity(st).build();
     }
 
-
     @GET
     @Path("getstudentcours/{courseid}")
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Transactional
     public Response getAllStudent4Course(@PathParam("courseid") long courseid, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseid, Course.class)) {
@@ -474,7 +469,7 @@ public class ExtendedAPI {
 
     @DELETE
     @Path("deletegroupstudents/{courseid}")
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Transactional
     public Response deleteAllStudent4Course(@PathParam("courseid") long courseid, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseid, Course.class)) {
@@ -507,24 +502,25 @@ public class ExtendedAPI {
     @Path("getBestAnswer/{examId}/{nume}")
     @Transactional
     public Response getBestAnswer(@PathParam("examId") long examId, @PathParam("nume") int nume) {
-        List<String> res= StudentResponse.getBestAnswerforQuestionNoAndExamId(examId,nume).list().stream().map(e-> e.name).collect(Collectors.toList());
+        List<String> res = StudentResponse.getBestAnswerforQuestionNoAndExamId(examId, nume).list().stream()
+                .map(e -> e.name).collect(Collectors.toList());
 
         return Response.ok().entity(res).build();
     }
 
     @GET
-//    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    // @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Path("getAllStarAnswer/{examId}")
     @Transactional
     public Response getAllStarAnswer(@PathParam("examId") long examId) {
         Base64.Encoder encoder = Base64.getEncoder();
 
         Map<Integer, WorstAndBestSolution> res = new HashMap<Integer, WorstAndBestSolution>();
-        List<StudentResponse> resbest= StudentResponse.getAllBestAnswerforExamId(examId).list();
-        List<StudentResponse> resworst= StudentResponse.getAllWorstAnswerforExamId(examId).list();
+        List<StudentResponse> resbest = StudentResponse.getAllBestAnswerforExamId(examId).list();
+        List<StudentResponse> resworst = StudentResponse.getAllWorstAnswerforExamId(examId).list();
 
-        resbest.forEach(st-> {
-            if (!res.containsKey(st.question.numero)){
+        resbest.forEach(st -> {
+            if (!res.containsKey(st.question.numero)) {
                 res.put(st.question.numero, new WorstAndBestSolution(st.question.numero));
             }
             WorstAndBestSolution tmp = res.get(st.question.numero);
@@ -534,8 +530,8 @@ public class ExtendedAPI {
             tmp.getBestSolutions().add("/reponse/" + s);
         });
 
-        resworst.forEach(st-> {
-            if (!res.containsKey(st.question.numero)){
+        resworst.forEach(st -> {
+            if (!res.containsKey(st.question.numero)) {
                 res.put(st.question.numero, new WorstAndBestSolution(st.question.numero));
             }
             WorstAndBestSolution tmp = res.get(st.question.numero);
@@ -548,15 +544,11 @@ public class ExtendedAPI {
         return Response.ok().entity(res.values()).build();
     }
 
-
-
-
     @POST
     @Path("/uploadCache")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response fileUpload(@MultipartForm MultipartFormDataInput
-                                       input) {
+    public Response fileUpload(@MultipartForm MultipartFormDataInput input) {
         try {
             cacheUploadService.uploadFile(input);
         } catch (Exception e) {
@@ -566,6 +558,40 @@ public class ExtendedAPI {
         return Response.ok().build();
     }
 
+    @GET
+    @Path("/getCacheAlignPage/{examId}/{pageId}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getCachePageAlign(@PathParam("examId") long examId, @PathParam("pageId") int pageId) {
+        try {
+            return Response
+                    .status(Response.Status.OK)
+                    .entity(cacheUploadService.getAlignPage(examId, pageId, false))
+                    .type(MediaType.TEXT_PLAIN)
+                    .build();
+
+        } catch (Exception e) {
+            return Response.serverError().build();
+
+        }
+    }
+
+
+    @GET
+    @Path("/getCacheNonAlignPage/{examId}/{pageId}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getCachePageNoAlign(@PathParam("examId") long examId, @PathParam("pageId") int pageId) {
+        try {
+            return Response
+                    .status(Response.Status.OK)
+                    .entity(cacheUploadService.getAlignPage(examId, pageId, true))
+                    .type(MediaType.TEXT_PLAIN)
+                    .build();
+
+        } catch (Exception e) {
+            return Response.serverError().build();
+
+        }
+    }
 
     @GET
     @Path("/getCache/{fileName}")
@@ -580,50 +606,52 @@ public class ExtendedAPI {
         } catch (Exception e) {
             return Response.noContent().build();
         }
-}
+    }
 
     /**
      * {@code GET /users} : get all users.
      *
      * @param pagination the pagination information.
-     * @return the {@link Response} with status {@code 200 (OK)} and with body all users.
+     * @return the {@link Response} with status {@code 200 (OK)} and with body all
+     *         users.
      */
     @GET
     @Path("/getUsers/{courseId}")
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
 
     public Response getAllUsers(@PathParam("courseId") long courseId, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseId, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
-        var login =ctx.getUserPrincipal().getName();
+        var login = ctx.getUserPrincipal().getName();
 
-        var res = this.courseService.getAllListUserModelShare(courseId,login);
+        var res = this.courseService.getAllListUserModelShare(courseId, login);
 
         Response.ResponseBuilder response = Response.ok().entity(res);
         return response.build();
     }
 
-
-
-        /**
+    /**
      * {@code POST
      *
      * @param pagination the pagination information.
-     * @return the {@link Response} with status {@code 200 (OK)} and with body all users.
+     *
+     * @return the {@link Response} with status {@code 200 (OK)} and with body all
+     *         users.
      */
     @PUT
     @Path("/updateProfs/{courseId}")
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response updateProfs(@PathParam("courseId") long courseId,ListUserModelShare updateLists, @Context SecurityContext ctx) {
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response updateProfs(@PathParam("courseId") long courseId, ListUserModelShare updateLists,
+            @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseId, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
-        if (updateLists.getAvailables() != null && updateLists.getAvailables() .size()>0){
-            this.courseService.addProfs(courseId,updateLists.getAvailables());
+        if (updateLists.getAvailables() != null && updateLists.getAvailables().size() > 0) {
+            this.courseService.addProfs(courseId, updateLists.getAvailables());
         }
-        if (updateLists.getShared() != null && updateLists.getShared() .size()>0){
-            this.courseService.removeProfs(courseId,updateLists.getShared());
+        if (updateLists.getShared() != null && updateLists.getShared().size() > 0) {
+            this.courseService.removeProfs(courseId, updateLists.getShared());
 
         }
         Response.ResponseBuilder response = Response.ok().entity(updateLists);
@@ -632,7 +660,7 @@ public class ExtendedAPI {
 
     @POST()
     @Path("/cleanResponse")
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response cleanAllCorrectionAndComment(@Valid QuestionDTO questionDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to clean Question : {}", questionDTO);
         var result = questionService.cleanAllCorrectionAndComment(questionDTO);
@@ -642,9 +670,4 @@ public class ExtendedAPI {
         return response.build();
     }
 
-
-
 }
-
-
-

@@ -19,6 +19,10 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStreamReader;
+
+import com.google.gson.stream.JsonReader;
+
 @Singleton
 public class CacheUploadService {
 
@@ -105,4 +109,117 @@ public class CacheUploadService {
         }
         return Paths.get(fileName).toFile();
     }
+
+    public String getAlignPage(long id, int pagefileter, boolean nonalign) throws IOException {
+
+        String fileName = id + "indexdb.json";
+        File customDir = new File(UPLOAD_DIR);
+        fileName = customDir.getAbsolutePath() +
+                File.separator + fileName;
+        if (Paths.get(fileName).toFile().exists()){
+
+        InputStream inputStream = Files.newInputStream(Paths.get(fileName));
+
+
+        JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
+       reader.beginObject();
+       reader.nextName();
+       reader.skipValue();
+       reader.nextName();
+       reader.skipValue();
+       reader.nextName();
+
+
+       reader.beginObject();
+       reader.nextName();
+       reader.skipValue();
+       reader.nextName();
+       reader.skipValue();
+       reader.nextName();
+       reader.skipValue();
+       reader.nextName();
+       reader.beginArray();
+
+       // exams
+
+       reader.beginObject();
+       reader.nextName();
+       reader.nextString();
+       reader.nextName();
+       reader.skipValue();
+       reader.nextName();
+       reader.skipValue();
+       reader.endObject();
+
+//            templates
+
+       reader.beginObject();
+       reader.nextName();
+       reader.nextString();
+       reader.nextName();
+       reader.skipValue();
+       reader.nextName();
+       reader.skipValue();
+       reader.endObject();
+
+       if (nonalign) {
+           reader.beginObject();
+           reader.nextName();
+           reader.nextString();
+           reader.nextName();
+           reader.skipValue();
+           reader.nextName();
+           reader.skipValue();
+           reader.endObject();
+       }
+
+//            alignImages
+
+       reader.beginObject();
+       reader.nextName();
+       reader.nextString();
+       reader.nextName();
+       reader.skipValue();
+       reader.nextName();
+       reader.beginArray();
+       boolean found = false;
+       boolean end = false;
+       while (!found && !end) {
+           reader.beginObject();
+           //examId
+           reader.nextName();
+           reader.skipValue();
+           //pageNumber
+           reader.nextName();
+           int page = reader.nextInt();
+           if (page == pagefileter) {
+               found = true;
+               reader.nextName();
+               String value =reader.nextString();
+               reader.close();
+               inputStream.close();
+               return value;
+           }
+           else {
+               //value
+               reader.nextName();
+               reader.skipValue();
+               //id
+               reader.nextName();
+               reader.skipValue();
+               reader.endObject();
+           }
+           if (!reader.hasNext()) {
+               reader.endArray();
+               end = true;
+           }
+       }
+       reader.close();
+       inputStream.close();
+
+    }
+       return null;
+
+
+}
 }
