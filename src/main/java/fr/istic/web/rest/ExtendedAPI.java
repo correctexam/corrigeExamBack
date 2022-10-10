@@ -243,7 +243,7 @@ public class ExtendedAPI {
                 body = body.replace("${lastname}", student.name);
                 final DecimalFormat df = new DecimalFormat("0.00");
                 body = body.replace("${note}", df.format(r.note / 100));
-                mailService.sendEmail(student.mail, dto.getSubject(), body);
+                mailService.sendEmail(student.mail, body,dto.getSubject());
                 // TODO Send EMAIL
                 // mailService.sendEmailFromTemplate(user, template, subject)
 
