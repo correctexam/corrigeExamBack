@@ -78,7 +78,9 @@ public class SecurityService {
             } else if (entity.equals(TextComment.class)){
                 number = TextComment.canAccess(id, userLogin.get()).count();
             } else if (entity.equals(Zone.class)){
-                number = Zone.canAccess(id, userLogin.get()).count();
+                number = Zone.canAccess1(id, userLogin.get()).count();
+                number = number + Zone.canAccess2(id, userLogin.get()).count();
+
             }
             return number > 0 ;
         }
