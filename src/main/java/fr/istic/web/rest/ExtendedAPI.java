@@ -30,8 +30,6 @@ import fr.istic.service.customdto.StudentMassDTO;
 import fr.istic.service.customdto.StudentResultDTO;
 import fr.istic.service.customdto.WorstAndBestSolution;
 import fr.istic.service.dto.QuestionDTO;
-import fr.istic.service.dto.UserDTO;
-import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
 
 import javax.annotation.security.RolesAllowed;
@@ -600,7 +598,7 @@ public class ExtendedAPI {
 
         try {
             File nf = cacheUploadService.getFile(fileName);
-            ResponseBuilder response = Response.ok((Object) nf);
+            ResponseBuilder response = Response.ok((Object) nf, MediaType.APPLICATION_OCTET_STREAM);
             response.header("Content-Disposition", "attachment;filename=" + nf);
             return response.build();
         } catch (Exception e) {
