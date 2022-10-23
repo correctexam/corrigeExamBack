@@ -1,10 +1,10 @@
 package fr.istic.service;
 
 import io.quarkus.panache.common.Page;
+import fr.istic.domain.StudentResponse;
 import fr.istic.domain.TextComment;
 import fr.istic.service.dto.TextCommentDTO;
 import fr.istic.service.mapper.TextCommentMapper;
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,8 +41,14 @@ public class TextCommentService {
     public void delete(Long id) {
         log.debug("Request to delete TextComment : {}", id);
         TextComment.findByIdOptional(id).ifPresent(textComment -> {
-            textComment.delete();
+        List<StudentResponse> srs = StudentResponse.findAllByTextCommentsIds(id).list();
+        srs.forEach(e-> {
+            e.textcomments.remove(textComment);
+            StudentResponse.update(e);
         });
+        textComment.delete();
+    });
+
     }
 
     /**
@@ -77,6 +83,7 @@ public class TextCommentService {
      */
     public Paged<TextCommentDTO> findTextCommentByQuestionId(Page page, long qId) {
         log.debug("Request to get all TextComments by QID");
+
         return new Paged<>(TextComment.findByQuestionId(qId).page(page))
             .map(textComment -> textCommentMapper.toDto((TextComment) textComment));
     }

@@ -2,6 +2,7 @@ package fr.istic.service;
 
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.GradedComment;
+import fr.istic.domain.StudentResponse;
 import fr.istic.service.dto.GradedCommentDTO;
 import fr.istic.service.mapper.GradedCommentMapper;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
@@ -41,6 +42,11 @@ public class GradedCommentService {
     public void delete(Long id) {
         log.debug("Request to delete GradedComment : {}", id);
         GradedComment.findByIdOptional(id).ifPresent(gradedComment -> {
+                List<StudentResponse> srs = StudentResponse.findAllByGradedCommentsIds(id).list();
+                srs.forEach(e-> {
+                    e.gradedcomments.remove(gradedComment);
+                    StudentResponse.update(e);
+                });
             gradedComment.delete();
         });
     }
