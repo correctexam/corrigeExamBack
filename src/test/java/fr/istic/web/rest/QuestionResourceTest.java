@@ -33,8 +33,8 @@ public class QuestionResourceTest {
     private static final Integer DEFAULT_NUMERO = 1;
     private static final Integer UPDATED_NUMERO = 2;
 
-    private static final Integer DEFAULT_POINT = 1;
-    private static final Integer UPDATED_POINT = 2;
+    private static final Double DEFAULT_POINT = 1.0;
+    private static final Double UPDATED_POINT = 2.0;
 
     private static final Integer DEFAULT_STEP = 1;
     private static final Integer UPDATED_STEP = 2;
