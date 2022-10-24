@@ -30,8 +30,8 @@ public class StudentResponseResourceTest {
     private static final TypeRef<List<StudentResponseDTO>> LIST_OF_ENTITY_TYPE = new TypeRef<>() {
     };
 
-    private static final Integer DEFAULT_NOTE = 1;
-    private static final Integer UPDATED_NOTE = 2;
+    private static final Double DEFAULT_NOTE = 1.0;
+    private static final Double UPDATED_NOTE = 2.0;
 
     private static final Boolean DEFAULT_STAR = false;
     private static final Boolean UPDATED_STAR = true;
@@ -439,7 +439,7 @@ public class StudentResponseResourceTest {
             .statusCode(OK.getStatusCode())
             .contentType(APPLICATION_JSON)
             .body("id", is(studentResponseDTO.id.intValue()))
-            
+
                 .body("note", is(DEFAULT_NOTE.intValue()))
                 .body("star", is(DEFAULT_STAR.booleanValue()))
                 .body("worststar", is(DEFAULT_WORSTSTAR.booleanValue()));
