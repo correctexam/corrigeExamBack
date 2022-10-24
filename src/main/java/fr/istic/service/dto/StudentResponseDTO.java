@@ -5,17 +5,16 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Objects;
 
 /**
  * A DTO for the {@link fr.istic.domain.StudentResponse} entity.
  */
 @RegisterForReflection
 public class StudentResponseDTO implements Serializable {
-    
+
     public Long id;
 
-    public Integer note;
+    public Double note;
 
     public Boolean star;
 

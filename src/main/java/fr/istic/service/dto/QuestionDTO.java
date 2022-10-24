@@ -4,7 +4,6 @@ package fr.istic.service.dto;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import javax.validation.constraints.*;
 import java.io.Serializable;
-import java.util.Objects;
 
 import fr.istic.domain.enumeration.GradeType;
 
@@ -13,13 +12,13 @@ import fr.istic.domain.enumeration.GradeType;
  */
 @RegisterForReflection
 public class QuestionDTO implements Serializable {
-    
+
     public Long id;
 
     @NotNull
     public Integer numero;
 
-    public Integer point;
+    public Double point;
 
     public Integer step;
 
