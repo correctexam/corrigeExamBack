@@ -99,7 +99,7 @@ public class StudentResponseService {
         var rOps = StudentResponse.findOne(id);
 //        res.get()
         if (rOps.isPresent()){
-            rOps.get().note = notedto.getCurrentNote();
+            rOps.get().quarternote = notedto.getCurrentNote() * 4;
 
             return Optional.of( studentResponseMapper.toDto((StudentResponse) StudentResponse.persistOrUpdate(rOps.get())));
         } else {

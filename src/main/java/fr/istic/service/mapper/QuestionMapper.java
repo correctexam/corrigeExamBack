@@ -17,6 +17,8 @@ public interface QuestionMapper extends EntityMapper<QuestionDTO, Question> {
     @Mapping(source = "type.algoName", target = "typeAlgoName")
     @Mapping(source = "exam.id", target = "examId")
     @Mapping(source = "exam.name", target = "examName")
+    @Mapping(source = "quarterpoint", target = "point", qualifiedByName = "quarterpoint2point")
+
     QuestionDTO toDto(Question question);
 
     @Mapping(source = "zoneId", target = "zone")
@@ -24,6 +26,7 @@ public interface QuestionMapper extends EntityMapper<QuestionDTO, Question> {
     @Mapping(target = "gradedcomments", ignore = true)
     @Mapping(source = "typeId", target = "type")
     @Mapping(source = "examId", target = "exam")
+    @Mapping(source = "point", target = "quarterpoint", qualifiedByName = "point2quarterpoint")
     Question toEntity(QuestionDTO questionDTO);
 
     default Question fromId(Long id) {
@@ -33,5 +36,15 @@ public interface QuestionMapper extends EntityMapper<QuestionDTO, Question> {
         Question question = new Question();
         question.id = id;
         return question;
+    }
+
+    @Named("quarterpoint2point")
+    public static double quarterpoint2point(int quarterpoint) {
+        return Integer.valueOf(quarterpoint).doubleValue() /4;
+    }
+
+    @Named("point2quarterpoint")
+    public static int point2quarterpoint(double point) {
+        return Double.valueOf(point *4).intValue();
     }
 }
