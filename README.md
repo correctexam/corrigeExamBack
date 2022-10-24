@@ -102,3 +102,7 @@ To stop it and remove the container, run:
 [setting up continuous integration]: https://www.jhipster.tech/documentation-archive/v6.10.5/setting-up-ci/
 
 
+
+update question set point = point * 4;
+
+update `student_response` set note = note * 4;

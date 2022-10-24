@@ -29,7 +29,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     public Long id;
 
     @Column(name = "note")
-    public Integer note;
+    public Integer quarternote;
 
     @Column(name = "star")
     public Boolean star;
@@ -88,7 +88,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     public String toString() {
         return "StudentResponse{" +
             "id=" + id +
-            ", note=" + note +
+            ", note=" + quarternote +
             ", star='" + star + "'" +
             ", worststar='" + worststar + "'" +
             "}";
@@ -110,7 +110,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     }
 
     public void clearCommentsAndNote(){
-        this.note = 0;
+        this.quarternote = 0;
         this.gradedcomments.clear();
         this.textcomments.clear();
         this.persistOrUpdate();
@@ -128,7 +128,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         }
         var entity = StudentResponse.<StudentResponse>findById(studentResponse.id);
         if (entity != null) {
-            entity.note = studentResponse.note;
+            entity.quarternote = studentResponse.quarternote;
             entity.star = studentResponse.star;
             entity.worststar = studentResponse.worststar;
             entity.comments = studentResponse.comments;
@@ -154,7 +154,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         }
         var entity = StudentResponse.<StudentResponse>findById(studentResponse.id);
         if (entity != null) {
-            entity.note = 0;
+            entity.quarternote = 0;
             entity.star = studentResponse.star;
             entity.worststar = studentResponse.worststar;
             entity.comments = studentResponse.comments;

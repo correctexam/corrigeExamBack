@@ -35,7 +35,7 @@ public class Question extends PanacheEntityBase implements Serializable {
     public Integer numero;
 
     @Column(name = "point")
-    public Integer point;
+    public Integer quarterpoint;
 
     @Column(name = "step")
     public Integer step;
@@ -92,7 +92,7 @@ public class Question extends PanacheEntityBase implements Serializable {
         return "Question{" +
             "id=" + id +
             ", numero=" + numero +
-            ", point=" + point +
+            ", point=" + quarterpoint +
             ", step=" + step +
             ", validExpression='" + validExpression + "'" +
             ", gradeType='" + gradeType + "'" +
@@ -114,7 +114,7 @@ public class Question extends PanacheEntityBase implements Serializable {
         var entity = Question.<Question>findById(question.id);
         if (entity != null) {
             entity.numero = question.numero;
-            entity.point = question.point;
+            entity.quarterpoint = question.quarterpoint;
             entity.step = question.step;
             entity.validExpression = question.validExpression;
             entity.gradeType = question.gradeType;
