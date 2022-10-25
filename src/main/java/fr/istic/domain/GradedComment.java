@@ -35,7 +35,7 @@ public class GradedComment extends PanacheEntityBase implements Serializable {
      public String description;
 
     @Column(name = "grade")
-    public Integer grade;
+    public Integer gradequarter;
 
     @ManyToOne
     @JoinColumn(name = "question_id")
@@ -71,7 +71,7 @@ public class GradedComment extends PanacheEntityBase implements Serializable {
             ", zonegeneratedid='" + zonegeneratedid + "'" +
             ", text='" + text + "'" +
             ", description='" + description + "'" +
-            ", grade=" + grade +
+            ", grade=" + gradequarter +
             "}";
     }
 
@@ -92,7 +92,7 @@ public class GradedComment extends PanacheEntityBase implements Serializable {
             entity.zonegeneratedid = gradedComment.zonegeneratedid;
             entity.text = gradedComment.text;
             entity.description = gradedComment.description;
-            entity.grade = gradedComment.grade;
+            entity.gradequarter = gradedComment.gradequarter;
             entity.question = gradedComment.question;
             entity.studentResponses = gradedComment.studentResponses;
         }

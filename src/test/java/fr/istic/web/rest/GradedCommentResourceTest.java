@@ -19,7 +19,7 @@ import org.junit.jupiter.api.*;
 import javax.inject.Inject;
 
 import java.util.List;
-    
+
 @QuarkusTest
 public class GradedCommentResourceTest {
 
@@ -35,8 +35,8 @@ public class GradedCommentResourceTest {
     private static final String DEFAULT_TEXT = "AAAAAAAAAA";
     private static final String UPDATED_TEXT = "BBBBBBBBBB";
 
-    private static final Integer DEFAULT_GRADE = 1;
-    private static final Integer UPDATED_GRADE = 2;
+    private static final Double DEFAULT_GRADE = 1.0;
+    private static final Double UPDATED_GRADE = 2.0;
 
 
 
@@ -438,7 +438,7 @@ public class GradedCommentResourceTest {
             .statusCode(OK.getStatusCode())
             .contentType(APPLICATION_JSON)
             .body("id", is(gradedCommentDTO.id.intValue()))
-            
+
                 .body("zonegeneratedid", is(DEFAULT_ZONEGENERATEDID))
                 .body("text", is(DEFAULT_TEXT))
                 .body("grade", is(DEFAULT_GRADE.intValue()));

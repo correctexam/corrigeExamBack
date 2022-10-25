@@ -13,10 +13,12 @@ import org.mapstruct.*;
 public interface GradedCommentMapper extends EntityMapper<GradedCommentDTO, GradedComment> {
 
     @Mapping(source = "question.id", target = "questionId")
+    @Mapping(source = "gradequarter", target = "grade", qualifiedByName = "gradequarter2grade")
     GradedCommentDTO toDto(GradedComment gradedComment);
 
     @Mapping(source = "questionId", target = "question")
     @Mapping(target = "studentResponses", ignore = true)
+    @Mapping(source = "grade", target = "gradequarter", qualifiedByName = "grade2gradequarter")
     GradedComment toEntity(GradedCommentDTO gradedCommentDTO);
 
     default GradedComment fromId(Long id) {
@@ -26,5 +28,15 @@ public interface GradedCommentMapper extends EntityMapper<GradedCommentDTO, Grad
         GradedComment gradedComment = new GradedComment();
         gradedComment.id = id;
         return gradedComment;
+    }
+
+    @Named("gradequarter2grade")
+    public static double quarterpoint2point(int gradequarter) {
+        return Integer.valueOf(gradequarter).doubleValue() /4;
+    }
+
+    @Named("grade2gradequarter")
+    public static int point2quarterpoint(double grade) {
+        return Double.valueOf(grade *4).intValue();
     }
 }

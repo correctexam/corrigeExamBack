@@ -118,8 +118,8 @@ public class ExtendedAPI {
                         && !"QCM".equals(resp.question.type.algoName)) {
                     int currentNote = 0;
                     for (var g : resp.gradedcomments) {
-                        if (g.grade != null) {
-                            currentNote = currentNote + g.grade;
+                        if (g.gradequarter != null) {
+                            currentNote = currentNote + g.gradequarter;
                         }
                     }
                     ;
@@ -138,8 +138,8 @@ public class ExtendedAPI {
                         && !"QCM".equals(resp.question.type.algoName)) {
                     int currentNote = resp.question.quarterpoint * resp.question.step;
                     for (var g : resp.gradedcomments) {
-                        if (g.grade != null) {
-                            currentNote = currentNote - g.grade;
+                        if (g.gradequarter != null) {
+                            currentNote = currentNote - g.gradequarter;
                         }
                     }
                     ;

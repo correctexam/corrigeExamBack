@@ -11,7 +11,7 @@ import javax.persistence.Lob;
  */
 @RegisterForReflection
 public class GradedCommentDTO implements Serializable {
-    
+
     public Long id;
 
     public String zonegeneratedid;
@@ -21,7 +21,7 @@ public class GradedCommentDTO implements Serializable {
     @Lob
     public String description;
 
-    public Integer grade;
+    public Double grade;
 
     public Long questionId;
 
