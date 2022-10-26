@@ -6,8 +6,11 @@ import fr.istic.domain.CourseGroup;
 import fr.istic.domain.Exam;
 import fr.istic.domain.ExamSheet;
 import fr.istic.domain.FinalResult;
+import fr.istic.domain.GradedComment;
+import fr.istic.domain.Question;
 import fr.istic.domain.Student;
 import fr.istic.domain.StudentResponse;
+import fr.istic.domain.TextComment;
 import fr.istic.domain.User;
 import fr.istic.domain.enumeration.GradeType;
 import fr.istic.security.AuthoritiesConstants;
@@ -29,6 +32,9 @@ import fr.istic.service.customdto.MailResultDTO;
 import fr.istic.service.customdto.StudentMassDTO;
 import fr.istic.service.customdto.StudentResultDTO;
 import fr.istic.service.customdto.WorstAndBestSolution;
+import fr.istic.service.customdto.correctexamstate.CorrectionExamState;
+import fr.istic.service.customdto.correctexamstate.QuestionState;
+import fr.istic.service.customdto.correctexamstate.StudentState;
 import fr.istic.service.dto.QuestionDTO;
 import fr.istic.web.util.HeaderUtil;
 
@@ -45,6 +51,7 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +96,22 @@ public class ExtendedAPI {
     UserService userService;
     @Inject
     QuestionService questionService;
+
+    private final class ComparatorImplementation implements Comparator<StudentResponse> {
+
+        @Override
+        public int compare(StudentResponse arg0, StudentResponse arg1) {
+            return arg0.sheet.pagemin - arg1.sheet.pagemin;
+        }
+    }
+    private final class ComparatorImplementation2 implements Comparator<StudentResponse> {
+
+        @Override
+        public int compare(StudentResponse arg0, StudentResponse arg1) {
+            return arg0.question.numero - arg1.question.numero;
+        }
+    }
+
 
     private static class AccountResourceException extends RuntimeException {
 
@@ -665,6 +688,129 @@ public class ExtendedAPI {
         var response = Response.created(fromPath(uriInfo.getPath()).path(result.id.toString()).build()).entity(result);
         HeaderUtil.createEntityCreationAlert(applicationName, true, "question", result.id.toString())
                 .forEach(response::header);
+        return response.build();
+    }
+
+
+    @DELETE
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    @Path("/deleteAllAnswerAndComment/{examId}")
+    @Transactional
+    public Response deleteAllAnswerAndComment(@PathParam("examId") long examId, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        Optional<Exam> ex = Exam.findByIdOptional(examId);
+        if (ex.isPresent()){
+            List<Question> qs  =Question.findQuestionbyExamId(examId).list();
+
+            for (Question question : qs) {
+
+            List<GradedComment> gradeComment = new ArrayList<GradedComment>();
+            List<TextComment> textComments = new ArrayList<TextComment>();
+            questionService.updateCorrectionAndAnswer(question, gradeComment, textComments);
+            List<Long> gradeCommentids = gradeComment.stream().map(gc -> gc.id).collect(Collectors.toList());
+            List<Long> textCommentsids = textComments.stream().map(gc -> gc.id).collect(Collectors.toList());
+            questionService.deleteComments(gradeCommentids, textCommentsids);
+            List<StudentResponse> srs =  StudentResponse.findAllByQuestionId(question.id).list();
+            for (StudentResponse studentResponse : srs){
+                studentResponse.delete();
+            }
+            }
+
+        }
+        var response = Response.noContent();
+        HeaderUtil.createEntityDeletionAlert(applicationName, true, "studentResponse", "-1")
+                .forEach(response::header);
+        return response.build();
+    }
+
+
+    @GET
+    @Path("/getExamStatus/{examId}")
+   // @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getExamStatus(@PathParam("examId") long examId, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
+
+        /* if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }*/
+
+        CorrectionExamState result = new CorrectionExamState();
+        List<StudentResponse> res =StudentResponse.getAll4ExamId(examId).list();
+
+
+        Map<Long, List<StudentResponse>> byQestion =  res.stream()
+                   .collect(Collectors.groupingBy(StudentResponse::getQuestionId));
+
+        for( long qid :byQestion.keySet() ) {
+            List<StudentResponse> l =  byQestion.get(qid);
+            QuestionState qs = new QuestionState();
+            qs.setID(qid);
+            qs.setAnsweredSheets(Long.valueOf(l.size()));
+            l.sort(new ComparatorImplementation());
+            qs.setFirstUnmarkedSheet(Long.valueOf(0));
+            if (l.size() == 1){
+                qs.setFirstUnmarkedSheet(Long.valueOf(l.get(0).sheet.pagemax +1));
+            }
+
+            for ( int i = 0;i< l.size()-1; i++) {
+                StudentResponse sl1 = l.get(i);
+                StudentResponse sl2 = l.get(i+1);
+                qs.setFirstUnmarkedSheet(Long.valueOf(sl1.sheet.pagemax +1));
+//                log.error("debug " + sl1.sheet.pagemax + " "+ sl2.sheet.pagemin);
+                if (sl1.sheet.pagemax + 1 < sl2.sheet.pagemin){
+                    break;
+                } else if (i == l.size()-2 ){
+                    qs.setFirstUnmarkedSheet(Long.valueOf(sl2.sheet.pagemax +1));
+                }
+            }
+            result.getQuestions().add(qs);
+        }
+
+        Map<List<Long>, List<StudentResponse>> byStudent =  res.stream()
+                   .collect(Collectors.groupingBy(StudentResponse::getStudentId));
+        var students = new HashMap<Long, List<StudentResponse>>();
+        byStudent.entrySet().stream().forEach(e-> {
+            for (long id : e.getKey()){
+                List<StudentResponse> sts = students.getOrDefault(id, new ArrayList<StudentResponse>());
+                sts.addAll(e.getValue());
+                if (!students.containsKey(id)){
+                    students.put(id,sts);
+                }
+            }
+        });
+
+        for( long sid :students.keySet() ) {
+            List<StudentResponse> l =  students.get(sid);
+            l.sort(new ComparatorImplementation2());
+            StudentState ss = new StudentState();
+            ss.setID(sid);;
+            ss.setAnsweredSheets(Long.valueOf(l.size()));
+            if (l.size() ==0){
+                ss.setFirstUnmarkedQuestion(Long.valueOf(1));
+
+            } else if (l.size() ==1) {
+                ss.setFirstUnmarkedQuestion(Long.valueOf(2));
+
+            } else {
+
+            for ( int i = 0;i< l.size()-1; i++) {
+                StudentResponse sl1 = l.get(i);
+                StudentResponse sl2 = l.get(i+1);
+                if (sl1.question.numero + 1 < sl2.question.numero ){
+                    ss.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero +1));
+                    break;
+                } else if (i == l.size()-2 ){
+                    ss.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero +2));
+                }
+            }
+        }
+
+            result.getStudents().add(ss);
+        }
+
+
+        Response.ResponseBuilder response = Response.ok().entity(result);
         return response.build();
     }
 
