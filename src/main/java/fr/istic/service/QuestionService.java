@@ -57,7 +57,7 @@ public class QuestionService {
         return questionMapper.toDto(question);
     }
 
-    protected void updateCorrectionAndAnswer(Question question, List<GradedComment> gradeComment,
+    public void updateCorrectionAndAnswer(Question question, List<GradedComment> gradeComment,
             List<TextComment> textComments) {
         Set<StudentResponse> srs = new HashSet(StudentResponse.findAllByQuestionId(question.id).list());
         for (GradedComment gc : gradeComment) {
@@ -86,7 +86,7 @@ public class QuestionService {
     }
 
     @Transactional
-    protected void deleteComments(List<Long> gradeComment, List<Long> textComments) {
+    public void deleteComments(List<Long> gradeComment, List<Long> textComments) {
 
         for (Long gc : gradeComment) {
             GradedComment.deleteById(gc);

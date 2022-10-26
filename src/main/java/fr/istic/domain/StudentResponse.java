@@ -9,6 +9,7 @@ import javax.transaction.Transactional;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.Optional;
@@ -44,6 +45,16 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     @JoinColumn(name = "question_id")
     @JsonbTransient
     public Question question;
+
+    @Transient
+    public long getQuestionId(){
+        return question.id;
+    }
+    @Transient
+    public List<Long> getStudentId(){
+        return sheet.students.stream().map(s-> s.id).collect(Collectors.toList());
+    }
+
 
     @ManyToOne
     @JoinColumn(name = "sheet_id")
@@ -210,6 +221,9 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     public static PanacheQuery<StudentResponse> findAllByQuestionId( long questionId) {
         return find("select distinct sr from StudentResponse sr where sr.question.id = ?1",questionId );
     }
+
+
+
 
     public static PanacheQuery<StudentResponse> findAllByGradedCommentsIds( long gradedCommentid) {
         return find("select distinct sr from StudentResponse sr join sr.gradedcomments gc where gc.id = ?1",gradedCommentid );
