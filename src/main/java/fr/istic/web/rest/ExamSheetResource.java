@@ -25,6 +25,7 @@ import fr.istic.web.util.PaginationUtil;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.json.JsonObject;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
@@ -128,6 +129,8 @@ public class ExamSheetResource {
                 .forEach(response::header);
         return response.build();
     }
+
+
 
     /**
      * {@code GET  /exam-sheets} : get all the examSheets.
