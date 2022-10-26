@@ -225,7 +225,6 @@ public class ExamResource {
      */
     @GET
     @Path("/{id}")
-
     public Response getExam(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get Exam : {}", id);
         if (!securityService.canAccess(ctx, id, Exam.class)) {
