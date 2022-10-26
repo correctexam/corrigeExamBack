@@ -5,7 +5,9 @@ import static javax.ws.rs.core.UriBuilder.fromPath;
 import fr.istic.domain.Authority;
 import fr.istic.domain.Course;
 import fr.istic.domain.Exam;
+import fr.istic.domain.ExamSheet;
 import fr.istic.domain.Scan;
+import fr.istic.domain.Student;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
@@ -28,6 +30,7 @@ import fr.istic.web.util.PaginationUtil;
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
@@ -35,6 +38,7 @@ import javax.ws.rs.core.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * REST controller for managing {@link fr.istic.domain.Exam}.
@@ -125,6 +129,33 @@ public class ExamResource {
         examService.delete(id);
         var response = Response.noContent();
         HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())
+                .forEach(response::header);
+        return response.build();
+    }
+
+    @DELETE
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    @Path("/cleanAllStudentSheet/{id}")
+    @Transactional
+    public Response deleteStudentSheet(@PathParam("id") Long id, @Context SecurityContext ctx) {
+        log.debug("REST request to delete Exam : {}", id);
+        if (!securityService.canAccess(ctx, id, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        Optional<Exam> ex = Exam.findByIdOptional(id);
+        if (ex.isPresent()){
+            List<Student> st = Student.findStudentsbyCourseId(ex.get().course.id).list();
+            for (Student student : st){
+                List<ExamSheet> toRemove = student.examSheets.stream().filter(es -> es.scan.id == ex.get().scanfile.id).collect(Collectors.toList());
+                student.examSheets.removeIf(es -> es.scan.id == ex.get().scanfile.id);
+                Student.update(student);
+                for (ExamSheet toRemove1: toRemove){
+                    toRemove1.delete();
+                }
+            }
+        }
+        var response = Response.noContent();
+        HeaderUtil.createEntityDeletionAlert(applicationName, true, "examSheet", "-1")
                 .forEach(response::header);
         return response.build();
     }
