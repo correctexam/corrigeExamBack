@@ -749,21 +749,23 @@ public class ExtendedAPI {
             qs.setAnsweredSheets(Long.valueOf(l.size()));
             l.sort(new ComparatorImplementation());
             qs.setFirstUnmarkedSheet(Long.valueOf(0));
-            if (l.size() == 1){
-                qs.setFirstUnmarkedSheet(Long.valueOf(l.get(0).sheet.pagemax +1));
-            }
-
-            for ( int i = 0;i< l.size()-1; i++) {
-                StudentResponse sl1 = l.get(i);
-                StudentResponse sl2 = l.get(i+1);
-                qs.setFirstUnmarkedSheet(Long.valueOf(sl1.sheet.pagemax +1));
-//                log.error("debug " + sl1.sheet.pagemax + " "+ sl2.sheet.pagemin);
-                if (sl1.sheet.pagemax + 1 < sl2.sheet.pagemin){
-                    break;
-                } else if (i == l.size()-2 ){
-                    qs.setFirstUnmarkedSheet(Long.valueOf(sl2.sheet.pagemax +1));
+            if (l.size()>0 && l.get(0).sheet.pagemin > 0) {
+                if (l.size() == 1){
+                    qs.setFirstUnmarkedSheet(Long.valueOf(l.get(0).sheet.pagemax +1));
+                }
+                for ( int i = 0;i< l.size()-1; i++) {
+                    StudentResponse sl1 = l.get(i);
+                    StudentResponse sl2 = l.get(i+1);
+                    qs.setFirstUnmarkedSheet(Long.valueOf(sl1.sheet.pagemax +1));
+    //                log.error("debug " + sl1.sheet.pagemax + " "+ sl2.sheet.pagemin);
+                    if (sl1.sheet.pagemax + 1 < sl2.sheet.pagemin){
+                        break;
+                    } else if (i == l.size()-2 ){
+                        qs.setFirstUnmarkedSheet(Long.valueOf(sl2.sheet.pagemax +1));
+                    }
                 }
             }
+
             result.getQuestions().add(qs);
         }
 
@@ -789,22 +791,24 @@ public class ExtendedAPI {
             if (l.size() ==0){
                 ss.setFirstUnmarkedQuestion(Long.valueOf(1));
 
-            } else if (l.size() ==1) {
+            } else if (l.size() ==1 && l.get(0).question.numero ==1) {
                 ss.setFirstUnmarkedQuestion(Long.valueOf(2));
 
-            } else {
-
-            for ( int i = 0;i< l.size()-1; i++) {
-                StudentResponse sl1 = l.get(i);
-                StudentResponse sl2 = l.get(i+1);
-                if (sl1.question.numero + 1 < sl2.question.numero ){
-                    ss.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero +1));
-                    break;
-                } else if (i == l.size()-2 ){
-                    ss.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero +2));
+            } else if (l.size() >0 && l.get(0).question.numero !=1) {
+                ss.setFirstUnmarkedQuestion(Long.valueOf(1));
+            }
+            else {
+                for ( int i = 0;i< l.size()-1; i++) {
+                    StudentResponse sl1 = l.get(i);
+                    StudentResponse sl2 = l.get(i+1);
+                    if (sl1.question.numero + 1 < sl2.question.numero ){
+                        ss.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero +1));
+                        break;
+                    } else if (i == l.size()-2 ){
+                        ss.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero +2));
+                    }
                 }
             }
-        }
 
             result.getStudents().add(ss);
         }
