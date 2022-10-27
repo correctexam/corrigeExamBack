@@ -728,12 +728,12 @@ public class ExtendedAPI {
 
     @GET
     @Path("/getExamStatus/{examId}")
-   // @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getExamStatus(@PathParam("examId") long examId, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
 
-        /* if (!securityService.canAccess(ctx, examId, Exam.class)) {
+         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
-        }*/
+        }
 
         CorrectionExamState result = new CorrectionExamState();
         List<StudentResponse> res =StudentResponse.getAll4ExamId(examId).list();
