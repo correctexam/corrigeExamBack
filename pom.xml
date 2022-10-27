@@ -13,8 +13,8 @@
         <!-- Build properties -->
         <maven.version>3.6.3</maven.version>
         <java.version>11</java.version>
-        <node.version>v12.13.1</node.version>
-        <npm.version>6.13.4</npm.version>
+        <node.version>v18.12.0</node.version>
+        <npm.version>8.19.2</npm.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.testresult.directory>${project.build.directory}/test-results</project.testresult.directory>
@@ -23,8 +23,8 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
         <!-- Dependency properties -->
-        <quarkus.platform.version>2.9.2.Final</quarkus.platform.version>
-        <mapstruct.version>1.5.2.Final</mapstruct.version>
+        <quarkus.platform.version>2.13.3.Final</quarkus.platform.version>
+        <mapstruct.version>1.5.3.Final</mapstruct.version>
         <archunit-junit5.version>0.12.0</archunit-junit5.version>
 
         <!-- Plugin versions -->
@@ -43,7 +43,7 @@
         <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
         <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
         <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
-        <quarkus-plugin.version>2.9.2.Final</quarkus-plugin.version>
+        <quarkus-plugin.version>2.13.3.Final</quarkus-plugin.version>
 
         <!-- Plugin properties -->
         <checkstyle.version>8.27</checkstyle.version>
