@@ -2,12 +2,12 @@
 <databaseChangeLog
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
     <!--
         Added the constraints for entity CourseGroup.
     -->
     <changeSet id="20220309164735-2" author="jhipster">
-        
+
         <addForeignKeyConstraint baseColumnNames="course_group_id"
                                  baseTableName="course_group_students"
                                  constraintName="fk_course_group_students_course_group_id"
@@ -19,7 +19,7 @@
                                  constraintName="fk_course_group_students_students_id"
                                  referencedColumnNames="id"
                                  referencedTableName="student"/>
-        
+
         <addForeignKeyConstraint baseColumnNames="course_id"
                                  baseTableName="course_group"
                                  constraintName="fk_course_group_course_id"

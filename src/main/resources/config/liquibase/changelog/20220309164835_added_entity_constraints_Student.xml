@@ -2,12 +2,12 @@
 <databaseChangeLog
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
     <!--
         Added the constraints for entity Student.
     -->
     <changeSet id="20220309164835-2" author="jhipster">
-        
+
         <addForeignKeyConstraint baseColumnNames="student_id"
                                  baseTableName="student_exam_sheets"
                                  constraintName="fk_student_exam_sheets_student_id"
@@ -19,6 +19,6 @@
                                  constraintName="fk_student_exam_sheets_exam_sheets_id"
                                  referencedColumnNames="id"
                                  referencedTableName="exam_sheet"/>
-        
+
     </changeSet>
 </databaseChangeLog>

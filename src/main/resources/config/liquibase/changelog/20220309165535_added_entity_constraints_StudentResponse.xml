@@ -2,12 +2,12 @@
 <databaseChangeLog
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.9.xsd">
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
     <!--
         Added the constraints for entity StudentResponse.
     -->
     <changeSet id="20220309165535-2" author="jhipster">
-        
+
         <addForeignKeyConstraint baseColumnNames="question_id"
                                  baseTableName="student_response"
                                  constraintName="fk_student_response_question_id"
@@ -31,7 +31,7 @@
                                  constraintName="fk_student_response_textcomments_textcomments_id"
                                  referencedColumnNames="id"
                                  referencedTableName="text_comment"/>
-        
+
         <addForeignKeyConstraint baseColumnNames="student_response_id"
                                  baseTableName="student_response_gradedcomments"
                                  constraintName="fk_student_response_gradedcomments_student_response_id"
@@ -43,6 +43,6 @@
                                  constraintName="fk_student_response_gradedcomments_gradedcomments_id"
                                  referencedColumnNames="id"
                                  referencedTableName="graded_comment"/>
-        
+
     </changeSet>
 </databaseChangeLog>
