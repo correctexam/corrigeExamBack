@@ -1,46 +1,46 @@
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
+version: '2'
+services:
+  back:
+    image: barais/correctexam-back
+    build:
+      context: .
+      dockerfile: Dockerfile.build.amd64
 
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod,swagger
+      - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
+      - JHIPSTER_SLEEP=30 # gives time for other services to boot before the application
+    restart: always
+    ports:
+      - 8080:8080
+    command: ./application -Dquarkus.http.host=0.0.0.0 -Dquarkus.datasource.username=root -Dquarkus.datasource.password='' -Dquarkus.datasource.jdbc.url=jdbc:mysql://correctexam-mysql:3306/correctexam?useUnicode=true&characterEncoding=utf8&useSSL=false -Dquarkus.http.cors=true   -Dquarkus.http.cors.methods=GET,PUT,POST,DELETE,PATCH,OPTIONS  -Dquarkus.http.cors.headers=accept,origin,authorization,content-type,x-requested-with -Dquarkus.http.cors.exposed-headers=Content-Disposition -Dquarkus.http.cors.access-control-max-age=24H -Dquarkus.mailer.from=olivier.barais@univ-rennes1.fr -Dquarkus.mailer.host=maildev -Dquarkus.mailer.port=25 -Dquarkus.mailer.ssl=false -Djhipster.mail.base-url=http://localhost:9000
 
-***REMOVED***
-***REMOVED***
+#    -Dquarkus.mailer.username=USERNAME -Dquarkus.mailer.password=PASS
+#-Dquarkus.http.cors.origins=https://correctexam.github.io
 
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
+  correctexam-mysql:
+    extends:
+      file: mysql.yml
+      service:  correctexam-mysql
 
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
+  front:
+    image: barais/correctexam-front
+    build:
+      context: .
+      dockerfile: Dockerfile.front
+    ports:
+      - 9000:80 # default mst update the https://github.com/correctexam/corrigeExamFront/blob/main/webpack/environment.js if you change the port
+      - 91:90 # phpmyadmin
+    volumes:
+      -  ./exampleconf/exam.conf:/etc/nginx/conf.d/default.conf
+      -  ./exampleconf/myadmin.conf:/etc/nginx/conf.d/myadmin.conf
+  myadmin:
+    image: phpmyadmin
+    container_name: myadmin
+    environment:
+      -  PMA_HOST=correctexam-mysql
+  maildev:
+    image: maildev/maildev
+    container_name: maildev
+    command: bin/maildev --base-pathname /maildev -w 1080 -s 25
 

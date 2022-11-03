@@ -1,10 +1,10 @@
-***REMOVED***
-***REMOVED***
-***REMOVED***
+version: '2'
+services:
+  correctexam-mysql:
     image: mysql:8.0.20
-***REMOVED***
+    volumes:
       - ./../resources/db/migration/:/docker-entrypoint-initdb.d
-***REMOVED***
+    environment:
       - MYSQL_USER=root
       - MYSQL_ALLOW_EMPTY_PASSWORD=yes
       - MYSQL_DATABASE=correctexam
