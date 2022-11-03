@@ -1,16 +1,17 @@
 -- phpMyAdmin SQL Dump
--- version 4.9.1
+-- version 5.1.1deb5ubuntu1
 -- https://www.phpmyadmin.net/
 --
--- Hôte : localhost
--- Généré le :  jeu. 17 mars 2022 à 12:50
--- Version du serveur :  8.0.19
--- Version de PHP :  7.4.3
+-- Hôte : localhost:3306
+-- Généré le : jeu. 03 nov. 2022 à 16:51
+-- Version du serveur : 8.0.31-0ubuntu0.22.04.1
+-- Version de PHP : 8.1.2
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
+
 
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -19,7 +20,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de données :  `gradeScopeIstic`
+-- Base de données : `correctexam`
 --
 
 -- --------------------------------------------------------
@@ -30,7 +31,8 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `comments` (
   `id` bigint NOT NULL,
-  `json_data` varchar(255) DEFAULT NULL,
+  `zonegeneratedid` varchar(255) DEFAULT NULL,
+  `json_data` longtext,
   `student_response_id` bigint DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -42,17 +44,8 @@ CREATE TABLE `comments` (
 
 CREATE TABLE `course` (
   `id` bigint NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `prof_id` bigint NOT NULL
+  `name` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Déchargement des données de la table `course`
---
-
-INSERT INTO `course` (`id`, `name`, `prof_id`) VALUES
-(1, 'TLC', 5),
-(2, 'ExamSteven', 6);
 
 -- --------------------------------------------------------
 
@@ -80,6 +73,17 @@ CREATE TABLE `course_group_students` (
 -- --------------------------------------------------------
 
 --
+-- Structure de la table `course_prof`
+--
+
+CREATE TABLE `course_prof` (
+  `prof_id` bigint NOT NULL,
+  `course_id` bigint NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Structure de la table `DATABASECHANGELOG`
 --
 
@@ -100,61 +104,8 @@ CREATE TABLE `DATABASECHANGELOG` (
   `DEPLOYMENT_ID` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
---
--- Déchargement des données de la table `DATABASECHANGELOG`
---
+-- --------------------------------------------------------
 
-INSERT INTO `DATABASECHANGELOG` (`ID`, `AUTHOR`, `FILENAME`, `DATEEXECUTED`, `ORDEREXECUTED`, `EXECTYPE`, `MD5SUM`, `DESCRIPTION`, `COMMENTS`, `TAG`, `LIQUIBASE`, `CONTEXTS`, `LABELS`, `DEPLOYMENT_ID`) VALUES
-('00000000000001', 'jhipster', 'config/liquibase/changelog/00000000000000_initial_schema.xml', '2022-03-17 12:49:53', 1, 'EXECUTED', '8:23fa9c990d79fc7435997274f42c6e4a', 'createTable tableName=jhi_user; createTable tableName=jhi_authority; createTable tableName=jhi_user_authority; addPrimaryKey tableName=jhi_user_authority; addForeignKeyConstraint baseTableName=jhi_user_authority, constraintName=fk_authority_name, ...', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('00000000000002', 'jhipster', 'config/liquibase/changelog/00000000000000_initial_schema.xml', '2022-03-17 12:49:53', 2, 'EXECUTED', '8:fc8e5b393c90215202ec38612ed14f68', 'createTable tableName=jhi_date_time_wrapper', '', NULL, '4.7.1', 'test', NULL, '7517793122'),
-('20220309164635-1', 'jhipster', 'config/liquibase/changelog/20220309164635_added_entity_Course.xml', '2022-03-17 12:49:53', 3, 'EXECUTED', '8:db512eb130666ca40a8f7673b442574f', 'createTable tableName=course', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309164635-1-relations', 'jhipster', 'config/liquibase/changelog/20220309164635_added_entity_Course.xml', '2022-03-17 12:49:54', 4, 'EXECUTED', '8:d41d8cd98f00b204e9800998ecf8427e', 'empty', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309164635-1-data', 'jhipster', 'config/liquibase/changelog/20220309164635_added_entity_Course.xml', '2022-03-17 12:49:54', 5, 'EXECUTED', '8:2c78a265053cc2aee36368e5dfe6ad91', 'loadData tableName=course', '', NULL, '4.7.1', 'faker', NULL, '7517793122'),
-('20220309164735-1', 'jhipster', 'config/liquibase/changelog/20220309164735_added_entity_CourseGroup.xml', '2022-03-17 12:49:54', 6, 'EXECUTED', '8:d188b416506914358263aee3712138d2', 'createTable tableName=course_group', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309164735-1-relations', 'jhipster', 'config/liquibase/changelog/20220309164735_added_entity_CourseGroup.xml', '2022-03-17 12:49:54', 7, 'EXECUTED', '8:06207811dcd6216c2207902cf1b9b0f1', 'createTable tableName=course_group_students; addPrimaryKey tableName=course_group_students', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309164735-1-data', 'jhipster', 'config/liquibase/changelog/20220309164735_added_entity_CourseGroup.xml', '2022-03-17 12:49:54', 8, 'EXECUTED', '8:c4d72deeb78a9555bdb4cdb3ea752376', 'loadData tableName=course_group', '', NULL, '4.7.1', 'faker', NULL, '7517793122'),
-('20220309164835-1', 'jhipster', 'config/liquibase/changelog/20220309164835_added_entity_Student.xml', '2022-03-17 12:49:54', 9, 'EXECUTED', '8:25a81938f58ebb51407752952f2312d4', 'createTable tableName=student', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309164835-1-relations', 'jhipster', 'config/liquibase/changelog/20220309164835_added_entity_Student.xml', '2022-03-17 12:49:54', 10, 'EXECUTED', '8:c84e3bbda6b1b27e2d369f50f04c98de', 'createTable tableName=student_exam_sheets; addPrimaryKey tableName=student_exam_sheets', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309164835-1-data', 'jhipster', 'config/liquibase/changelog/20220309164835_added_entity_Student.xml', '2022-03-17 12:49:54', 11, 'EXECUTED', '8:503c34cf76296c7d1765daa6e075fa7f', 'loadData tableName=student', '', NULL, '4.7.1', 'faker', NULL, '7517793122'),
-('20220309164935-1', 'jhipster', 'config/liquibase/changelog/20220309164935_added_entity_Exam.xml', '2022-03-17 12:49:54', 12, 'EXECUTED', '8:307a85dcef95c80e2819ef9112f65c85', 'createTable tableName=exam', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309164935-1-relations', 'jhipster', 'config/liquibase/changelog/20220309164935_added_entity_Exam.xml', '2022-03-17 12:49:54', 13, 'EXECUTED', '8:d41d8cd98f00b204e9800998ecf8427e', 'empty', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309164935-1-data', 'jhipster', 'config/liquibase/changelog/20220309164935_added_entity_Exam.xml', '2022-03-17 12:49:54', 14, 'EXECUTED', '8:a392753764bfcb99d8dd86e5bc7e92d0', 'loadData tableName=exam', '', NULL, '4.7.1', 'faker', NULL, '7517793122'),
-('20220309165035-1', 'jhipster', 'config/liquibase/changelog/20220309165035_added_entity_Template.xml', '2022-03-17 12:49:54', 15, 'EXECUTED', '8:73151da07861b56b381bca9a47059575', 'createTable tableName=template', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165035-1-relations', 'jhipster', 'config/liquibase/changelog/20220309165035_added_entity_Template.xml', '2022-03-17 12:49:54', 16, 'EXECUTED', '8:d41d8cd98f00b204e9800998ecf8427e', 'empty', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165035-1-data', 'jhipster', 'config/liquibase/changelog/20220309165035_added_entity_Template.xml', '2022-03-17 12:49:54', 17, 'EXECUTED', '8:9ed877764489e819d0ac7e53608d2c25', 'loadData tableName=template', '', NULL, '4.7.1', 'faker', NULL, '7517793122'),
-('20220309165135-1', 'jhipster', 'config/liquibase/changelog/20220309165135_added_entity_Question.xml', '2022-03-17 12:49:54', 18, 'EXECUTED', '8:76366ba82da5a03428d8070294c58d05', 'createTable tableName=question', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165135-1-relations', 'jhipster', 'config/liquibase/changelog/20220309165135_added_entity_Question.xml', '2022-03-17 12:49:54', 19, 'EXECUTED', '8:d41d8cd98f00b204e9800998ecf8427e', 'empty', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165135-1-data', 'jhipster', 'config/liquibase/changelog/20220309165135_added_entity_Question.xml', '2022-03-17 12:49:54', 20, 'EXECUTED', '8:579ee03aa571258eef110730bb4e3d5b', 'loadData tableName=question', '', NULL, '4.7.1', 'faker', NULL, '7517793122'),
-('20220309165235-1', 'jhipster', 'config/liquibase/changelog/20220309165235_added_entity_ExamSheet.xml', '2022-03-17 12:49:54', 21, 'EXECUTED', '8:d3505fb79e3d973df7f8edea74d71a02', 'createTable tableName=exam_sheet', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165235-1-relations', 'jhipster', 'config/liquibase/changelog/20220309165235_added_entity_ExamSheet.xml', '2022-03-17 12:49:54', 22, 'EXECUTED', '8:d41d8cd98f00b204e9800998ecf8427e', 'empty', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165235-1-data', 'jhipster', 'config/liquibase/changelog/20220309165235_added_entity_ExamSheet.xml', '2022-03-17 12:49:54', 23, 'EXECUTED', '8:156c607fce057a6e9ee9753a1b4b3de7', 'loadData tableName=exam_sheet', '', NULL, '4.7.1', 'faker', NULL, '7517793122'),
-('20220309165335-1', 'jhipster', 'config/liquibase/changelog/20220309165335_added_entity_Scan.xml', '2022-03-17 12:49:54', 24, 'EXECUTED', '8:0416221a146e4c61273424166e93c14b', 'createTable tableName=scan', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165335-1-relations', 'jhipster', 'config/liquibase/changelog/20220309165335_added_entity_Scan.xml', '2022-03-17 12:49:54', 25, 'EXECUTED', '8:d41d8cd98f00b204e9800998ecf8427e', 'empty', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165335-1-data', 'jhipster', 'config/liquibase/changelog/20220309165335_added_entity_Scan.xml', '2022-03-17 12:49:54', 26, 'EXECUTED', '8:4b4da57ce89f358de4b85d38a0b3a5aa', 'loadData tableName=scan', '', NULL, '4.7.1', 'faker', NULL, '7517793122'),
-('20220309165435-1', 'jhipster', 'config/liquibase/changelog/20220309165435_added_entity_FinalResult.xml', '2022-03-17 12:49:54', 27, 'EXECUTED', '8:fabf8d5113ebb437910639c34b3d4932', 'createTable tableName=final_result', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165435-1-relations', 'jhipster', 'config/liquibase/changelog/20220309165435_added_entity_FinalResult.xml', '2022-03-17 12:49:54', 28, 'EXECUTED', '8:d41d8cd98f00b204e9800998ecf8427e', 'empty', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165435-1-data', 'jhipster', 'config/liquibase/changelog/20220309165435_added_entity_FinalResult.xml', '2022-03-17 12:49:54', 29, 'EXECUTED', '8:7463be5b87dfeab63ecf7391149abcce', 'loadData tableName=final_result', '', NULL, '4.7.1', 'faker', NULL, '7517793122'),
-('20220309165535-1', 'jhipster', 'config/liquibase/changelog/20220309165535_added_entity_StudentResponse.xml', '2022-03-17 12:49:54', 30, 'EXECUTED', '8:8b0be71d2017c529be6632d7fa8ff9cb', 'createTable tableName=student_response', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165535-1-relations', 'jhipster', 'config/liquibase/changelog/20220309165535_added_entity_StudentResponse.xml', '2022-03-17 12:49:54', 31, 'EXECUTED', '8:d41d8cd98f00b204e9800998ecf8427e', 'empty', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165535-1-data', 'jhipster', 'config/liquibase/changelog/20220309165535_added_entity_StudentResponse.xml', '2022-03-17 12:49:54', 32, 'EXECUTED', '8:376324e2fc132a6be1396ce89a1bca8b', 'loadData tableName=student_response', '', NULL, '4.7.1', 'faker', NULL, '7517793122'),
-('20220309165635-1', 'jhipster', 'config/liquibase/changelog/20220309165635_added_entity_Comments.xml', '2022-03-17 12:49:54', 33, 'EXECUTED', '8:d30b81e0be76cae7aee7f3c5b80480f8', 'createTable tableName=comments', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165635-1-relations', 'jhipster', 'config/liquibase/changelog/20220309165635_added_entity_Comments.xml', '2022-03-17 12:49:54', 34, 'EXECUTED', '8:d41d8cd98f00b204e9800998ecf8427e', 'empty', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165635-1-data', 'jhipster', 'config/liquibase/changelog/20220309165635_added_entity_Comments.xml', '2022-03-17 12:49:54', 35, 'EXECUTED', '8:689d765ae061203a715999952c8b2615', 'loadData tableName=comments', '', NULL, '4.7.1', 'faker', NULL, '7517793122'),
-('20220309165735-1', 'jhipster', 'config/liquibase/changelog/20220309165735_added_entity_Zone.xml', '2022-03-17 12:49:54', 36, 'EXECUTED', '8:1a9c1de6e7145e397f3394fd762f277e', 'createTable tableName=zone', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165735-1-relations', 'jhipster', 'config/liquibase/changelog/20220309165735_added_entity_Zone.xml', '2022-03-17 12:49:54', 37, 'EXECUTED', '8:d41d8cd98f00b204e9800998ecf8427e', 'empty', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165735-1-data', 'jhipster', 'config/liquibase/changelog/20220309165735_added_entity_Zone.xml', '2022-03-17 12:49:55', 38, 'EXECUTED', '8:c5da0f4a31bcbefd29835d3c7b975974', 'loadData tableName=zone', '', NULL, '4.7.1', 'faker', NULL, '7517793122'),
-('20220311140708-1', 'jhipster', 'config/liquibase/changelog/20220311140708_added_entity_QuestionType.xml', '2022-03-17 12:49:55', 39, 'EXECUTED', '8:2ae422403ed0c8c62e8e8e245623480e', 'createTable tableName=question_type', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220311140708-1-relations', 'jhipster', 'config/liquibase/changelog/20220311140708_added_entity_QuestionType.xml', '2022-03-17 12:49:55', 40, 'EXECUTED', '8:d41d8cd98f00b204e9800998ecf8427e', 'empty', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220311140708-1-data', 'jhipster', 'config/liquibase/changelog/20220311140708_added_entity_QuestionType.xml', '2022-03-17 12:49:55', 41, 'EXECUTED', '8:9795601c8b37a663ce092738dfd66353', 'loadData tableName=question_type', '', NULL, '4.7.1', 'faker', NULL, '7517793122'),
-('20220309164635-2', 'jhipster', 'config/liquibase/changelog/20220309164635_added_entity_constraints_Course.xml', '2022-03-17 12:49:55', 42, 'EXECUTED', '8:eaf11ab06ee85bdcfefc3cac1235d9e4', 'addForeignKeyConstraint baseTableName=course, constraintName=fk_course_prof_id, referencedTableName=jhi_user', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309164735-2', 'jhipster', 'config/liquibase/changelog/20220309164735_added_entity_constraints_CourseGroup.xml', '2022-03-17 12:49:55', 43, 'EXECUTED', '8:80ad08e5f58e98334f1b7e1b65613f37', 'addForeignKeyConstraint baseTableName=course_group_students, constraintName=fk_course_group_students_course_group_id, referencedTableName=course_group; addForeignKeyConstraint baseTableName=course_group_students, constraintName=fk_course_group_stu...', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309164835-2', 'jhipster', 'config/liquibase/changelog/20220309164835_added_entity_constraints_Student.xml', '2022-03-17 12:49:55', 44, 'EXECUTED', '8:91339e2307b7722f5799a0ad33001d54', 'addForeignKeyConstraint baseTableName=student_exam_sheets, constraintName=fk_student_exam_sheets_student_id, referencedTableName=student; addForeignKeyConstraint baseTableName=student_exam_sheets, constraintName=fk_student_exam_sheets_exam_sheets_...', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309164935-2', 'jhipster', 'config/liquibase/changelog/20220309164935_added_entity_constraints_Exam.xml', '2022-03-17 12:49:56', 45, 'EXECUTED', '8:f0a92fdc5476b8a5c411a24ace23217d', 'addForeignKeyConstraint baseTableName=exam, constraintName=fk_exam_template_id, referencedTableName=template; addForeignKeyConstraint baseTableName=exam, constraintName=fk_exam_idzone_id, referencedTableName=zone; addForeignKeyConstraint baseTable...', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165135-2', 'jhipster', 'config/liquibase/changelog/20220309165135_added_entity_constraints_Question.xml', '2022-03-17 12:49:56', 46, 'EXECUTED', '8:50e161ef520b83167e5c28102b1b5849', 'addForeignKeyConstraint baseTableName=question, constraintName=fk_question_zone_id, referencedTableName=zone; addForeignKeyConstraint baseTableName=question, constraintName=fk_question_type_id, referencedTableName=question_type; addForeignKeyConst...', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165235-2', 'jhipster', 'config/liquibase/changelog/20220309165235_added_entity_constraints_ExamSheet.xml', '2022-03-17 12:49:56', 47, 'EXECUTED', '8:ffd88660dfaddb6b4674f9026bbaefb6', 'addForeignKeyConstraint baseTableName=exam_sheet, constraintName=fk_exam_sheet_scan_id, referencedTableName=scan', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165435-2', 'jhipster', 'config/liquibase/changelog/20220309165435_added_entity_constraints_FinalResult.xml', '2022-03-17 12:49:56', 48, 'EXECUTED', '8:6cf696852bf6e7509d3934dab1ec21aa', 'addForeignKeyConstraint baseTableName=final_result, constraintName=fk_final_result_student_id, referencedTableName=student; addForeignKeyConstraint baseTableName=final_result, constraintName=fk_final_result_exam_id, referencedTableName=exam', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165535-2', 'jhipster', 'config/liquibase/changelog/20220309165535_added_entity_constraints_StudentResponse.xml', '2022-03-17 12:49:56', 49, 'EXECUTED', '8:83e4be3ffcfe10c807016cb1edeee489', 'addForeignKeyConstraint baseTableName=student_response, constraintName=fk_student_response_question_id, referencedTableName=question; addForeignKeyConstraint baseTableName=student_response, constraintName=fk_student_response_student_id, referenced...', '', NULL, '4.7.1', NULL, NULL, '7517793122'),
-('20220309165635-2', 'jhipster', 'config/liquibase/changelog/20220309165635_added_entity_constraints_Comments.xml', '2022-03-17 12:49:56', 50, 'EXECUTED', '8:37b194172b96f67cc11134fabd053b5d', 'addForeignKeyConstraint baseTableName=comments, constraintName=fk_comments_student_response_id, referencedTableName=student_response', '', NULL, '4.7.1', NULL, NULL, '7517793122');
 
 -- --------------------------------------------------------
 
@@ -169,14 +120,8 @@ CREATE TABLE `DATABASECHANGELOGLOCK` (
   `LOCKEDBY` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
---
--- Déchargement des données de la table `DATABASECHANGELOGLOCK`
---
-
-INSERT INTO `DATABASECHANGELOGLOCK` (`ID`, `LOCKED`, `LOCKGRANTED`, `LOCKEDBY`) VALUES
-(1, b'0', NULL, NULL);
-
 -- --------------------------------------------------------
+
 
 --
 -- Structure de la table `exam`
@@ -219,6 +164,21 @@ CREATE TABLE `final_result` (
   `note` int DEFAULT NULL,
   `student_id` bigint DEFAULT NULL,
   `exam_id` bigint DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `graded_comment`
+--
+
+CREATE TABLE `graded_comment` (
+  `id` bigint NOT NULL,
+  `zonegeneratedid` varchar(255) DEFAULT NULL,
+  `text` varchar(255) DEFAULT NULL,
+  `description` longtext,
+  `grade` int DEFAULT NULL,
+  `question_id` bigint DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -300,7 +260,7 @@ CREATE TABLE `jhi_user` (
   `activation_key` varchar(20) DEFAULT NULL,
   `reset_key` varchar(20) DEFAULT NULL,
   `created_by` varchar(50) NOT NULL,
-  `created_date` timestamp NULL,
+  `created_date` timestamp NULL DEFAULT NULL,
   `reset_date` timestamp NULL DEFAULT NULL,
   `last_modified_by` varchar(50) DEFAULT NULL,
   `last_modified_date` timestamp NULL DEFAULT NULL
@@ -315,8 +275,7 @@ INSERT INTO `jhi_user` (`id`, `login`, `password_hash`, `first_name`, `last_name
 (2, 'anonymoususer', '$2a$10$j8S5d7Sr7.8VTOYNviDPOeWX8KcYILUVJBsYV83Y5NtECayypx9lO', 'Anonymous', 'User', 'anonymous@localhost', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL),
 (3, 'admin', '$2a$10$gSAhZrxMllrbgj/kkK9UceBPpChGWJA7SYIb1Mqo.n5aNLq1/oRrC', 'Administrator', 'Administrator', 'admin@localhost', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL),
 (4, 'user', '$2a$10$VEjxo0jq2YG9Rbk2HmX9S.k1uZBGYUHdUcid3g/vfiEl7lwWgOH/K', 'User', 'User', 'user@localhost', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL),
-(5, 'barais', '$2a$10$VEjxo0jq2YG9Rbk2HmX9S.k1uZBGYUHdUcid3g/vfiEl7lwWgOH/K', 'Barais', 'Olivier', 'barais@irisa.fr', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL),
-(6, 'derrien', '$2a$10$VEjxo0jq2YG9Rbk2HmX9S.k1uZBGYUHdUcid3g/vfiEl7lwWgOH/K', 'Derrien', 'Steven', 'steven.derrien@irisa.fr', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL);
+(5, 'barais', '$2a$10$VEjxo0jq2YG9Rbk2HmX9S.k1uZBGYUHdUcid3g/vfiEl7lwWgOH/K', 'Barais', 'Olivier', 'barais@irisa.fr', '', b'1', 'fr', NULL, '8nSajYN5u5HEwkMEEbOR', 'system', NULL, '2022-10-03 08:33:25', 'system', NULL);
 
 -- --------------------------------------------------------
 
@@ -339,8 +298,7 @@ INSERT INTO `jhi_user_authority` (`user_id`, `authority_name`) VALUES
 (1, 'ROLE_USER'),
 (3, 'ROLE_USER'),
 (4, 'ROLE_USER'),
-(5, 'ROLE_USER'),
-(6, 'ROLE_USER');
+(5, 'ROLE_USER');
 
 -- --------------------------------------------------------
 
@@ -352,6 +310,9 @@ CREATE TABLE `question` (
   `id` bigint NOT NULL,
   `numero` int NOT NULL,
   `point` int DEFAULT NULL,
+  `step` int DEFAULT NULL,
+  `valid_expression` varchar(255) DEFAULT NULL,
+  `grade_type` varchar(255) DEFAULT NULL,
   `zone_id` bigint DEFAULT NULL,
   `type_id` bigint DEFAULT NULL,
   `exam_id` bigint DEFAULT NULL
@@ -375,8 +336,8 @@ CREATE TABLE `question_type` (
 --
 
 INSERT INTO `question_type` (`id`, `algo_name`, `endpoint`, `js_function`) VALUES
-(1, 'tsflowcharacter', '', ''),
-(2, 'manual', '', '');
+(2, 'manual', '', ''),
+(3, 'QCM', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -426,8 +387,32 @@ CREATE TABLE `student_exam_sheets` (
 CREATE TABLE `student_response` (
   `id` bigint NOT NULL,
   `note` int DEFAULT NULL,
+  `star` bit(1) DEFAULT NULL,
+  `worststar` bit(1) DEFAULT b'0',
   `question_id` bigint DEFAULT NULL,
-  `student_id` bigint DEFAULT NULL
+  `sheet_id` bigint DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `student_response_gradedcomments`
+--
+
+CREATE TABLE `student_response_gradedcomments` (
+  `gradedcomments_id` bigint NOT NULL,
+  `student_response_id` bigint NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `student_response_textcomments`
+--
+
+CREATE TABLE `student_response_textcomments` (
+  `textcomments_id` bigint NOT NULL,
+  `student_response_id` bigint NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -440,7 +425,23 @@ CREATE TABLE `template` (
   `id` bigint NOT NULL,
   `name` varchar(255) NOT NULL,
   `content` longblob,
-  `content_content_type` varchar(255) DEFAULT NULL
+  `content_content_type` varchar(255) DEFAULT NULL,
+  `mark` bit(1) DEFAULT NULL,
+  `auto_map_student_copy_to_list` bit(1) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `text_comment`
+--
+
+CREATE TABLE `text_comment` (
+  `id` bigint NOT NULL,
+  `text` varchar(255) DEFAULT NULL,
+  `description` longtext,
+  `zonegeneratedid` varchar(255) DEFAULT NULL,
+  `question_id` bigint DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -451,7 +452,7 @@ CREATE TABLE `template` (
 
 CREATE TABLE `zone` (
   `id` bigint NOT NULL,
-  `page` int DEFAULT NULL,
+  `page_number` int DEFAULT NULL,
   `x_init` int DEFAULT NULL,
   `y_init` int DEFAULT NULL,
   `width` int DEFAULT NULL,
@@ -473,8 +474,7 @@ ALTER TABLE `comments`
 -- Index pour la table `course`
 --
 ALTER TABLE `course`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_course_prof_id` (`prof_id`);
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Index pour la table `course_group`
@@ -489,6 +489,13 @@ ALTER TABLE `course_group`
 ALTER TABLE `course_group_students`
   ADD PRIMARY KEY (`course_group_id`,`students_id`),
   ADD KEY `fk_course_group_students_students_id` (`students_id`);
+
+--
+-- Index pour la table `course_prof`
+--
+ALTER TABLE `course_prof`
+  ADD PRIMARY KEY (`course_id`,`prof_id`),
+  ADD KEY `fk_course_prof_prof_id` (`prof_id`);
 
 --
 -- Index pour la table `DATABASECHANGELOGLOCK`
@@ -523,6 +530,13 @@ ALTER TABLE `final_result`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_final_result_student_id` (`student_id`),
   ADD KEY `fk_final_result_exam_id` (`exam_id`);
+
+--
+-- Index pour la table `graded_comment`
+--
+ALTER TABLE `graded_comment`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_graded_comment_question_id` (`question_id`);
 
 --
 -- Index pour la table `jhi_authority`
@@ -605,13 +619,34 @@ ALTER TABLE `student_exam_sheets`
 ALTER TABLE `student_response`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_student_response_question_id` (`question_id`),
-  ADD KEY `fk_student_response_student_id` (`student_id`);
+  ADD KEY `fk_student_response_sheet_id` (`sheet_id`);
+
+--
+-- Index pour la table `student_response_gradedcomments`
+--
+ALTER TABLE `student_response_gradedcomments`
+  ADD PRIMARY KEY (`student_response_id`,`gradedcomments_id`),
+  ADD KEY `fk_student_response_gradedcomments_gradedcomments_id` (`gradedcomments_id`);
+
+--
+-- Index pour la table `student_response_textcomments`
+--
+ALTER TABLE `student_response_textcomments`
+  ADD PRIMARY KEY (`student_response_id`,`textcomments_id`),
+  ADD KEY `fk_student_response_textcomments_textcomments_id` (`textcomments_id`);
 
 --
 -- Index pour la table `template`
 --
 ALTER TABLE `template`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Index pour la table `text_comment`
+--
+ALTER TABLE `text_comment`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_text_comment_question_id` (`question_id`);
 
 --
 -- Index pour la table `zone`
@@ -633,7 +668,7 @@ ALTER TABLE `comments`
 -- AUTO_INCREMENT pour la table `course`
 --
 ALTER TABLE `course`
-  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `course_group`
@@ -660,6 +695,12 @@ ALTER TABLE `final_result`
   MODIFY `id` bigint NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT pour la table `graded_comment`
+--
+ALTER TABLE `graded_comment`
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT pour la table `jhi_date_time_wrapper`
 --
 ALTER TABLE `jhi_date_time_wrapper`
@@ -675,7 +716,7 @@ ALTER TABLE `jhi_persistent_audit_event`
 -- AUTO_INCREMENT pour la table `jhi_user`
 --
 ALTER TABLE `jhi_user`
-  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT pour la table `question`
@@ -687,7 +728,7 @@ ALTER TABLE `question`
 -- AUTO_INCREMENT pour la table `question_type`
 --
 ALTER TABLE `question_type`
-  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT pour la table `scan`
@@ -714,6 +755,12 @@ ALTER TABLE `template`
   MODIFY `id` bigint NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT pour la table `text_comment`
+--
+ALTER TABLE `text_comment`
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT pour la table `zone`
 --
 ALTER TABLE `zone`
@@ -730,12 +777,6 @@ ALTER TABLE `comments`
   ADD CONSTRAINT `fk_comments_student_response_id` FOREIGN KEY (`student_response_id`) REFERENCES `student_response` (`id`);
 
 --
--- Contraintes pour la table `course`
---
-ALTER TABLE `course`
-  ADD CONSTRAINT `fk_course_prof_id` FOREIGN KEY (`prof_id`) REFERENCES `jhi_user` (`id`);
-
---
 -- Contraintes pour la table `course_group`
 --
 ALTER TABLE `course_group`
@@ -747,6 +788,13 @@ ALTER TABLE `course_group`
 ALTER TABLE `course_group_students`
   ADD CONSTRAINT `fk_course_group_students_course_group_id` FOREIGN KEY (`course_group_id`) REFERENCES `course_group` (`id`),
   ADD CONSTRAINT `fk_course_group_students_students_id` FOREIGN KEY (`students_id`) REFERENCES `student` (`id`);
+
+--
+-- Contraintes pour la table `course_prof`
+--
+ALTER TABLE `course_prof`
+  ADD CONSTRAINT `fk_course_prof_course_id` FOREIGN KEY (`course_id`) REFERENCES `course` (`id`),
+  ADD CONSTRAINT `fk_course_prof_prof_id` FOREIGN KEY (`prof_id`) REFERENCES `jhi_user` (`id`);
 
 --
 -- Contraintes pour la table `exam`
@@ -772,6 +820,12 @@ ALTER TABLE `exam_sheet`
 ALTER TABLE `final_result`
   ADD CONSTRAINT `fk_final_result_exam_id` FOREIGN KEY (`exam_id`) REFERENCES `exam` (`id`),
   ADD CONSTRAINT `fk_final_result_student_id` FOREIGN KEY (`student_id`) REFERENCES `student` (`id`);
+
+--
+-- Contraintes pour la table `graded_comment`
+--
+ALTER TABLE `graded_comment`
+  ADD CONSTRAINT `fk_graded_comment_question_id` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`);
 
 --
 -- Contraintes pour la table `jhi_persistent_audit_evt_data`
@@ -806,7 +860,27 @@ ALTER TABLE `student_exam_sheets`
 --
 ALTER TABLE `student_response`
   ADD CONSTRAINT `fk_student_response_question_id` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`),
-  ADD CONSTRAINT `fk_student_response_student_id` FOREIGN KEY (`student_id`) REFERENCES `student` (`id`);
+  ADD CONSTRAINT `fk_student_response_sheet_id` FOREIGN KEY (`sheet_id`) REFERENCES `exam_sheet` (`id`);
+
+--
+-- Contraintes pour la table `student_response_gradedcomments`
+--
+ALTER TABLE `student_response_gradedcomments`
+  ADD CONSTRAINT `fk_student_response_gradedcomments_gradedcomments_id` FOREIGN KEY (`gradedcomments_id`) REFERENCES `graded_comment` (`id`),
+  ADD CONSTRAINT `fk_student_response_gradedcomments_student_response_id` FOREIGN KEY (`student_response_id`) REFERENCES `student_response` (`id`);
+
+--
+-- Contraintes pour la table `student_response_textcomments`
+--
+ALTER TABLE `student_response_textcomments`
+  ADD CONSTRAINT `fk_student_response_textcomments_student_response_id` FOREIGN KEY (`student_response_id`) REFERENCES `student_response` (`id`),
+  ADD CONSTRAINT `fk_student_response_textcomments_textcomments_id` FOREIGN KEY (`textcomments_id`) REFERENCES `text_comment` (`id`);
+
+--
+-- Contraintes pour la table `text_comment`
+--
+ALTER TABLE `text_comment`
+  ADD CONSTRAINT `fk_text_comment_question_id` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

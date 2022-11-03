@@ -1,0 +1,17 @@
+FROM node:18-alpine as build-step
+WORKDIR /app
+ENV NG_CLI_ANALYTICS=ci
+RUN apk update && apk upgrade && \
+    apk add --no-cache bash git cairo pango jpeg giflib python3 pkgconfig build-base g++ cairo-dev jpeg-dev pango-dev giflib-dev
+RUN git clone https://github.com/correctexam/corrigeExamFront
+WORKDIR /app/corrigeExamFront
+RUN npm install --force
+RUN npm run webapp:build:dev
+# change the  npm run targer depending of the config
+
+
+#FROM bunkerity/bunkerized-nginx as prod
+FROM nginx as prod
+COPY --from=build-step /app/corrigeExamFront/target/classes/static /usr/share/nginx/html
+
+
