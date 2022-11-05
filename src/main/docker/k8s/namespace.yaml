@@ -1,0 +1,8 @@
+# Deploys a new Namespace for the correctexam Pods
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: correctexam # Change this value if you want a different namespace name
+  labels:
+    name: correctexam # Change this value to match metadata.name
+---

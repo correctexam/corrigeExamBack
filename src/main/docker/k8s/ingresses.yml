@@ -4,6 +4,7 @@ metadata:
   name: correctexam
 #  annotations:
 #    nginx.ingress.kubernetes.io/rewrite-target: /
+  namespace: correctexam
 spec:
   rules:
   - host: localhost

@@ -4,6 +4,7 @@ metadata:
   labels:
     fr.correctexam.service: back
   name: back
+  namespace: correctexam
 spec:
   ports:
     - name: "8080"

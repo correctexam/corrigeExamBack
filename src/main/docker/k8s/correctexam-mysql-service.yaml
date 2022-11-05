@@ -4,6 +4,7 @@ metadata:
   labels:
     fr.correctexam.service: correctexam-mysql
   name: correctexam-mysql
+  namespace: correctexam
 spec:
   ports:
     - name: "3306"

@@ -49,6 +49,7 @@ docker image push localhost:32000/barais/correctexam-front:latest
 ```bash
 # from where you clone your project
 cd src/main/docker/k8s
+microk8s kubectl apply -f namespace.yaml
 microk8s kubectl apply -f .
 ```
 
@@ -60,7 +61,7 @@ and the app at http://localhost
 If you want to access the php myadmin service
 
 ```bash
-microk8s kubectl port-forward service/myadmin 8082:80
+microk8s kubectl port-forward -n correctexam service/myadmin 8082:80
 ```
 and you can access to phpmyadmin at http://127.0.0.1:8082
 
@@ -68,8 +69,8 @@ and you can access to phpmyadmin at http://127.0.0.1:8082
 ### remove everything
 
 ```bash
-microk8s kubectl delete deploy correctexam-mysql  back front maildev myadmin
-microk8s kubectl delete service correctexam-mysql  back front maildev myadmin
-microk8s kubectl delete ingress correctexam
-microk8s kubectl delete configmaps mysqlinit-cfgmap
+microk8s kubectl delete deploy -n correctexam  correctexam-mysql  back front maildev myadmin
+microk8s kubectl delete service -n correctexam correctexam-mysql  back front maildev myadmin
+microk8s kubectl delete ingress -n correctexam correctexam
+microk8s kubectl delete configmaps -n correctexam  mysqlinit-cfgmap
 ```
