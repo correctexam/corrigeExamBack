@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: myadmin
+  name: myadmin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: myadmin
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        io.kompose.service: myadmin
+    spec:
+      containers:
+        - env:
+            - name: PMA_HOST
+              value: correctexam-mysql
+          image: phpmyadmin
+          name: myadmin
+          ports:
+            - containerPort: 80
+          resources: {}
+      restartPolicy: Always
+status: {}

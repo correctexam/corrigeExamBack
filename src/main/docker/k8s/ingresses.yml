@@ -1,0 +1,48 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: correctexam
+#  annotations:
+#    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: localhost
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: back
+            port:
+              number: 8080
+      - path: /management
+        pathType: Prefix
+        backend:
+          service:
+            name: back
+            port:
+              number: 8080
+
+      - path: /maildev
+        pathType: Prefix
+        backend:
+          service:
+            name: maildev
+            port:
+              number: 1080
+#      - path: /myadmin(/|$)(.*)
+#        pathType: Prefix
+#        backend:
+#          service:
+#            name: myadmin
+#            port:
+#              number: 80
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: front
+            port:
+              number: 80
+

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: back
+  name: back
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: back
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        io.kompose.service: back
+    spec:
+      containers:
+        - args:
+            - ./application
+            - -Dquarkus.http.host=0.0.0.0
+            - -Dquarkus.datasource.username=root
+            - -Dquarkus.datasource.password=
+            - -Dquarkus.datasource.jdbc.url=jdbc:mysql://correctexam-mysql:3306/correctexam?useUnicode=true&characterEncoding=utf8&useSSL=false
+            - -Dquarkus.http.cors=true
+            - -Dquarkus.http.cors.methods=GET,PUT,POST,DELETE,PATCH,OPTIONS
+            - -Dquarkus.http.cors.headers=accept,origin,authorization,content-type,x-requested-with
+            - -Dquarkus.http.cors.exposed-headers=Content-Disposition
+            - -Dquarkus.http.cors.access-control-max-age=24H
+            - -Dquarkus.mailer.from=olivier.barais@univ-rennes1.fr
+            - -Dquarkus.mailer.host=maildev
+            - -Dquarkus.mailer.port=1025
+            - -Dquarkus.mailer.ssl=false
+            - -Djhipster.mail.base-url=http://localhost:9000
+          env:
+            - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
+              value: "true"
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod,swagger
+          image: localhost:32000/barais/correctexam-back
+          name: back
+          ports:
+            - containerPort: 8080
+          resources: {}
+      restartPolicy: Always
+status: {}

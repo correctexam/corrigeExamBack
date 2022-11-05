@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: front
+  name: front
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: front
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.service: front
+    spec:
+      containers:
+        - image: localhost:32000/barais/correctexam-front
+          name: front
+          ports:
+            - containerPort: 80
+          resources: {}
+      restartPolicy: Always
+status: {}

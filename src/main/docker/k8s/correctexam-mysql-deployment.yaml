@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: correctexam-mysql
+  name: correctexam-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: correctexam-mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        io.kompose.service: correctexam-mysql
+    spec:
+      containers:
+        - args:
+            - mysqld
+            - --lower_case_table_names=1
+            - --skip-ssl
+            - --character_set_server=utf8mb4
+            - --explicit_defaults_for_timestamp
+          env:
+            - name: MYSQL_ALLOW_EMPTY_PASSWORD
+              value: "yes"
+            - name: MYSQL_DATABASE
+              value: correctexam
+            - name: MYSQL_USER
+              value: root
+          image: mysql:8.0.20
+          name: correctexam-mysql
+          ports:
+            - containerPort: 3306
+          resources: {}
+          volumeMounts:
+            - mountPath: /docker-entrypoint-initdb.d/v1.sql
+              name: correctexam-mysql-claim0
+              subPath: v1Sql
+      restartPolicy: Always
+      volumes:
+        - name: correctexam-mysql-claim0
+          configMap:
+            name: mysqlinit-cfgmap
+status: {}
