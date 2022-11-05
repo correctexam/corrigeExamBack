@@ -23,7 +23,41 @@ spec:
             name: back
             port:
               number: 8080
-
+      - path: /services
+        pathType: Prefix
+        backend:
+          service:
+            name: back
+            port:
+              number: 8080
+      - path: /swagger-ui
+        pathType: Prefix
+        backend:
+          service:
+            name: back
+            port:
+              number: 8080
+      - path: /v3/api-docs
+        pathType: Prefix
+        backend:
+          service:
+            name: back
+            port:
+              number: 8080
+      - path: /health
+        pathType: Prefix
+        backend:
+          service:
+            name: back
+            port:
+              number: 8080
+      - path: /auth
+        pathType: Prefix
+        backend:
+          service:
+            name: back
+            port:
+              number: 8080
       - path: /maildev
         pathType: Prefix
         backend:
