@@ -63,3 +63,13 @@ If you want to access the php myadmin service
 microk8s kubectl port-forward service/myadmin 8082:80
 ```
 and you can access to phpmyadmin at http://127.0.0.1:8082
+
+
+### remove everything
+
+```bash
+microk8s kubectl delete deploy correctexam-mysql  back front maildev myadmin
+microk8s kubectl delete service correctexam-mysql  back front maildev myadmin
+microk8s kubectl delete ingress correctexam
+microk8s kubectl delete configmaps mysqlinit-cfgmap
+```

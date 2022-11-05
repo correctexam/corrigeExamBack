@@ -2,18 +2,18 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    io.kompose.service: back
+    fr.correctexam.service: back
   name: back
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: back
+      fr.correctexam.service: back
   strategy: {}
   template:
     metadata:
       labels:
-        io.kompose.service: back
+        fr.correctexam.service: back
     spec:
       containers:
         - args:

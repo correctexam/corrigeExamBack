@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    io.kompose.service: back
+    fr.correctexam.service: back
   name: back
 spec:
   ports:
@@ -10,6 +10,6 @@ spec:
       port: 8080
       targetPort: 8080
   selector:
-    io.kompose.service: back
+    fr.correctexam.service: back
 status:
   loadBalancer: {}

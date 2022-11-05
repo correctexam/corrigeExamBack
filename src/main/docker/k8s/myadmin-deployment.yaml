@@ -2,18 +2,18 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    io.kompose.service: myadmin
+    fr.correctexam.service: myadmin
   name: myadmin
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: myadmin
+      fr.correctexam.service: myadmin
   strategy: {}
   template:
     metadata:
       labels:
-        io.kompose.service: myadmin
+        fr.correctexam.service: myadmin
     spec:
       containers:
         - env:

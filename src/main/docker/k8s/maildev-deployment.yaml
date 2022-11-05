@@ -2,18 +2,18 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    io.kompose.service: maildev
+    fr.correctexam.service: maildev
   name: maildev
 spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: maildev
+      fr.correctexam.service: maildev
   strategy: {}
   template:
     metadata:
       labels:
-        io.kompose.service: maildev
+        fr.correctexam.service: maildev
     spec:
       containers:
         - args:
