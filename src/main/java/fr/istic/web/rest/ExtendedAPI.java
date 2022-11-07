@@ -48,6 +48,9 @@ import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -618,13 +621,28 @@ public class ExtendedAPI {
     @Path("/getCache/{fileName}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getFile(@PathParam("fileName") String fileName) {
-
         try {
-            File nf = cacheUploadService.getFile(fileName);
-            ResponseBuilder response = Response.ok((Object) nf, MediaType.APPLICATION_OCTET_STREAM);
-            response.header("Content-Disposition", "attachment;filename=" + nf);
-            return response.build();
+        return Response.ok(
+            new StreamingOutput() {
+                @Override
+                public void write(OutputStream outputStream) throws IOException, WebApplicationException {
+                    InputStream source = null;
+                    try {
+                        source = cacheUploadService.getFile(fileName);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return;
+                    }
+                    byte[] buf = new byte[8192];
+                    int length;
+                    while ((length = source.read(buf)) != -1) {
+                        outputStream.write(buf, 0, length);
+                    }
+                }
+            }, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition","attachment;filename=" + fileName).build();
         } catch (Exception e) {
+
+            e.printStackTrace();
             return Response.noContent().build();
         }
     }

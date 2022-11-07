@@ -4,6 +4,7 @@ metadata:
   labels:
     fr.correctexam.service: back
   name: back
+  namespace: correctexam
 spec:
   replicas: 1
   selector:

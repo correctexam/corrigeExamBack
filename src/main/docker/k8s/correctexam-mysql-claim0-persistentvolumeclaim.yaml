@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mysqlinit-cfgmap
+  namespace: correctexam
 data:
   v1Sql: |
     -- phpMyAdmin SQL Dump

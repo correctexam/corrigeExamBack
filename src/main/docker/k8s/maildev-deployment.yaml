@@ -4,6 +4,7 @@ metadata:
   labels:
     fr.correctexam.service: maildev
   name: maildev
+  namespace: correctexam
 spec:
   replicas: 1
   selector:

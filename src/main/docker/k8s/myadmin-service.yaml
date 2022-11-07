@@ -4,6 +4,7 @@ metadata:
   labels:
     fr.correctexam.service: myadmin
   name: myadmin
+  namespace: correctexam
 spec:
   ports:
     - name: "80"

@@ -1,17 +1,23 @@
 package fr.istic.service;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.NullInputStream;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.core.MultivaluedMap;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,13 +33,38 @@ import com.google.gson.stream.JsonReader;
 public class CacheUploadService {
 
 
+
+
+    @ConfigProperty(name = "correctexam.uses3", defaultValue = "false")
+    boolean uses3;
+
+
     private final Logger log = LoggerFactory.getLogger(CacheUploadService.class);
 
     @ConfigProperty(name = "upload.directory")
     String UPLOAD_DIR;
 
+    @Inject
+    FichierS3Service fichierS3Service;
+
+    protected InputStream getObject(String name) throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException {
+            if (this.fichierS3Service.isObjectExist(name)){
+                var in =  fichierS3Service.getObject(name);
+                return in;
+            }
+            else {
+                return NullInputStream.nullInputStream();
+            }
+    }
+
+    protected void putObject(String name, byte[] bytes, String contenttype) throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException {
+            this.fichierS3Service.putObject(name, bytes, contenttype);
+    }
+
+
     public void uploadFile(MultipartFormDataInput input) {
         Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
+
         List<String> fileNames = new ArrayList<>();
         List<InputPart> inputParts = uploadForm.get("file");
         String fileName = null;
@@ -43,15 +74,17 @@ public class CacheUploadService {
                                                 inputPart.getHeaders();
                 fileName = getFileName(header);
                 fileNames.add(fileName);
-         InputStream inputStream = inputPart.getBody(InputStream.class, null);
-                writeFile(inputStream,fileName);
+
+                InputStream inputStream = inputPart.getBody(InputStream.class, null);
+
+                writeFile(inputStream,fileName,"application/json");
                  } catch (Exception e) {
-                e.printStackTrace();
-            }
+                    e.printStackTrace();
+                }
         }
     }
 
-    public void deleteFile(long id) {
+    protected void deleteFile(long id) {
         String fileName = id + "indexdb.json";
         File customDir = new File(UPLOAD_DIR);
         if (!customDir.exists()) {
@@ -66,24 +99,36 @@ public class CacheUploadService {
     }
 
 
-    private void writeFile(InputStream inputStream,String fileName)
+    protected void writeFile(InputStream inputStream,String fileName, String contenttype)
             throws IOException {
         byte[] bytes = IOUtils.toByteArray(inputStream);
-        File customDir = new File(UPLOAD_DIR);
-        if (!customDir.exists()) {
-            customDir.mkdirs();
-        }
-        fileName = customDir.getAbsolutePath() +
-                File.separator + fileName;
-        if (Paths.get(fileName).toFile().exists()){
-            Paths.get(fileName).toFile().delete();
+        if (this.uses3){
+            fileName = "cache/" + fileName;
+            try {
+                this.putObject(fileName, bytes,contenttype);
+            } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
+                e.printStackTrace();
+            }
+        } else {
+
+            File customDir = new File(UPLOAD_DIR);
+            if (!customDir.exists()) {
+                customDir.mkdirs();
+            }
+            fileName = customDir.getAbsolutePath() +
+                    File.separator + fileName;
+            if (Paths.get(fileName).toFile().exists()){
+                Paths.get(fileName).toFile().delete();
+            }
+
+            Files.write(Paths.get(fileName), bytes,
+                    StandardOpenOption.CREATE_NEW);
+
         }
 
-        Files.write(Paths.get(fileName), bytes,
-                StandardOpenOption.CREATE_NEW);
     }
 
-    private String getFileName(MultivaluedMap<String, String> header) {
+    protected String getFileName(MultivaluedMap<String, String> header) {
         String[] contentDisposition = header.
                 getFirst("Content-Disposition").split(";");
         for (String filename : contentDisposition) {
@@ -96,30 +141,53 @@ public class CacheUploadService {
         return "";
     }
 
-    public File getFile(String fileName) throws Exception{
-        File customDir = new File(UPLOAD_DIR);
-        if (!customDir.exists()) {
-            customDir.mkdirs();
+    public InputStream getFile(String fileName) throws Exception{
+        if (this.uses3){
+            String fileName1 = "cache/" + fileName;
+            try {
+                return this.getObject(fileName1);
+            } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
+                e.printStackTrace();
+                return NullInputStream.nullInputStream();
+            }
+        } else {
+            File customDir = new File(UPLOAD_DIR);
+            if (!customDir.exists()) {
+                customDir.mkdirs();
+            }
+            fileName = customDir.getAbsolutePath() +
+                    File.separator + fileName;
+            if (!Paths.get(fileName).toFile().exists()){
+                log.error("pas de fichier " +  fileName);
+                        throw new Exception("No such file");
+            }
+            return  Files.newInputStream(Paths.get(fileName));
+
         }
-        fileName = customDir.getAbsolutePath() +
-                File.separator + fileName;
-        if (!Paths.get(fileName).toFile().exists()){
-            log.error("pas de fichier " +  fileName);
-                    throw new Exception("No such file");
-        }
-        return Paths.get(fileName).toFile();
+
     }
 
     public String getAlignPage(long id, int pagefileter, boolean nonalign) throws IOException {
+        InputStream inputStream = null;
+        if (this.uses3){
+            String fileName = "cache/" + id + "indexdb.json";
+            try {
+                inputStream = this.getObject(fileName);
+            } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
+                e.printStackTrace();
+                return "";
+            }
+        }else {
+            String fileName = id + "indexdb.json";
+            File customDir = new File(UPLOAD_DIR);
+            fileName = customDir.getAbsolutePath() +
+                    File.separator + fileName;
+            if (Paths.get(fileName).toFile().exists()){
 
-        String fileName = id + "indexdb.json";
-        File customDir = new File(UPLOAD_DIR);
-        fileName = customDir.getAbsolutePath() +
-                File.separator + fileName;
-        if (Paths.get(fileName).toFile().exists()){
+            inputStream = Files.newInputStream(Paths.get(fileName));
 
-        InputStream inputStream = Files.newInputStream(Paths.get(fileName));
-
+             }
+        }
 
         JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
        reader.beginObject();
@@ -217,9 +285,9 @@ public class CacheUploadService {
        reader.close();
        inputStream.close();
 
-    }
+
        return null;
 
 
-}
+    }
 }
