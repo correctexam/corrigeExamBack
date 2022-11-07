@@ -37,8 +37,6 @@ public class FichierS3Service {
     @ConfigProperty(name = "correctexam.bucketname")
     String bucketName;
 
-    @ConfigProperty(name = "correctexam.uses3", defaultValue = "false")
-    boolean uses3;
 
     private final Logger log = LoggerFactory.getLogger(FichierS3Service.class);
 
