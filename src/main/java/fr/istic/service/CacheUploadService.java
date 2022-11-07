@@ -49,7 +49,8 @@ public class CacheUploadService {
 
     protected InputStream getObject(String name) throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException {
             if (this.fichierS3Service.isObjectExist(name)){
-                return  fichierS3Service.getObject(name);
+                var in =  fichierS3Service.getObject(name);
+                return in;
             }
             else {
                 return NullInputStream.nullInputStream();
@@ -185,8 +186,8 @@ public class CacheUploadService {
 
             inputStream = Files.newInputStream(Paths.get(fileName));
 
+             }
         }
-
 
         JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
        reader.beginObject();
@@ -284,9 +285,9 @@ public class CacheUploadService {
        reader.close();
        inputStream.close();
 
-    }
+
        return null;
 
 
-}
+    }
 }
