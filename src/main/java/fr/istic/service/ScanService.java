@@ -6,7 +6,14 @@ import fr.istic.service.dto.ScanDTO;
 import fr.istic.service.dto.ScanDTOContent;
 import fr.istic.service.mapper.ScanContentMapper;
 import fr.istic.service.mapper.ScanMapper;
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
+import io.minio.errors.ErrorResponseException;
+import io.minio.errors.InsufficientDataException;
+import io.minio.errors.InternalException;
+import io.minio.errors.InvalidResponseException;
+import io.minio.errors.ServerException;
+import io.minio.errors.XmlParserException;
+
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +21,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
-import java.util.List;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -29,31 +38,43 @@ public class ScanService {
     @Inject
     ScanContentMapper scanContentMapper;
 
+    @Inject
+    FichierS3Service fichierS3Service;
 
     @Transactional
     public ScanDTOContent persistOrUpdate(ScanDTOContent scanDTO) {
         log.debug("Request to save Scan : {}", scanDTO.id);
-        log.error("content length " + scanDTO.content.length );
         var scan = scanContentMapper.toEntity(scanDTO);
-        if (scanDTO.name.endsWith("indexdb.json")){
-            PanacheQuery<Scan> q = Scan.findByName(scanDTO.name);
-            long number = q.count();
-            if (number > 0){
-                Scan s = q.firstResult();
-                s.content = scan.content;
-                log.error("content length " + scan.content.length );
-                scan = Scan.persistOrUpdate(s);
-                return scanContentMapper.toDto(s);
-            } else {
-                scan = Scan.persistOrUpdate(scan);
-                return scanContentMapper.toDto(scan);
-            }
-
-        } else {
-            scan = Scan.persistOrUpdate(scan);
-            return scanContentMapper.toDto(scan);
-
+        /*
+         * if (scanDTO.name.endsWith("indexdb.json")){
+         * PanacheQuery<Scan> q = Scan.findByName(scanDTO.name);
+         * long number = q.count();
+         * if (number > 0){
+         * Scan s = q.firstResult();
+         * s.content = scan.content;
+         * log.error("content length " + scan.content.length );
+         * scan = Scan.persistOrUpdate(s);
+         * return scanContentMapper.toDto(s);
+         * } else {
+         * scan = Scan.persistOrUpdate(scan);
+         * return scanContentMapper.toDto(scan);
+         * }
+         *
+         * } else {
+         */
+        byte[] bytes = scanDTO.content;
+        scan.content = null;
+        scan = Scan.persistOrUpdate(scan);
+        try {
+            fichierS3Service.putObject("scan/" + scan.id + ".pdf", bytes, scanDTO.contentContentType);
+        } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
+            e.printStackTrace();
         }
+        ScanDTOContent dto = scanContentMapper.toDto(scan);
+        dto.content = bytes;
+        return dto;
+
+        // }
 
     }
 
@@ -65,7 +86,16 @@ public class ScanService {
     @Transactional
     public void delete(Long id) {
         log.debug("Request to delete Scan : {}", id);
-        Scan.findByIdOptional(id).ifPresent(scan -> {
+        Optional<Scan> scanop =Scan.findByIdOptional(id);
+        scanop.ifPresent(scan -> {
+            if (this.fichierS3Service.isObjectExist("scan/" + scan.id + ".pdf")) {
+                try {
+                    this.fichierS3Service.deleteObject("scan/" + scan.id + ".pdf");
+                } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException | ErrorResponseException | InsufficientDataException | InternalException | InvalidResponseException | ServerException | XmlParserException e) {
+                    e.printStackTrace();
+                }
+            }
+
             scan.delete();
         });
     }
@@ -78,32 +108,77 @@ public class ScanService {
      */
     public Optional<ScanDTOContent> findOne(Long id) {
         log.debug("Request to get Scan : {}", id);
-        return Scan.findByIdOptional(id)
-            .map(scan -> scanContentMapper.toDto((Scan) scan));
+        Optional<Scan> scanop = Scan.findByIdOptional(id);
+        if (scanop.isPresent()) {
+            Scan scan = scanop.get();
+            if (this.fichierS3Service.isObjectExist("scan/" + scan.id + ".pdf")) {
+                byte[] bytes;
+                try {
+                    bytes = IOUtils.toByteArray(this.fichierS3Service.getObject("scan/" + scan.id + ".pdf"));
+                    scan.content = bytes;
+
+                } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                byte[] bytes = scan.content;
+                try {
+                    fichierS3Service.putObject("scan/" + scan.id + ".pdf", bytes, scan.contentContentType);
+                } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
+        return scanop
+                .map(scan -> scanContentMapper.toDto((Scan) scan));
     }
 
     /**
      * Get all the scans.
+     *
      * @param page the pagination information.
      * @return the list of entities.
      */
     public Paged<ScanDTO> findAll(Page page) {
         log.debug("Request to get all Scans");
         return new Paged<>(Scan.findAll().page(page))
-            .map(scan -> scanMapper.toDto((Scan) scan));
+                .map(scan -> scanMapper.toDto((Scan) scan));
     }
 
-
-        /**
+    /**
      * Get all the scans by Name.
+     *
      * @param page the pagination information.
      * @return the list of entities.
      */
     public Paged<ScanDTOContent> findbyName(String name, Page page) {
         log.debug("Request to get all Scans by name");
-        return new Paged<>(Scan.findByName(name).page(page))
-            .map(scan -> scanContentMapper.toDto((Scan) scan));
-    }
+        Paged<Scan> scans = new Paged<>(Scan.findByName(name).page(page));
+        for (Scan scan : scans.content) {
 
+            if (this.fichierS3Service.isObjectExist("scan/" + scan.id + ".pdf")) {
+                byte[] bytes;
+                try {
+                    bytes = IOUtils.toByteArray(this.fichierS3Service.getObject("scan/" + scan.id + ".pdf"));
+                    scan.content = bytes;
+
+                } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                byte[] bytes = scan.content;
+                try {
+                    fichierS3Service.putObject("scan/" + scan.id + ".pdf", bytes, scan.contentContentType);
+                } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }
+        scans.map(scan -> scanContentMapper.toDto((Scan) scan));
+        return new Paged<>(Scan.findByName(name).page(page))
+                .map(scan -> scanContentMapper.toDto((Scan) scan));
+    }
 
 }

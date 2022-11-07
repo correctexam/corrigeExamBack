@@ -70,6 +70,11 @@
     </dependencyManagement>
 
     <dependencies>
+    <dependency>
+        <groupId>io.quarkiverse.minio</groupId>
+        <artifactId>quarkus-minio</artifactId>
+        <version>2.9.2</version>
+    </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-undertow</artifactId>
