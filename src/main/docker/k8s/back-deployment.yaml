@@ -33,6 +33,12 @@ spec:
             - -Dquarkus.mailer.port=1025
             - -Dquarkus.mailer.ssl=false
             - -Djhipster.mail.base-url=http://localhost:9000
+            - -Dquarkus.minio.allow-empty=false
+            - -Dcorrectexam.bucketname=correctexam
+            - -Dcorrectexam.uses3=true
+            - -Dquarkus.minio.url=http://minio:9000
+            - -Dquarkus.minio.access-key=minioadmin
+            - -Dquarkus.minio.secret-key=minioadmin
           env:
             - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
               value: "true"
