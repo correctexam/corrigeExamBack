@@ -98,5 +98,5 @@ microk8s kubectl delete ingress -n correctexam correctexam
 microk8s kubectl delete configmaps -n correctexam  mysqlinit-cfgmap
 microk8s kubectl delete pod -n correctexam minio 
 microk8s kubectl delete service -n correctexam minio 
-microk8s kubectl delete namespace -n correctexam
+microk8s kubectl delete namespace  correctexam
 ```
