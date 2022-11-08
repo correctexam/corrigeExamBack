@@ -95,7 +95,6 @@ public class TemplateService {
 
                 }
             }
-
             template.delete();
         });
 
