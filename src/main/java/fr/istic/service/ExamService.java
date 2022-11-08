@@ -48,7 +48,6 @@ public class ExamService {
     @Inject
     QuestionService questionService;
 
-
     @Transactional
     public ExamDTO persistOrUpdate(ExamDTO examDTO) {
         log.debug("Request to save Exam : {}", examDTO);
@@ -71,28 +70,30 @@ public class ExamService {
             StudentResponse.getAll4ExamId(id).list().forEach(sr -> sr.delete());
             FinalResult.getAll4ExamId(id).list().forEach(f -> f.delete());
             Exam e = Exam.findById(id);
-            try {
-                this.fichierS3Service.deleteObject("/scan/"+e.scanfile.id+".pdf");
-            } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
-                    | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
-                    | IllegalArgumentException | IOException e1) {
-                e1.printStackTrace();
+            if (this.fichierS3Service.isObjectExist("scan/" + e.scanfile.id + ".pdf")) {
+                try {
+                    this.fichierS3Service.deleteObject("scan/" + e.scanfile.id + ".pdf");
+                } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
+                        | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
+                        | IllegalArgumentException | IOException e1) {
+                    e1.printStackTrace();
+                }
             }
-            try {
-                this.fichierS3Service.deleteObject("/template/"+e.template.id+".pdf");
-            } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
-                    | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
-                    | IllegalArgumentException | IOException e1) {
-                e1.printStackTrace();
+            if (this.fichierS3Service.isObjectExist("template/" + e.template.id + ".pdf")) {
+                try {
+                    this.fichierS3Service.deleteObject("template/" + e.template.id + ".pdf");
+                } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
+                        | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
+                        | IllegalArgumentException | IOException e1) {
+                    e1.printStackTrace();
+                }
             }
             exam.delete();
-            Comments.deleteCommentByExamId(""+id);
+            Comments.deleteCommentByExamId("" + id);
 
             this.cacheService.deleteFile(id);
         });
     }
-
-
 
     /**
      * Get one exam by id.
@@ -103,30 +104,31 @@ public class ExamService {
     public Optional<ExamDTO> findOne(Long id) {
         log.debug("Request to get Exam : {}", id);
         return Exam.findByIdOptional(id)
-            .map(exam -> examMapper.toDto((Exam) exam));
+                .map(exam -> examMapper.toDto((Exam) exam));
     }
 
     /**
      * Get all the exams.
+     *
      * @param page the pagination information.
      * @return the list of entities.
      */
     public Paged<ExamDTO> findAll(Page page) {
         log.debug("Request to get all Exams");
         return new Paged<>(Exam.findAll().page(page))
-            .map(exam -> examMapper.toDto((Exam) exam));
+                .map(exam -> examMapper.toDto((Exam) exam));
     }
+
     public Paged<ExamDTO> findExambyCourseId(Page page, long courseId) {
         log.debug("Request to get all Exams");
         return new Paged<>(Exam.findExambyCourseId(courseId).page(page))
-            .map(exam -> examMapper.toDto((Exam) exam));
+                .map(exam -> examMapper.toDto((Exam) exam));
     }
+
     public Paged<ExamDTO> findExambyScanId(Page page, long scanId) {
         log.debug("Request to get all Exams by scanId");
         return new Paged<>(Exam.findExambyScanId(scanId).page(page))
-            .map(exam -> examMapper.toDto((Exam) exam));
+                .map(exam -> examMapper.toDto((Exam) exam));
     }
-
-
 
 }
