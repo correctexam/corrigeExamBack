@@ -44,6 +44,12 @@ public class QuestionService {
     public QuestionDTO cleanAllCorrectionAndComment(QuestionDTO questionDTO) {
         log.debug("Request to clean Question : {}", questionDTO);
         var question = questionMapper.toEntity(questionDTO);
+
+        return questionMapper.toDto(cleanAllCorrectionAndComment(question));
+    }
+
+
+    public Question cleanAllCorrectionAndComment(Question question) {
         List<GradedComment> gradeComment = new ArrayList<GradedComment>();
         List<TextComment> textComments = new ArrayList<TextComment>();
         gradeComment.addAll(GradedComment.findByQuestionId(question.id).list());
@@ -54,7 +60,7 @@ public class QuestionService {
 
         this.deleteComments(gradeCommentids, textCommentsids);
 
-        return questionMapper.toDto(question);
+        return question;
     }
 
     public void updateCorrectionAndAnswer(Question question, List<GradedComment> gradeComment,
