@@ -29,6 +29,13 @@ import java.io.InputStreamReader;
 
 import com.google.gson.stream.JsonReader;
 
+import io.minio.errors.ErrorResponseException;
+import io.minio.errors.InsufficientDataException;
+import io.minio.errors.InternalException;
+import io.minio.errors.InvalidResponseException;
+import io.minio.errors.ServerException;
+import io.minio.errors.XmlParserException;
+
 @Singleton
 public class CacheUploadService {
 
@@ -85,17 +92,29 @@ public class CacheUploadService {
     }
 
     protected void deleteFile(long id) {
-        String fileName = id + "indexdb.json";
-        File customDir = new File(UPLOAD_DIR);
-        if (!customDir.exists()) {
-            customDir.mkdirs();
-        }
-        fileName = customDir.getAbsolutePath() +
-                File.separator + fileName;
-        if (Paths.get(fileName).toFile().exists()){
-            Paths.get(fileName).toFile().delete();
-        }
 
+        String fileName = id + "indexdb.json";
+
+        if (this.fichierS3Service.isObjectExist("cache/" + fileName)){
+            try {
+                fichierS3Service.deleteObject("cache/" + fileName);
+            } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
+                    | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
+                    | IllegalArgumentException | IOException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            File customDir = new File(UPLOAD_DIR);
+            if (!customDir.exists()) {
+                customDir.mkdirs();
+            }
+            fileName = customDir.getAbsolutePath() +
+                    File.separator + fileName;
+            if (Paths.get(fileName).toFile().exists()){
+                Paths.get(fileName).toFile().delete();
+            }
+        }
     }
 
 

@@ -1,11 +1,20 @@
 package fr.istic.service;
 
+import io.minio.errors.ErrorResponseException;
+import io.minio.errors.InsufficientDataException;
+import io.minio.errors.InternalException;
+import io.minio.errors.InvalidResponseException;
+import io.minio.errors.ServerException;
+import io.minio.errors.XmlParserException;
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.Comments;
 import fr.istic.domain.Exam;
 import fr.istic.domain.ExamSheet;
 import fr.istic.domain.FinalResult;
+import fr.istic.domain.Question;
+import fr.istic.domain.Scan;
 import fr.istic.domain.StudentResponse;
+import fr.istic.domain.TextComment;
 import fr.istic.service.dto.ExamDTO;
 import fr.istic.service.mapper.ExamMapper;
 import org.slf4j.Logger;
@@ -15,6 +24,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -28,6 +41,13 @@ public class ExamService {
 
     @Inject
     CacheUploadService cacheService;
+
+    @Inject
+    FichierS3Service fichierS3Service;
+
+    @Inject
+    QuestionService questionService;
+
 
     @Transactional
     public ExamDTO persistOrUpdate(ExamDTO examDTO) {
@@ -50,6 +70,21 @@ public class ExamService {
             ExamSheet.getAll4ExamId(id).list().forEach(sr -> sr.cleanBeforDelete());
             StudentResponse.getAll4ExamId(id).list().forEach(sr -> sr.delete());
             FinalResult.getAll4ExamId(id).list().forEach(f -> f.delete());
+            Exam e = Exam.findById(id);
+            try {
+                this.fichierS3Service.deleteObject("/scan/"+e.scanfile.id+".pdf");
+            } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
+                    | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
+                    | IllegalArgumentException | IOException e1) {
+                e1.printStackTrace();
+            }
+            try {
+                this.fichierS3Service.deleteObject("/template/"+e.template.id+".pdf");
+            } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
+                    | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
+                    | IllegalArgumentException | IOException e1) {
+                e1.printStackTrace();
+            }
             exam.delete();
             Comments.deleteCommentByExamId(""+id);
 
