@@ -28,7 +28,23 @@ public class StudentResponseService {
     public StudentResponseDTO persistOrUpdate(StudentResponseDTO studentResponseDTO) {
         log.debug("Request to save StudentResponse : {}", studentResponseDTO);
         var studentResponse = studentResponseMapper.toEntity(studentResponseDTO);
-        studentResponse = StudentResponse.persistOrUpdate(studentResponse);
+        long l = StudentResponse.findStudentResponsesbysheetIdAndquestionId(studentResponseDTO.sheetId,studentResponseDTO.questionId ).count();
+        if (l>0) {
+            StudentResponse sr = StudentResponse.findStudentResponsesbysheetIdAndquestionId(studentResponseDTO.sheetId,studentResponseDTO.questionId ).firstResult();
+            sr.quarternote = studentResponse.quarternote;
+            sr.star = studentResponse.star;
+            sr.worststar = studentResponse.worststar;
+            sr.comments.addAll(studentResponse.comments);
+            sr.gradedcomments.addAll(studentResponse.gradedcomments);
+            sr.textcomments.addAll(studentResponse.textcomments);
+            studentResponse = StudentResponse.persistOrUpdate(sr);
+
+        } else{
+
+            studentResponse = StudentResponse.persistOrUpdate(studentResponse);
+
+        }
+
         return studentResponseMapper.toDto(studentResponse);
     }
 
