@@ -34,8 +34,11 @@ public class StudentResponseService {
             sr.quarternote = studentResponse.quarternote;
             sr.star = studentResponse.star;
             sr.worststar = studentResponse.worststar;
+            sr.comments.clear();
             sr.comments.addAll(studentResponse.comments);
+            sr.gradedcomments.clear();
             sr.gradedcomments.addAll(studentResponse.gradedcomments);
+            sr.textcomments.clear();
             sr.textcomments.addAll(studentResponse.textcomments);
             studentResponse = StudentResponse.persistOrUpdate(sr);
 
