@@ -157,9 +157,11 @@ public class ScanService {
     public Optional<ScanDTOContent> findOne(Long id) {
         log.debug("Request to get Scan : {}", id);
         Optional<Scan> scanop = Scan.findByIdOptional(id);
+        Optional<ScanDTOContent> dto = scanop
+                .map(scan -> scanContentMapper.toDto((Scan) scan));
         if (this.uses3) {
-            if (scanop.isPresent()) {
-                Scan scan = scanop.get();
+            if (dto.isPresent()) {
+                ScanDTOContent scan = dto.get();
 
                 if (this.fichierS3Service.isObjectExist("scan/" + scan.id + ".pdf")) {
                     byte[] bytes;
@@ -182,8 +184,7 @@ public class ScanService {
                 }
             }
         }
-        return scanop
-                .map(scan -> scanContentMapper.toDto((Scan) scan));
+        return dto;
     }
 
     /**
@@ -207,9 +208,11 @@ public class ScanService {
     public Paged<ScanDTOContent> findbyName(String name, Page page) {
         log.debug("Request to get all Scans by name");
         Paged<Scan> scans = new Paged<>(Scan.findByName(name).page(page));
+        Paged<ScanDTOContent> dtos = scans.map(scan -> scanContentMapper.toDto((Scan) scan));
+
         if (this.uses3) {
 
-            for (Scan scan : scans.content) {
+            for (ScanDTOContent scan : dtos.content) {
 
                 if (this.fichierS3Service.isObjectExist("scan/" + scan.id + ".pdf")) {
                     byte[] bytes;
@@ -233,7 +236,7 @@ public class ScanService {
                 }
             }
         }
-        return scans.map(scan -> scanContentMapper.toDto((Scan) scan));
+        return dtos;
     }
 
     public void uploadFile(MultipartFormDataInput input, long examId) {
