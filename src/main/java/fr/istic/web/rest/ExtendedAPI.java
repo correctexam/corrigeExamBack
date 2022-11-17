@@ -17,8 +17,10 @@ import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.CacheUploadService;
 import fr.istic.service.CourseGroupService;
 import fr.istic.service.CourseService;
+import fr.istic.service.FichierS3Service;
 import fr.istic.service.MailService;
 import fr.istic.service.QuestionService;
+import fr.istic.service.ScanService;
 import fr.istic.service.SecurityService;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -100,6 +102,9 @@ public class ExtendedAPI {
     @Inject
     QuestionService questionService;
 
+
+    @Inject
+    ScanService scanService;
     private final class ComparatorImplementation implements Comparator<StudentResponse> {
 
         @Override
@@ -575,6 +580,21 @@ public class ExtendedAPI {
     public Response fileUpload(@MultipartForm MultipartFormDataInput input) {
         try {
             cacheUploadService.uploadFile(input);
+        } catch (Exception e) {
+            return Response.serverError().build();
+
+        }
+        return Response.ok().build();
+    }
+
+    @POST
+    @Path("/uploadScan/{scanId}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response scanUpload(@MultipartForm MultipartFormDataInput input, @PathParam("scanId") long scanId) {
+        try {
+            scanService.uploadFile(input,scanId);
         } catch (Exception e) {
             return Response.serverError().build();
 
