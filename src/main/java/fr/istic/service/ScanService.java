@@ -15,6 +15,7 @@ import io.minio.errors.XmlParserException;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +28,34 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
+
+import org.apache.commons.io.input.NullInputStream;
+import org.jboss.resteasy.plugins.providers.multipart.InputPart;
+
+import javax.inject.Singleton;
+import javax.ws.rs.core.MultivaluedMap;
+
+import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+
+
+import java.io.InputStreamReader;
+
+import com.google.gson.stream.JsonReader;
+
+import io.minio.errors.ErrorResponseException;
+import io.minio.errors.InsufficientDataException;
+import io.minio.errors.InternalException;
+import io.minio.errors.InvalidResponseException;
+import io.minio.errors.ServerException;
+import io.minio.errors.XmlParserException;
 @ApplicationScoped
 @Transactional
 public class ScanService {
@@ -67,20 +96,23 @@ public class ScanService {
              *
              * } else {
              */
-            byte[] bytes = scanDTO.content;
+            // byte[] bytes = scanDTO.content;
             scan.content = null;
             scan = Scan.persistOrUpdate(scan);
-            try {
+            /*try {
+
                 fichierS3Service.putObject("scan/" + scan.id + ".pdf", bytes, scanDTO.contentContentType);
             } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
                 e.printStackTrace();
-            }
+            }*/
             ScanDTOContent dto = scanContentMapper.toDto(scan);
-            dto.content = bytes;
+            dto.content = null;
             return dto;
         } else {
+            scan.content = null;
             scan = Scan.persistOrUpdate(scan);
             ScanDTOContent dto = scanContentMapper.toDto(scan);
+            dto.content = null;
             return dto;
 
         }
@@ -203,5 +235,75 @@ public class ScanService {
         }
         return scans.map(scan -> scanContentMapper.toDto((Scan) scan));
     }
+
+    public void uploadFile(MultipartFormDataInput input, long examId) {
+        Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
+
+        List<String> fileNames = new ArrayList<>();
+        List<InputPart> inputParts = uploadForm.get("file");
+        String fileName = null;
+        for (InputPart inputPart : inputParts) {
+            try {
+                MultivaluedMap<String, String> header =
+                                                inputPart.getHeaders();
+                fileName = getFileName(header);
+                fileNames.add(fileName);
+
+                InputStream inputStream = inputPart.getBody(InputStream.class, null);
+
+                writeFile(inputStream,"application/pdf", examId);
+                 } catch (Exception e) {
+                    e.printStackTrace();
+                }
+        }
+    }
+
+
+    protected String getFileName(MultivaluedMap<String, String> header) {
+        String[] contentDisposition = header.
+                getFirst("Content-Disposition").split(";");
+        for (String filename : contentDisposition) {
+            if ((filename.trim().startsWith("filename"))) {
+                String[] name = filename.split("=");
+                String finalFileName = name[1].trim().replaceAll("\"", "");
+                return finalFileName;
+            }
+        }
+        return "";
+    }
+
+
+    protected void writeFile(InputStream inputStream, String contenttype, long scanId)
+            throws IOException {
+        byte[] bytes = IOUtils.toByteArray(inputStream);
+
+        Base64.Decoder encoder = Base64.getDecoder();
+        byte[] b64bytes  = encoder.decode(bytes);
+
+        if (this.uses3){
+            String fileName = "scan/" +  + scanId + ".pdf";
+            try {
+                this.putObject(fileName, b64bytes,contenttype);
+            } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
+                e.printStackTrace();
+            }
+        } else {
+               this.updateContent(scanId, b64bytes);
+
+        }
+    }
+
+    @Transactional
+    protected void updateContent(long scanId, byte[] b64bytes){
+        Scan s  = Scan.findById(scanId);
+        s.content = b64bytes;
+        s.persistOrUpdate();
+    }
+
+
+    protected void putObject(String name, byte[] bytes, String contenttype) throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException {
+        this.fichierS3Service.putObject(name, bytes, contenttype);
+}
+
 
 }
