@@ -4,7 +4,6 @@ import io.quarkus.panache.common.Page;
 import fr.istic.domain.QuestionType;
 import fr.istic.service.dto.QuestionTypeDTO;
 import fr.istic.service.mapper.QuestionTypeMapper;
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +11,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -54,7 +52,7 @@ public class QuestionTypeService {
     public Optional<QuestionTypeDTO> findOne(Long id) {
         log.debug("Request to get QuestionType : {}", id);
         return QuestionType.findByIdOptional(id)
-            .map(questionType -> questionTypeMapper.toDto((QuestionType) questionType)); 
+            .map(questionType -> questionTypeMapper.toDto((QuestionType) questionType));
     }
 
     /**

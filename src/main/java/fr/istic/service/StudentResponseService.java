@@ -5,7 +5,6 @@ import fr.istic.domain.StudentResponse;
 import fr.istic.service.customdto.StudentResponseNote;
 import fr.istic.service.dto.StudentResponseDTO;
 import fr.istic.service.mapper.StudentResponseMapper;
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

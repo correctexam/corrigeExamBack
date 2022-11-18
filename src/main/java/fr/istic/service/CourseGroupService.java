@@ -1,13 +1,9 @@
 package fr.istic.service;
 
 import io.quarkus.panache.common.Page;
-import fr.istic.domain.Course;
 import fr.istic.domain.CourseGroup;
-import fr.istic.service.customdto.ListUserModelShare;
 import fr.istic.service.dto.CourseGroupDTO;
-import fr.istic.service.dto.UserDTO;
 import fr.istic.service.mapper.CourseGroupMapper;
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +11,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped

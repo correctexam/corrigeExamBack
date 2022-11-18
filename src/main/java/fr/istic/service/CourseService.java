@@ -11,7 +11,6 @@ import fr.istic.service.customdto.ListUserModelShare;
 import fr.istic.service.customdto.UserModelShare;
 import fr.istic.service.dto.CourseDTO;
 import fr.istic.service.mapper.CourseMapper;
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

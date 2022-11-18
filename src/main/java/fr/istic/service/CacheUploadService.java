@@ -93,28 +93,56 @@ public class CacheUploadService {
 
     protected void deleteFile(long id) {
 
-        String fileName = id + "indexdb.json";
+        if (this.uses3){
+            //        String fileName = id + "indexdb.json";
+        String fileName = "cache/" + id + "indexdb.json";
+        try {
+            if (this.fichierS3Service.isObjectExist(fileName)){
+                fichierS3Service.deleteObject(fileName);
+            } else {
+                fileName = "cache/" + id + "_exam_template_indexdb.json";
+                if (this.fichierS3Service.isObjectExist(fileName)){
+                    fichierS3Service.deleteObject(fileName);
+                    long k =1;
+                    fileName = "cache/" + id + "_part_" + k + "_indexdb.json";
+                    while (this.fichierS3Service.isObjectExist(fileName)){
+                        fichierS3Service.deleteObject(fileName);
+                        k = k+1;
+                        fileName = "cache/" + id + "_part_" + k + "_indexdb.json";
+                        }
+                }
 
-        if (this.fichierS3Service.isObjectExist("cache/" + fileName)){
-            try {
-                fichierS3Service.deleteObject("cache/" + fileName);
-            } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
-                    | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
-                    | IllegalArgumentException | IOException e) {
-                e.printStackTrace();
             }
+        } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | ErrorResponseException | InsufficientDataException | InternalException | InvalidResponseException | ServerException | XmlParserException | IOException e) {
+            e.printStackTrace();
         }
-        else {
+        } else {
             File customDir = new File(UPLOAD_DIR);
             if (!customDir.exists()) {
                 customDir.mkdirs();
             }
+            String fileName = "cache/" + id + "indexdb.json";
+
             fileName = customDir.getAbsolutePath() +
                     File.separator + fileName;
             if (Paths.get(fileName).toFile().exists()){
                 Paths.get(fileName).toFile().delete();
+            } else {
+                long k =1;
+                fileName = customDir.getAbsolutePath() +
+                File.separator +"cache/" + id + "_part_" + k + "_indexdb.json";
+                while (Paths.get(fileName).toFile().exists()){
+                    Paths.get(fileName).toFile().delete();
+                    k = k+1;
+                    fileName = "cache/" + id + "_part_" + k + "_indexdb.json";
+                }
+
             }
+
         }
+
+
+
     }
 
 

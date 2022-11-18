@@ -11,10 +11,7 @@ import fr.istic.domain.Comments;
 import fr.istic.domain.Exam;
 import fr.istic.domain.ExamSheet;
 import fr.istic.domain.FinalResult;
-import fr.istic.domain.Question;
-import fr.istic.domain.Scan;
 import fr.istic.domain.StudentResponse;
-import fr.istic.domain.TextComment;
 import fr.istic.service.dto.ExamDTO;
 import fr.istic.service.mapper.ExamMapper;
 import org.slf4j.Logger;
@@ -27,7 +24,6 @@ import javax.transaction.Transactional;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -70,7 +66,7 @@ public class ExamService {
             StudentResponse.getAll4ExamId(id).list().forEach(sr -> sr.delete());
             FinalResult.getAll4ExamId(id).list().forEach(f -> f.delete());
             Exam e = Exam.findById(id);
-            if (this.fichierS3Service.isObjectExist("scan/" + e.scanfile.id + ".pdf")) {
+            if (e.scanfile != null && this.fichierS3Service.isObjectExist("scan/" + e.scanfile.id + ".pdf")) {
                 try {
                     this.fichierS3Service.deleteObject("scan/" + e.scanfile.id + ".pdf");
                 } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
@@ -79,7 +75,7 @@ public class ExamService {
                     e1.printStackTrace();
                 }
             }
-            if (this.fichierS3Service.isObjectExist("template/" + e.template.id + ".pdf")) {
+            if (e.template != null && this.fichierS3Service.isObjectExist("template/" + e.template.id + ".pdf")) {
                 try {
                     this.fichierS3Service.deleteObject("template/" + e.template.id + ".pdf");
                 } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
