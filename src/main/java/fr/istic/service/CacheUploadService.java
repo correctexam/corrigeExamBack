@@ -191,7 +191,15 @@ public class CacheUploadService {
         if (this.uses3){
             String fileName = "cache/" + id + "indexdb.json";
             try {
-                inputStream = this.getObject(fileName);
+                if (this.fichierS3Service.isObjectExist(fileName)){
+                    inputStream = this.getObject(fileName);
+                } else {
+                    int part = (pagefileter-1) / 50;
+                    fileName = "cache/" + id + "_part_" + (part +1) + "_indexdb.json";
+                    if (this.fichierS3Service.isObjectExist(fileName)){
+                        inputStream = this.getObject(fileName);
+                    }
+                }
             } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
                 e.printStackTrace();
                 return "";
@@ -203,9 +211,22 @@ public class CacheUploadService {
                     File.separator + fileName;
             if (Paths.get(fileName).toFile().exists()){
 
-            inputStream = Files.newInputStream(Paths.get(fileName));
+             inputStream = Files.newInputStream(Paths.get(fileName));
 
              }
+             else {
+                int part = (pagefileter-1) / 50;
+                fileName = "cache/" + id + "_part_" + (part +1) + "_indexdb.json";
+                fileName = customDir.getAbsolutePath() +
+                        File.separator + fileName;
+                if (Paths.get(fileName).toFile().exists()){
+
+                 inputStream = Files.newInputStream(Paths.get(fileName));
+
+                 }
+
+            }
+
         }
 
         JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
