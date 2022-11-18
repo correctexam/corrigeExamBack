@@ -29,33 +29,17 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 
-import org.apache.commons.io.input.NullInputStream;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 
-import javax.inject.Singleton;
 import javax.ws.rs.core.MultivaluedMap;
 
-import java.io.File;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
 
-import java.io.InputStreamReader;
-
-import com.google.gson.stream.JsonReader;
-
-import io.minio.errors.ErrorResponseException;
-import io.minio.errors.InsufficientDataException;
-import io.minio.errors.InternalException;
-import io.minio.errors.InvalidResponseException;
-import io.minio.errors.ServerException;
-import io.minio.errors.XmlParserException;
 @ApplicationScoped
 @Transactional
 public class ScanService {

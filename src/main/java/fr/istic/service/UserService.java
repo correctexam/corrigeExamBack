@@ -10,7 +10,6 @@ import fr.istic.service.dto.UserDTO;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.panache.common.Page;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;

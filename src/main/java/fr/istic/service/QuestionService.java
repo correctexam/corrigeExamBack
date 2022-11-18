@@ -7,14 +7,12 @@ import fr.istic.domain.StudentResponse;
 import fr.istic.domain.TextComment;
 import fr.istic.service.dto.QuestionDTO;
 import fr.istic.service.mapper.QuestionMapper;
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import javax.transaction.Transactional.TxType;
 
 import java.util.ArrayList;
 import java.util.HashSet;
