@@ -1,7 +1,7 @@
 version: '2'
 services:
   back:
-    image: barais/correctexam-back
+    image: barais/grade-scope-istic
     build:
       context: .
       dockerfile: Dockerfile.build.amd64
