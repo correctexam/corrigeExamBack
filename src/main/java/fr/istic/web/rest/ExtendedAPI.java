@@ -143,7 +143,7 @@ public class ExtendedAPI {
             for (StudentResponse resp : resps) {
                 if (resp.question.gradeType == GradeType.DIRECT && !"QCM".equals(resp.question.type.algoName)) {
                     if (resp.question.step > 0) {
-                        finalnote = finalnote + ((resp.quarternote /4) * 100 / resp.question.step);
+                        finalnote = finalnote + ((resp.quarternote * 100 /4)  / resp.question.step);
                     }
                 } else if (resp.question.gradeType == GradeType.POSITIVE
                         && !"QCM".equals(resp.question.type.algoName)) {
@@ -204,6 +204,7 @@ public class ExtendedAPI {
                     int currentNote = 0;
                     for (var g : resp.gradedcomments) {
                         if (g.description.startsWith("correct")) {
+                            System.err.println("pass par la " + resp.question.quarterpoint);
                             currentNote = currentNote + resp.question.quarterpoint;
                         }
                     }
@@ -211,7 +212,7 @@ public class ExtendedAPI {
                         resp.quarternote = currentNote;
                         StudentResponse.update(resp);
                     }
-                    finalnote = finalnote + (currentNote /4 * 100);
+                    finalnote = finalnote + (currentNote * 100 /4 );
                 }
             }
             final var finalnote1 = finalnote;
@@ -326,7 +327,7 @@ public class ExtendedAPI {
                     } else {
                         res.getNotequestions().put(resp1.question.numero,
                                 df.format(
-                                        ((resp1.quarternote.doubleValue() /4) * 100.0 / resp1.question.step) / 100.0));
+                                        ((resp1.quarternote.doubleValue() * 100.0 /4 )  / resp1.question.step) / 100.0));
 
                     }
 
