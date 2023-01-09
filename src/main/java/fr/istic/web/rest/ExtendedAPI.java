@@ -33,7 +33,7 @@ import fr.istic.service.customdto.MailResultDTO;
 import fr.istic.service.customdto.StudentMassDTO;
 import fr.istic.service.customdto.StudentResultDTO;
 import fr.istic.service.customdto.WorstAndBestSolution;
-import fr.istic.service.customdto.correctexamstate.CorrectionExamStateDTO;
+import fr.istic.service.customdto.correctexamstate.MarkingExamStateDTO;
 import fr.istic.service.customdto.correctexamstate.QuestionStateDTO;
 import fr.istic.service.customdto.correctexamstate.SheetStateDTO;
 import fr.istic.service.dto.QuestionDTO;
@@ -760,7 +760,7 @@ public class ExtendedAPI {
             return Response.status(403, "Current user cannot access this ressource").build();
         }
 
-        final CorrectionExamStateDTO result = new CorrectionExamStateDTO();
+        final MarkingExamStateDTO result = new MarkingExamStateDTO();
         final Exam exam = Exam.findById(examId);
         final List<StudentResponse> stdResponses = StudentResponse.getAll4ExamId(examId).list();
         final List<Question> questionsExam = Question.findQuestionbyExamId(examId).list();
