@@ -17,7 +17,6 @@ import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.CacheUploadService;
 import fr.istic.service.CourseGroupService;
 import fr.istic.service.CourseService;
-import fr.istic.service.FichierS3Service;
 import fr.istic.service.MailService;
 import fr.istic.service.QuestionService;
 import fr.istic.service.ScanService;
@@ -47,8 +46,6 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import javax.ws.rs.core.Response.ResponseBuilder;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,7 +55,6 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -106,14 +102,6 @@ public class ExtendedAPI {
 
     @Inject
     ScanService scanService;
-
-    private final class ComparatorImplementation2 implements Comparator<StudentResponse> {
-
-        @Override
-        public int compare(StudentResponse arg0, StudentResponse arg1) {
-            return arg0.question.numero - arg1.question.numero;
-        }
-    }
 
     private static class AccountResourceException extends RuntimeException {
 
