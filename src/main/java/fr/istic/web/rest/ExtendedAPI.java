@@ -64,6 +64,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
+
 /**
  * REST controller for managing {@link fr.istic.domain.Comments}.
  */
@@ -103,6 +104,20 @@ public class ExtendedAPI {
     @Inject
     ScanService scanService;
 
+    private final class ComparatorImplementation implements Comparator<StudentResponse> {
+
+        @Override
+        public int compare(StudentResponse arg0, StudentResponse arg1) {
+            return arg0.sheet.pagemin - arg1.sheet.pagemin;
+        }
+    }
+    private final class ComparatorImplementation2 implements Comparator<StudentResponse> {
+
+        @Override
+        public int compare(StudentResponse arg0, StudentResponse arg1) {
+            return arg0.question.numero - arg1.question.numero;
+        }
+    }
     private static class AccountResourceException extends RuntimeException {
 
         private AccountResourceException(String message) {
@@ -760,6 +775,7 @@ public class ExtendedAPI {
             return Response.status(403, "Current user cannot access this ressource").build();
         }
 
+
         final MarkingExamStateDTO result = new MarkingExamStateDTO();
         final Exam exam = Exam.findById(examId);
         final List<StudentResponse> stdResponses = StudentResponse.getAll4ExamId(examId).list();
@@ -769,11 +785,9 @@ public class ExtendedAPI {
 
         result.setNameExam(exam.name);
 
+
+
         // The ID of all the sheet. Used to find the first sheet that has a given question not answered yet
-        final Set<Long> sheetsIDs = exam.scanfile.sheets
-            .stream()
-            .map(sheet -> sheet.id)
-            .collect(Collectors.toSet());
 
         // Filling the questions part of the DTO
         result.setQuestions(questionsExam
@@ -783,28 +797,38 @@ public class ExtendedAPI {
                 // The responses for this question
                 final List<StudentResponse> responsesForQ = byQuestion.computeIfAbsent(q.id, i -> new ArrayList<>());
                 // Getting the ID of the sheets that have an answer for this question
-                final Set<Long> answeredSheetIDs = responsesForQ
-                    .stream()
-                    .map(resp -> resp.sheet.id)
-                    .collect(Collectors.toSet());
+                responsesForQ.sort(new ComparatorImplementation());
+                qs.setFirstUnmarkedSheet(Long.valueOf(0));
+                if (responsesForQ.size()>0 && responsesForQ.get(0).sheet.pagemin == 0) {
+                    if (responsesForQ.size() == 1){
 
-                // Finding the first unmarked sheet for this question
-                final long firstUnmarkedSheet = sheetsIDs
-                    .stream()
-                    .filter(id -> !answeredSheetIDs.contains(id))
-                    .min(Comparator.naturalOrder()).orElse(1L);
-
+                        qs.setFirstUnmarkedSheet(Long.valueOf(responsesForQ.get(0).sheet.pagemax +1));
+                    }
+                    for ( int i = 0;i< responsesForQ.size()-1; i++) {
+                        StudentResponse sl1 = responsesForQ.get(i);
+                        StudentResponse sl2 = responsesForQ.get(i+1);
+                        qs.setFirstUnmarkedSheet(Long.valueOf(sl1.sheet.pagemax +1));
+                        if (sl1.sheet.pagemax + 1 < sl2.sheet.pagemin){
+                            break;
+                        } else if (i == responsesForQ.size()-2 ){
+                            qs.setFirstUnmarkedSheet(Long.valueOf(sl2.sheet.pagemax +1));
+                        }
+                    }
+                }
+                log.error(""+qs.getFirstUnmarkedSheet());
                 qs.setId(q.id);
                 qs.setNumero(q.numero);
                 qs.setAnsweredSheets(responsesForQ.size());
-                qs.setFirstUnmarkedSheet(firstUnmarkedSheet);
-
                 return qs;
             })
             .collect(Collectors.toList())
         );
 
+
         // Filling the sheet part of the DTO
+
+
+
         final Map<Set<Long>, List<StudentResponse>> byStudent = stdResponses
             .stream()
             .collect(Collectors.groupingBy(resp -> Set.copyOf(resp.getStudentId())));
@@ -844,6 +868,7 @@ public class ExtendedAPI {
             })
             .collect(Collectors.toList())
         );
+
 
         return Response.ok().entity(result).build();
     }
