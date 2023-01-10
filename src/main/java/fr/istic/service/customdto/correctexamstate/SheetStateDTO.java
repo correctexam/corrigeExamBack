@@ -5,6 +5,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class SheetStateDTO {
     private long id;
+    private long numero;
     private long answeredSheets;
     private long firstUnmarkedQuestion;
 
@@ -14,6 +15,14 @@ public class SheetStateDTO {
 
     public void setId(long value) {
         this.id = value;
+    }
+
+    public long getNumero() {
+        return numero;
+    }
+
+    public void setNumero(long value) {
+        this.numero = value;
     }
 
     public long getAnsweredSheets() {

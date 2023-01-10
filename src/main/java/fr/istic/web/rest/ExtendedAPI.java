@@ -795,6 +795,7 @@ public class ExtendedAPI {
                     .min(Comparator.naturalOrder()).orElse(1L);
 
                 qs.setId(q.id);
+                qs.setNumero(q.numero);
                 qs.setAnsweredSheets(responsesForQ.size());
                 qs.setFirstUnmarkedSheet(firstUnmarkedSheet);
 
