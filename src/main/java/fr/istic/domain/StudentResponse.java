@@ -54,6 +54,10 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     public List<Long> getStudentId(){
         return sheet.students.stream().map(s-> s.id).collect(Collectors.toList());
     }
+    @Transient
+    public Long getSheetId(){
+        return sheet.id;
+    }
 
 
     @ManyToOne

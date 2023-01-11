@@ -55,10 +55,12 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -786,27 +788,69 @@ public class ExtendedAPI {
         result.setNameExam(exam.name);
 
 
+        // Populate initial questions
+
+        // ExamSheetID
+        Map<Long,QuestionStateDTO>  q = new LinkedHashMap<>();
+        questionsExam.sort(new Comparator<Question>() {
+
+			@Override
+			public int compare(Question arg0, Question arg1) {
+                return arg0.numero - arg1.numero;			}
+
+        });
+
+        for (Question quest : questionsExam){
+            //if (!q.containsKey(quest.numero)){
+                final var res = new QuestionStateDTO();
+                res.setAnsweredSheets(0);
+                res.setFirstUnmarkedSheet(1);
+                res.setId(quest.id);
+                res.setNumero(quest.numero);
+
+                q.put(quest.id, res);
+         //       result.getQuestions().add(res);
+            // }
+        }
+
+
+        // Populate initial sheets
+
+        // ExamSheetID
+        Map<Long,SheetStateDTO>  s = new LinkedHashMap<>();
+        List<ExamSheet> sheets = exam.scanfile.sheets.stream().collect(Collectors.toList());
+        sheets.sort(new Comparator<ExamSheet>() {
+
+			@Override
+			public int compare(ExamSheet arg0, ExamSheet arg1) {
+                return arg0.pagemin - arg1.pagemin;			}
+
+        });
+
+        for (ExamSheet sh : sheets){
+            final var res = new SheetStateDTO();
+            res.setAnsweredSheets(0);
+            res.setFirstUnmarkedQuestion(1);
+            res.setId(sh.id);
+            s.put(sh.id, res);
+            result.getSheets().add(res);
+        }
+
+
+
 
         // The ID of all the sheet. Used to find the first sheet that has a given question not answered yet
 
         // Filling the questions part of the DTO
-        result.setQuestions(questionsExam
-            .stream()
-            .map(q -> {
-                final QuestionStateDTO qs = new QuestionStateDTO();
+        for (Question quest : questionsExam){
                 // The responses for this question
-                final List<StudentResponse> responsesForQ = byQuestion.computeIfAbsent(q.id, i -> new ArrayList<>());
-                log.error("size "+responsesForQ.size());
-                for (StudentResponse s :responsesForQ) {
-                    log.error(""+ s.quarternote + " "+ s.id + " "+ s.question.numero + " "+ s.question.id + " " + s.sheet.id);
-
-                }
+                final List<StudentResponse> responsesForQ = byQuestion.computeIfAbsent(quest.id, i -> new ArrayList<>());
                 // Getting the ID of the sheets that have an answer for this question
                 responsesForQ.sort(new ComparatorImplementation());
-                qs.setFirstUnmarkedSheet(Long.valueOf(0));
+                QuestionStateDTO qs = q.get(quest.id);
                 if (responsesForQ.size()>0 && responsesForQ.get(0).sheet.pagemin == 0) {
                     if (responsesForQ.size() == 1){
-                        qs.setFirstUnmarkedSheet(Long.valueOf(responsesForQ.get(0).sheet.pagemax +1));
+                            qs.setFirstUnmarkedSheet(Long.valueOf(responsesForQ.get(0).sheet.pagemax +1));
                     }
                     for ( int i = 0;i< responsesForQ.size()-1; i++) {
                         StudentResponse sl1 = responsesForQ.get(i);
@@ -819,19 +863,18 @@ public class ExtendedAPI {
                         }
                     }
                 }
-                qs.setId(q.id);
-                qs.setNumero(q.numero);
                 qs.setAnsweredSheets(responsesForQ.size());
-                return qs;
-            })
-            .collect(Collectors.toList())
-        );
+            }
 
+            List<QuestionStateDTO> toRemove = q.values().stream().filter(q2 -> {
+                return  q.values().stream().anyMatch(q1 ->  q1 != q2 && q1.getNumero() == q2.getNumero() && (q2.getAnsweredSheets() < q1.getAnsweredSheets() || (q2.getAnsweredSheets() <= q1.getAnsweredSheets() && q2.getId() > q1.getId())));
+             } ).collect(Collectors.toList());
 
-            List<QuestionStateDTO> toRemove = result.getQuestions().stream().filter(q -> {
-               return  result.getQuestions().stream().anyMatch(q1 ->  q1 != q && q1.getNumero() == q.getNumero() && (q.getAnsweredSheets() < q1.getAnsweredSheets() || (q.getAnsweredSheets() <= q1.getAnsweredSheets() && q.getId() > q1.getId())));
-            } ).collect(Collectors.toList());
-            result.getQuestions().removeAll(toRemove);
+             for (QuestionStateDTO tor: toRemove){
+                q.remove(tor.getId());
+             }
+             result.getQuestions().addAll(q.values());
+          /*   */
 
 
         // Filling the sheet part of the DTO
@@ -844,9 +887,9 @@ public class ExtendedAPI {
 
             stdResponses.sort(new ComparatorImplementation());
 
-            Map<List<Long>, List<StudentResponse>> byStudent =  stdResponses.stream()
-            .collect(Collectors.groupingBy(StudentResponse::getStudentId));
-            var students = new HashMap<Long, List<StudentResponse>>();
+            Map<Long, List<StudentResponse>> byStudent =  stdResponses.stream()
+            .collect(Collectors.groupingBy(StudentResponse::getSheetId));
+/*            var students = new HashMap<Long, List<StudentResponse>>();
             byStudent.entrySet().stream().forEach(e-> {
                 for (long id : e.getKey()){
                     List<StudentResponse> sts = students.getOrDefault(id, new ArrayList<StudentResponse>());
@@ -855,7 +898,7 @@ public class ExtendedAPI {
                         students.put(id,sts);
                     }
                 }
-            });
+            }); */
  /*           byStudent.values().stream().forEach(std -> {
                 std.sort(new ComparatorImplementation2());
 
@@ -867,12 +910,11 @@ public class ExtendedAPI {
 
         // The ID of all the questions. Used to find the first question that has a given sheet not answered yet
 
-        result.setSheets(students.keySet()
-            .stream()
-            .map(sid -> {
-                final var res = new SheetStateDTO();
+        for (Entry<Long, List<StudentResponse>> ent : byStudent.entrySet())
+             {
+                final var res = s.get(ent.getKey());
 
-                List<StudentResponse> l =  students.get(sid);
+                List<StudentResponse> l =  ent.getValue();
                 l.sort(new ComparatorImplementation2());
                 res.setAnsweredSheets(Long.valueOf(l.size()));
 
@@ -900,10 +942,7 @@ public class ExtendedAPI {
 
 
 
-                return res;
-            })
-            .collect(Collectors.toList())
-        );
+            }
 
 
         return Response.ok().entity(result).build();
