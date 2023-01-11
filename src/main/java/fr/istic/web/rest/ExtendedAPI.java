@@ -17,6 +17,7 @@ import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.CacheUploadService;
 import fr.istic.service.CourseGroupService;
 import fr.istic.service.CourseService;
+import fr.istic.service.FichierS3Service;
 import fr.istic.service.MailService;
 import fr.istic.service.QuestionService;
 import fr.istic.service.ScanService;
@@ -33,9 +34,9 @@ import fr.istic.service.customdto.MailResultDTO;
 import fr.istic.service.customdto.StudentMassDTO;
 import fr.istic.service.customdto.StudentResultDTO;
 import fr.istic.service.customdto.WorstAndBestSolution;
-import fr.istic.service.customdto.correctexamstate.MarkingExamStateDTO;
-import fr.istic.service.customdto.correctexamstate.QuestionStateDTO;
-import fr.istic.service.customdto.correctexamstate.SheetStateDTO;
+import fr.istic.service.customdto.correctexamstate.CorrectionExamState;
+import fr.istic.service.customdto.correctexamstate.QuestionState;
+import fr.istic.service.customdto.correctexamstate.StudentState;
 import fr.istic.service.dto.QuestionDTO;
 import fr.istic.web.util.HeaderUtil;
 
@@ -46,6 +47,8 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import javax.ws.rs.core.Response.ResponseBuilder;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,17 +58,13 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static javax.ws.rs.core.UriBuilder.fromPath;
-
 
 /**
  * REST controller for managing {@link fr.istic.domain.Comments}.
@@ -103,9 +102,9 @@ public class ExtendedAPI {
     @Inject
     QuestionService questionService;
 
+
     @Inject
     ScanService scanService;
-
     private final class ComparatorImplementation implements Comparator<StudentResponse> {
 
         @Override
@@ -120,6 +119,8 @@ public class ExtendedAPI {
             return arg0.question.numero - arg1.question.numero;
         }
     }
+
+
     private static class AccountResourceException extends RuntimeException {
 
         private AccountResourceException(String message) {
@@ -142,7 +143,7 @@ public class ExtendedAPI {
             for (StudentResponse resp : resps) {
                 if (resp.question.gradeType == GradeType.DIRECT && !"QCM".equals(resp.question.type.algoName)) {
                     if (resp.question.step > 0) {
-                        finalnote = finalnote + ((resp.quarternote * 100 / 4) / resp.question.step);
+                        finalnote = finalnote + ((resp.quarternote * 100 /4)  / resp.question.step);
                     }
                 } else if (resp.question.gradeType == GradeType.POSITIVE
                         && !"QCM".equals(resp.question.type.algoName)) {
@@ -154,14 +155,14 @@ public class ExtendedAPI {
                     }
                     ;
                     if (currentNote > (resp.question.quarterpoint) * resp.question.step) {
-                        currentNote = (resp.question.quarterpoint) * resp.question.step;
+                        currentNote = (resp.question.quarterpoint ) * resp.question.step;
                     }
                     if (currentNote != resp.quarternote) {
                         resp.quarternote = currentNote;
                         StudentResponse.update(resp);
                     }
                     if (resp.question.step > 0) {
-                        finalnote = finalnote + (currentNote * 100 / 4 / resp.question.step);
+                        finalnote = finalnote + (currentNote * 100 /4 / resp.question.step);
                     }
 
                 } else if (resp.question.gradeType == GradeType.NEGATIVE
@@ -181,7 +182,7 @@ public class ExtendedAPI {
                         StudentResponse.update(resp);
                     }
                     if (resp.question.step > 0) {
-                        finalnote = finalnote + (currentNote * 100 / 4 / resp.question.step);
+                        finalnote = finalnote + (currentNote * 100 /4 / resp.question.step);
                     }
 
                 } else if ("QCM".equals(resp.question.type.algoName) && resp.question.step > 0) {
@@ -196,7 +197,7 @@ public class ExtendedAPI {
                             resp.quarternote = currentNote;
                             StudentResponse.update(resp);
                         }
-                        finalnote = finalnote + (currentNote * 100 / 4 / resp.question.step);
+                        finalnote = finalnote + (currentNote * 100 /4 / resp.question.step);
 
                     }
                 } else if ("QCM".equals(resp.question.type.algoName) && resp.question.step <= 0) {
@@ -211,7 +212,7 @@ public class ExtendedAPI {
                         resp.quarternote = currentNote;
                         StudentResponse.update(resp);
                     }
-                    finalnote = finalnote + (currentNote * 100 / 4);
+                    finalnote = finalnote + (currentNote * 100 /4 );
                 }
             }
             final var finalnote1 = finalnote;
@@ -272,7 +273,7 @@ public class ExtendedAPI {
                 body = body.replace("${lastname}", student.name);
                 final DecimalFormat df = new DecimalFormat("0.00");
                 body = body.replace("${note}", df.format(r.note / 100));
-                mailService.sendEmail(student.mail, body, dto.getSubject());
+                mailService.sendEmail(student.mail, body,dto.getSubject());
                 // TODO Send EMAIL
                 // mailService.sendEmailFromTemplate(user, template, subject)
 
@@ -321,12 +322,12 @@ public class ExtendedAPI {
                     if ("QCM".equals(resp1.question.type.algoName) && resp1.question.step < 0) {
                         res.getNotequestions().put(resp1.question.numero,
                                 df.format(
-                                        resp1.quarternote.doubleValue() / 4));
+                                        resp1.quarternote.doubleValue() /4));
 
                     } else {
                         res.getNotequestions().put(resp1.question.numero,
                                 df.format(
-                                        ((resp1.quarternote.doubleValue() * 100.0 / 4) / resp1.question.step) / 100.0));
+                                        ((resp1.quarternote.doubleValue() * 100.0 /4 )  / resp1.question.step) / 100.0));
 
                     }
 
@@ -594,7 +595,7 @@ public class ExtendedAPI {
     @Produces(MediaType.TEXT_PLAIN)
     public Response scanUpload(@MultipartForm MultipartFormDataInput input, @PathParam("scanId") long scanId) {
         try {
-            scanService.uploadFile(input, scanId);
+            scanService.uploadFile(input,scanId);
         } catch (Exception e) {
             return Response.serverError().build();
 
@@ -619,6 +620,7 @@ public class ExtendedAPI {
         }
     }
 
+
     @GET
     @Path("/getCacheNonAlignPage/{examId}/{pageId}")
     @Produces(MediaType.TEXT_PLAIN)
@@ -641,25 +643,24 @@ public class ExtendedAPI {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getFile(@PathParam("fileName") String fileName) {
         try {
-            return Response.ok(
-                    new StreamingOutput() {
-                        @Override
-                        public void write(OutputStream outputStream) throws IOException, WebApplicationException {
-                            InputStream source = null;
-                            try {
-                                source = cacheUploadService.getFile(fileName);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                return;
-                            }
-                            byte[] buf = new byte[8192];
-                            int length;
-                            while ((length = source.read(buf)) != -1) {
-                                outputStream.write(buf, 0, length);
-                            }
-                        }
-                    }, MediaType.APPLICATION_OCTET_STREAM)
-                    .header("Content-Disposition", "attachment;filename=" + fileName).build();
+        return Response.ok(
+            new StreamingOutput() {
+                @Override
+                public void write(OutputStream outputStream) throws IOException, WebApplicationException {
+                    InputStream source = null;
+                    try {
+                        source = cacheUploadService.getFile(fileName);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return;
+                    }
+                    byte[] buf = new byte[8192];
+                    int length;
+                    while ((length = source.read(buf)) != -1) {
+                        outputStream.write(buf, 0, length);
+                    }
+                }
+            }, MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition","attachment;filename=" + fileName).build();
         } catch (Exception e) {
 
             e.printStackTrace();
@@ -729,31 +730,31 @@ public class ExtendedAPI {
         return response.build();
     }
 
+
     @DELETE
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Path("/deleteAllAnswerAndComment/{examId}")
     @Transactional
-    public Response deleteAllAnswerAndComment(@PathParam("examId") long examId, @Context UriInfo uriInfo,
-            @Context SecurityContext ctx) {
+    public Response deleteAllAnswerAndComment(@PathParam("examId") long examId, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
         Optional<Exam> ex = Exam.findByIdOptional(examId);
-        if (ex.isPresent()) {
-            List<Question> qs = Question.findQuestionbyExamId(examId).list();
+        if (ex.isPresent()){
+            List<Question> qs  =Question.findQuestionbyExamId(examId).list();
 
             for (Question question : qs) {
 
-                List<GradedComment> gradeComment = new ArrayList<GradedComment>();
-                List<TextComment> textComments = new ArrayList<TextComment>();
-                questionService.updateCorrectionAndAnswer(question, gradeComment, textComments);
-                List<Long> gradeCommentids = gradeComment.stream().map(gc -> gc.id).collect(Collectors.toList());
-                List<Long> textCommentsids = textComments.stream().map(gc -> gc.id).collect(Collectors.toList());
-                questionService.deleteComments(gradeCommentids, textCommentsids);
-                List<StudentResponse> srs = StudentResponse.findAllByQuestionId(question.id).list();
-                for (StudentResponse studentResponse : srs) {
-                    studentResponse.delete();
-                }
+            List<GradedComment> gradeComment = new ArrayList<GradedComment>();
+            List<TextComment> textComments = new ArrayList<TextComment>();
+            questionService.updateCorrectionAndAnswer(question, gradeComment, textComments);
+            List<Long> gradeCommentids = gradeComment.stream().map(gc -> gc.id).collect(Collectors.toList());
+            List<Long> textCommentsids = textComments.stream().map(gc -> gc.id).collect(Collectors.toList());
+            questionService.deleteComments(gradeCommentids, textCommentsids);
+            List<StudentResponse> srs =  StudentResponse.findAllByQuestionId(question.id).list();
+            for (StudentResponse studentResponse : srs){
+                studentResponse.delete();
+            }
             }
 
         }
@@ -763,188 +764,97 @@ public class ExtendedAPI {
         return response.build();
     }
 
-    /**
-     * Provides summary data of a given exam.
-     * @param examId The ID of the exam
-     */
+
     @GET
     @Path("/getExamStatus/{examId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getExamStatus(@PathParam("examId") final long examId, @Context final UriInfo uriInfo,
-            @Context final SecurityContext ctx) {
+    public Response getExamStatus(@PathParam("examId") long examId, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
 
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
-            return Response.status(403, "Current user cannot access this ressource").build();
+            return Response.status(403, "Current user cannot access to this ressource").build();
         }
 
-
-        final MarkingExamStateDTO result = new MarkingExamStateDTO();
-        final Exam exam = Exam.findById(examId);
-        final List<StudentResponse> stdResponses = StudentResponse.getAll4ExamId(examId).list();
-        final List<Question> questionsExam = Question.findQuestionbyExamId(examId).list();
-        final Map<Long, List<StudentResponse>> byQuestion = stdResponses.stream()
-                .collect(Collectors.groupingBy(StudentResponse::getQuestionId));
-
-        result.setNameExam(exam.name);
+        CorrectionExamState result = new CorrectionExamState();
+        List<StudentResponse> res =StudentResponse.getAll4ExamId(examId).list();
 
 
-        // Populate initial questions
+        Map<Long, List<StudentResponse>> byQestion =  res.stream()
+                   .collect(Collectors.groupingBy(StudentResponse::getQuestionId));
 
-        // ExamSheetID
-        Map<Long,QuestionStateDTO>  q = new LinkedHashMap<>();
-        questionsExam.sort(new Comparator<Question>() {
-
-			@Override
-			public int compare(Question arg0, Question arg1) {
-                return arg0.numero - arg1.numero;			}
-
-        });
-
-        for (Question quest : questionsExam){
-            //if (!q.containsKey(quest.numero)){
-                final var res = new QuestionStateDTO();
-                res.setAnsweredSheets(0);
-                res.setFirstUnmarkedSheet(1);
-                res.setId(quest.id);
-                res.setNumero(quest.numero);
-
-                q.put(quest.id, res);
-         //       result.getQuestions().add(res);
-            // }
-        }
-
-
-        // Populate initial sheets
-
-        // ExamSheetID
-        Map<Long,SheetStateDTO>  s = new LinkedHashMap<>();
-        List<ExamSheet> sheets = exam.scanfile.sheets.stream().collect(Collectors.toList());
-        sheets.sort(new Comparator<ExamSheet>() {
-
-			@Override
-			public int compare(ExamSheet arg0, ExamSheet arg1) {
-                return arg0.pagemin - arg1.pagemin;			}
-
-        });
-
-        for (ExamSheet sh : sheets){
-            final var res = new SheetStateDTO();
-            res.setAnsweredSheets(0);
-            res.setFirstUnmarkedQuestion(1);
-            res.setId(sh.id);
-            s.put(sh.id, res);
-            result.getSheets().add(res);
-        }
-
-
-
-
-        // The ID of all the sheet. Used to find the first sheet that has a given question not answered yet
-
-        // Filling the questions part of the DTO
-        for (Question quest : questionsExam){
-                // The responses for this question
-                final List<StudentResponse> responsesForQ = byQuestion.computeIfAbsent(quest.id, i -> new ArrayList<>());
-                // Getting the ID of the sheets that have an answer for this question
-                responsesForQ.sort(new ComparatorImplementation());
-                QuestionStateDTO qs = q.get(quest.id);
-                if (responsesForQ.size()>0 && responsesForQ.get(0).sheet.pagemin == 0) {
-                    if (responsesForQ.size() == 1){
-                            qs.setFirstUnmarkedSheet(Long.valueOf(responsesForQ.get(0).sheet.pagemax +1));
-                    }
-                    for ( int i = 0;i< responsesForQ.size()-1; i++) {
-                        StudentResponse sl1 = responsesForQ.get(i);
-                        StudentResponse sl2 = responsesForQ.get(i+1);
-                        qs.setFirstUnmarkedSheet(Long.valueOf(sl1.sheet.pagemax +1));
-                        if (sl1.sheet.pagemax + 1 < sl2.sheet.pagemin){
-                            break;
-                        } else if (i == responsesForQ.size()-2 ){
-                            qs.setFirstUnmarkedSheet(Long.valueOf(sl2.sheet.pagemax +1));
-                        }
+        for( long qid :byQestion.keySet() ) {
+            List<StudentResponse> l =  byQestion.get(qid);
+            QuestionState qs = new QuestionState();
+            qs.setID(qid);
+            qs.setAnsweredSheets(Long.valueOf(l.size()));
+            l.sort(new ComparatorImplementation());
+            qs.setFirstUnmarkedSheet(Long.valueOf(0));
+            if (l.size()>0 && l.get(0).sheet.pagemin > 0) {
+                if (l.size() == 1){
+                    qs.setFirstUnmarkedSheet(Long.valueOf(l.get(0).sheet.pagemax +1));
+                }
+                for ( int i = 0;i< l.size()-1; i++) {
+                    StudentResponse sl1 = l.get(i);
+                    StudentResponse sl2 = l.get(i+1);
+                    qs.setFirstUnmarkedSheet(Long.valueOf(sl1.sheet.pagemax +1));
+    //                log.error("debug " + sl1.sheet.pagemax + " "+ sl2.sheet.pagemin);
+                    if (sl1.sheet.pagemax + 1 < sl2.sheet.pagemin){
+                        break;
+                    } else if (i == l.size()-2 ){
+                        qs.setFirstUnmarkedSheet(Long.valueOf(sl2.sheet.pagemax +1));
                     }
                 }
-                qs.setAnsweredSheets(responsesForQ.size());
             }
 
-            List<QuestionStateDTO> toRemove = q.values().stream().filter(q2 -> {
-                return  q.values().stream().anyMatch(q1 ->  q1 != q2 && q1.getNumero() == q2.getNumero() && (q2.getAnsweredSheets() < q1.getAnsweredSheets() || (q2.getAnsweredSheets() <= q1.getAnsweredSheets() && q2.getId() > q1.getId())));
-             } ).collect(Collectors.toList());
+            result.getQuestions().add(qs);
+        }
 
-             for (QuestionStateDTO tor: toRemove){
-                q.remove(tor.getId());
-             }
-             result.getQuestions().addAll(q.values());
-          /*   */
+        Map<List<Long>, List<StudentResponse>> byStudent =  res.stream()
+                   .collect(Collectors.groupingBy(StudentResponse::getStudentId));
+        var students = new HashMap<Long, List<StudentResponse>>();
+        byStudent.entrySet().stream().forEach(e-> {
+            for (long id : e.getKey()){
+                List<StudentResponse> sts = students.getOrDefault(id, new ArrayList<StudentResponse>());
+                sts.addAll(e.getValue());
+                if (!students.containsKey(id)){
+                    students.put(id,sts);
+                }
+            }
+        });
 
+        for( long sid :students.keySet() ) {
+            List<StudentResponse> l =  students.get(sid);
+            l.sort(new ComparatorImplementation2());
+            StudentState ss = new StudentState();
+            ss.setID(sid);;
+            ss.setAnsweredSheets(Long.valueOf(l.size()));
+            if (l.size() ==0){
+                ss.setFirstUnmarkedQuestion(Long.valueOf(1));
 
-        // Filling the sheet part of the DTO
+            } else if (l.size() ==1 && l.get(0).question.numero ==1) {
+                ss.setFirstUnmarkedQuestion(Long.valueOf(2));
 
-
-
-/*        final Map<Set<Long>, List<StudentResponse>> byStudent = stdResponses
-            .stream()
-            .collect(Collectors.groupingBy(resp -> Set.copyOf(resp.getStudentId())));*/
-
-            stdResponses.sort(new ComparatorImplementation());
-
-            Map<Long, List<StudentResponse>> byStudent =  stdResponses.stream()
-            .collect(Collectors.groupingBy(StudentResponse::getSheetId));
-/*            var students = new HashMap<Long, List<StudentResponse>>();
-            byStudent.entrySet().stream().forEach(e-> {
-                for (long id : e.getKey()){
-                    List<StudentResponse> sts = students.getOrDefault(id, new ArrayList<StudentResponse>());
-                    sts.addAll(e.getValue());
-                    if (!students.containsKey(id)){
-                        students.put(id,sts);
+            } else if (l.size() >0 && l.get(0).question.numero !=1) {
+                ss.setFirstUnmarkedQuestion(Long.valueOf(1));
+            }
+            else {
+                for ( int i = 0;i< l.size()-1; i++) {
+                    StudentResponse sl1 = l.get(i);
+                    StudentResponse sl2 = l.get(i+1);
+                    if (sl1.question.numero + 1 < sl2.question.numero ){
+                        ss.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero +1));
+                        break;
+                    } else if (i == l.size()-2 ){
+                        ss.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero +2));
                     }
                 }
-            }); */
- /*           byStudent.values().stream().forEach(std -> {
-                std.sort(new ComparatorImplementation2());
-
-            });
-            byStudent.entrySet().stream().forEach(ent -> {
-                log.error("pass par la");
-                ent.getKey().stream().forEach(e-> log.error("" +e));
-            });  */
-
-        // The ID of all the questions. Used to find the first question that has a given sheet not answered yet
-
-        for (Entry<Long, List<StudentResponse>> ent : byStudent.entrySet())
-             {
-                final var res = s.get(ent.getKey());
-
-                List<StudentResponse> l =  ent.getValue();
-                l.sort(new ComparatorImplementation2());
-                res.setAnsweredSheets(Long.valueOf(l.size()));
-
-                if (l.size() ==0){
-                    res.setFirstUnmarkedQuestion(Long.valueOf(1));
-
-                } else if (l.size() ==1 && l.get(0).question.numero ==1) {
-                    res.setFirstUnmarkedQuestion(Long.valueOf(2));
-
-                } else if (l.size() >0 && l.get(0).question.numero !=1) {
-                    res.setFirstUnmarkedQuestion(Long.valueOf(1));
-                }
-                else {
-                    for ( int i = 0;i< l.size()-1; i++) {
-                        StudentResponse sl1 = l.get(i);
-                        StudentResponse sl2 = l.get(i+1);
-                        if (sl1.question.numero + 1 < sl2.question.numero ){
-                            res.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero +1));
-                            break;
-                        } else if (i == l.size()-2 ){
-                            res.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero +2));
-                        }
-                    }
-                }
-
-
-
             }
 
+            result.getStudents().add(ss);
+        }
 
-        return Response.ok().entity(result).build();
+
+        Response.ResponseBuilder response = Response.ok().entity(result);
+        return response.build();
     }
+
 }
