@@ -55,14 +55,17 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static javax.ws.rs.core.UriBuilder.fromPath;
+
 
 /**
  * REST controller for managing {@link fr.istic.domain.Comments}.
@@ -103,6 +106,20 @@ public class ExtendedAPI {
     @Inject
     ScanService scanService;
 
+    private final class ComparatorImplementation implements Comparator<StudentResponse> {
+
+        @Override
+        public int compare(StudentResponse arg0, StudentResponse arg1) {
+            return arg0.sheet.pagemin - arg1.sheet.pagemin;
+        }
+    }
+    private final class ComparatorImplementation2 implements Comparator<StudentResponse> {
+
+        @Override
+        public int compare(StudentResponse arg0, StudentResponse arg1) {
+            return arg0.question.numero - arg1.question.numero;
+        }
+    }
     private static class AccountResourceException extends RuntimeException {
 
         private AccountResourceException(String message) {
@@ -760,6 +777,7 @@ public class ExtendedAPI {
             return Response.status(403, "Current user cannot access this ressource").build();
         }
 
+
         final MarkingExamStateDTO result = new MarkingExamStateDTO();
         final Exam exam = Exam.findById(examId);
         final List<StudentResponse> stdResponses = StudentResponse.getAll4ExamId(examId).list();
@@ -769,81 +787,163 @@ public class ExtendedAPI {
 
         result.setNameExam(exam.name);
 
+
+        // Populate initial questions
+
+        // ExamSheetID
+        Map<Long,QuestionStateDTO>  q = new LinkedHashMap<>();
+        questionsExam.sort(new Comparator<Question>() {
+
+			@Override
+			public int compare(Question arg0, Question arg1) {
+                return arg0.numero - arg1.numero;			}
+
+        });
+
+        for (Question quest : questionsExam){
+            //if (!q.containsKey(quest.numero)){
+                final var res = new QuestionStateDTO();
+                res.setAnsweredSheets(0);
+                res.setFirstUnmarkedSheet(1);
+                res.setId(quest.id);
+                res.setNumero(quest.numero);
+
+                q.put(quest.id, res);
+         //       result.getQuestions().add(res);
+            // }
+        }
+
+
+        // Populate initial sheets
+
+        // ExamSheetID
+        Map<Long,SheetStateDTO>  s = new LinkedHashMap<>();
+        List<ExamSheet> sheets = exam.scanfile.sheets.stream().collect(Collectors.toList());
+        sheets.sort(new Comparator<ExamSheet>() {
+
+			@Override
+			public int compare(ExamSheet arg0, ExamSheet arg1) {
+                return arg0.pagemin - arg1.pagemin;			}
+
+        });
+
+        for (ExamSheet sh : sheets){
+            final var res = new SheetStateDTO();
+            res.setAnsweredSheets(0);
+            res.setFirstUnmarkedQuestion(1);
+            res.setId(sh.id);
+            s.put(sh.id, res);
+            result.getSheets().add(res);
+        }
+
+
+
+
         // The ID of all the sheet. Used to find the first sheet that has a given question not answered yet
-        final Set<Long> sheetsIDs = exam.scanfile.sheets
-            .stream()
-            .map(sheet -> sheet.id)
-            .collect(Collectors.toSet());
 
         // Filling the questions part of the DTO
-        result.setQuestions(questionsExam
-            .stream()
-            .map(q -> {
-                final QuestionStateDTO qs = new QuestionStateDTO();
+        for (Question quest : questionsExam){
                 // The responses for this question
-                final List<StudentResponse> responsesForQ = byQuestion.computeIfAbsent(q.id, i -> new ArrayList<>());
+                final List<StudentResponse> responsesForQ = byQuestion.computeIfAbsent(quest.id, i -> new ArrayList<>());
                 // Getting the ID of the sheets that have an answer for this question
-                final Set<Long> answeredSheetIDs = responsesForQ
-                    .stream()
-                    .map(resp -> resp.sheet.id)
-                    .collect(Collectors.toSet());
-
-                // Finding the first unmarked sheet for this question
-                final long firstUnmarkedSheet = sheetsIDs
-                    .stream()
-                    .filter(id -> !answeredSheetIDs.contains(id))
-                    .min(Comparator.naturalOrder()).orElse(1L);
-
-                qs.setId(q.id);
-                qs.setNumero(q.numero);
+                responsesForQ.sort(new ComparatorImplementation());
+                QuestionStateDTO qs = q.get(quest.id);
+                if (responsesForQ.size()>0 && responsesForQ.get(0).sheet.pagemin == 0) {
+                    if (responsesForQ.size() == 1){
+                            qs.setFirstUnmarkedSheet(Long.valueOf(responsesForQ.get(0).sheet.pagemax +1));
+                    }
+                    for ( int i = 0;i< responsesForQ.size()-1; i++) {
+                        StudentResponse sl1 = responsesForQ.get(i);
+                        StudentResponse sl2 = responsesForQ.get(i+1);
+                        qs.setFirstUnmarkedSheet(Long.valueOf(sl1.sheet.pagemax +1));
+                        if (sl1.sheet.pagemax + 1 < sl2.sheet.pagemin){
+                            break;
+                        } else if (i == responsesForQ.size()-2 ){
+                            qs.setFirstUnmarkedSheet(Long.valueOf(sl2.sheet.pagemax +1));
+                        }
+                    }
+                }
                 qs.setAnsweredSheets(responsesForQ.size());
-                qs.setFirstUnmarkedSheet(firstUnmarkedSheet);
+            }
 
-                return qs;
-            })
-            .collect(Collectors.toList())
-        );
+            List<QuestionStateDTO> toRemove = q.values().stream().filter(q2 -> {
+                return  q.values().stream().anyMatch(q1 ->  q1 != q2 && q1.getNumero() == q2.getNumero() && (q2.getAnsweredSheets() < q1.getAnsweredSheets() || (q2.getAnsweredSheets() <= q1.getAnsweredSheets() && q2.getId() > q1.getId())));
+             } ).collect(Collectors.toList());
+
+             for (QuestionStateDTO tor: toRemove){
+                q.remove(tor.getId());
+             }
+             result.getQuestions().addAll(q.values());
+          /*   */
+
 
         // Filling the sheet part of the DTO
-        final Map<Set<Long>, List<StudentResponse>> byStudent = stdResponses
+
+
+
+/*        final Map<Set<Long>, List<StudentResponse>> byStudent = stdResponses
             .stream()
-            .collect(Collectors.groupingBy(resp -> Set.copyOf(resp.getStudentId())));
+            .collect(Collectors.groupingBy(resp -> Set.copyOf(resp.getStudentId())));*/
+
+            stdResponses.sort(new ComparatorImplementation());
+
+            Map<Long, List<StudentResponse>> byStudent =  stdResponses.stream()
+            .collect(Collectors.groupingBy(StudentResponse::getSheetId));
+/*            var students = new HashMap<Long, List<StudentResponse>>();
+            byStudent.entrySet().stream().forEach(e-> {
+                for (long id : e.getKey()){
+                    List<StudentResponse> sts = students.getOrDefault(id, new ArrayList<StudentResponse>());
+                    sts.addAll(e.getValue());
+                    if (!students.containsKey(id)){
+                        students.put(id,sts);
+                    }
+                }
+            }); */
+ /*           byStudent.values().stream().forEach(std -> {
+                std.sort(new ComparatorImplementation2());
+
+            });
+            byStudent.entrySet().stream().forEach(ent -> {
+                log.error("pass par la");
+                ent.getKey().stream().forEach(e-> log.error("" +e));
+            });  */
+
         // The ID of all the questions. Used to find the first question that has a given sheet not answered yet
-        final Set<Long> questionIDs = questionsExam
-            .stream()
-            .map(sheet -> sheet.id)
-            .collect(Collectors.toSet());
 
-        result.setSheets(exam.scanfile.sheets
-            .stream()
-            .map(s -> {
-                final var res = new SheetStateDTO();
+        for (Entry<Long, List<StudentResponse>> ent : byStudent.entrySet())
+             {
+                final var res = s.get(ent.getKey());
 
-                final List<StudentResponse> responses = byStudent.getOrDefault(s.students
-                    .stream()
-                    .map(std -> std.id)
-                    .collect(Collectors.toSet()
-                ), List.of());
+                List<StudentResponse> l =  ent.getValue();
+                l.sort(new ComparatorImplementation2());
+                res.setAnsweredSheets(Long.valueOf(l.size()));
 
-                // Getting the ID of the questions that have an answer for this sheet
-                final Set<Long> answeredQuestionIDs = responses
-                    .stream()
-                    .map(resp -> resp.question.id)
-                    .collect(Collectors.toSet());
+                if (l.size() ==0){
+                    res.setFirstUnmarkedQuestion(Long.valueOf(1));
 
-                // Finding the first unmarked question for this sheet
-                final long firstUnmarkedQuestion = questionIDs
-                    .stream()
-                    .filter(id -> !answeredQuestionIDs.contains(id))
-                    .min(Comparator.naturalOrder()).orElse(1L);
+                } else if (l.size() ==1 && l.get(0).question.numero ==1) {
+                    res.setFirstUnmarkedQuestion(Long.valueOf(2));
 
-                res.setId(s.id);
-                res.setAnsweredSheets(responses.size());
-                res.setFirstUnmarkedQuestion(firstUnmarkedQuestion);
-                return res;
-            })
-            .collect(Collectors.toList())
-        );
+                } else if (l.size() >0 && l.get(0).question.numero !=1) {
+                    res.setFirstUnmarkedQuestion(Long.valueOf(1));
+                }
+                else {
+                    for ( int i = 0;i< l.size()-1; i++) {
+                        StudentResponse sl1 = l.get(i);
+                        StudentResponse sl2 = l.get(i+1);
+                        if (sl1.question.numero + 1 < sl2.question.numero ){
+                            res.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero +1));
+                            break;
+                        } else if (i == l.size()-2 ){
+                            res.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero +2));
+                        }
+                    }
+                }
+
+
+
+            }
+
 
         return Response.ok().entity(result).build();
     }
