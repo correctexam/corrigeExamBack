@@ -804,7 +804,7 @@ public class ExtendedAPI {
             //if (!q.containsKey(quest.numero)){
                 final var res = new QuestionStateDTO();
                 res.setAnsweredSheets(0);
-                res.setFirstUnmarkedSheet(1);
+                res.setFirstUnmarkedSheet(0);
                 res.setId(quest.id);
                 res.setNumero(quest.numero);
 
