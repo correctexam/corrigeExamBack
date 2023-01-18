@@ -267,7 +267,7 @@ public class ExtendedAPI {
                 ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id, student.id).firstResult();
                 String uuid = sheet.name;
                 String body = dto.getBody();
-                body = body.replace("${url}", this.jHipsterProperties.mail.baseUrl + "/copie/" + uuid + "/1");
+                body = body.replace("${url}", this.jHipsterProperties.mail().baseUrl() + "/copie/" + uuid + "/1");
                 body = body.replace("${firstname}", student.firstname);
                 body = body.replace("${lastname}", student.name);
                 final DecimalFormat df = new DecimalFormat("0.00");

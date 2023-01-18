@@ -51,7 +51,7 @@ public class MailService {
         return template
             .to(user.email)
             .subject(subject)
-            .data(BASE_URL, jHipsterProperties.mail.baseUrl)
+            .data(BASE_URL, jHipsterProperties.mail().baseUrl())
             .data(USER, user)
             .send()
             .subscribeAsCompletionStage()
