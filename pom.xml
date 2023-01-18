@@ -4,10 +4,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>fr.istic</groupId>
-    <artifactId>grade-scope-istic</artifactId>
+    <artifactId>correctexam</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Grade Scope Istic</name>
+    <name>CorrectExam</name>
 
     <properties>
         <!-- Build properties -->
@@ -23,7 +23,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
         <!-- Dependency properties -->
-        <quarkus.platform.version>2.13.3.Final</quarkus.platform.version>
+        <quarkus.platform.version>2.15.3.Final</quarkus.platform.version>
         <mapstruct.version>1.5.3.Final</mapstruct.version>
         <archunit-junit5.version>0.12.0</archunit-junit5.version>
 
@@ -43,7 +43,7 @@
         <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
         <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
         <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
-        <quarkus-plugin.version>2.13.3.Final</quarkus-plugin.version>
+        <quarkus-plugin.version>2.15.3.Final</quarkus-plugin.version>
 
         <!-- Plugin properties -->
         <checkstyle.version>8.27</checkstyle.version>
@@ -210,6 +210,19 @@
             <classifier>runtime</classifier>
             <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc -->
+    <!--  <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.40.0.0</version>
+        </dependency>-->
+<!-- https://mvnrepository.com/artifact/io.quarkiverse.jdbc/quarkus-jdbc-sqlite -->
+<dependency>
+    <groupId>io.quarkiverse.jdbc</groupId>
+    <artifactId>quarkus-jdbc-sqlite</artifactId>
+    <version>1.0.3</version>
+</dependency>
+
         <!-- jhipster-needle-maven-add-dependency -->
     </dependencies>
     <build>
