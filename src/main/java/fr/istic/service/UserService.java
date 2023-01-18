@@ -10,10 +10,7 @@ import fr.istic.service.dto.UserDTO;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.panache.common.Page;
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -181,6 +178,25 @@ public class UserService {
         this.clearUserCaches(user);
         log.debug("Created Information for User: {}", user);
         return user;
+    }
+
+    public void createUserOnlyLogin(String login, String email)
+    {
+        User user = new User();
+        user.login = login.toLowerCase();
+        user.firstName = "CAS_FIRSTNAME";
+        user.lastName = "CAS_LASTNAME";
+        user.email = email;
+        user.imageUrl = "";
+        user.langKey = Constants.DEFAULT_LANGUAGE; // default language
+        user.password = passwordHasher.hash(RandomUtil.generatePassword());
+        user.resetKey = RandomUtil.generateResetKey();
+        user.resetDate = Instant.now();
+        user.activated = true;
+        user.authorities = new HashSet<>(Collections.singletonList(Authority.findById("ROLE_USER")));
+        User.persist(user);
+        this.clearUserCaches(user);
+        log.debug("Created Information for User: {}", user);
     }
 
     public void deleteUser(String login) {
