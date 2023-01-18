@@ -11,6 +11,7 @@ import javax.inject.Singleton;
 import javax.ws.rs.core.MultivaluedMap;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -18,7 +19,13 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -88,6 +95,30 @@ public class CacheUploadService {
                  } catch (Exception e) {
                     e.printStackTrace();
                 }
+        }
+    }
+
+    private  File writeStreamToTempFile(InputStream inputStream, String tempFileSuffix) throws IOException {
+        FileOutputStream outputStream = null;
+
+        try {
+            File file = File.createTempFile("cacheDb", tempFileSuffix);
+            outputStream = new FileOutputStream(file);
+            byte[] buffer = new byte[1024];
+            while (true) {
+                int bytesRead = inputStream.read(buffer);
+                if (bytesRead == -1) {
+                    break;
+                }
+                outputStream.write(buffer, 0, bytesRead);
+            }
+            return file;
+        }
+
+        finally {
+            if (outputStream != null) {
+                outputStream.close();
+            }
         }
     }
 
@@ -214,6 +245,84 @@ public class CacheUploadService {
 
     }
 
+
+    Map<Long, String> pathsqlite = new HashMap<Long, String>();
+    public String getAlignPageSqlite(long id, int pagefileter, boolean nonalign) throws IOException {
+            InputStream inputStream = null;
+            String dbpath="";
+            if (pathsqlite.containsKey(id) && Paths.get(pathsqlite.get(id)).toFile().exists()){
+                dbpath = pathsqlite.get(id);
+            } else {
+
+
+            if (this.uses3){
+
+            String fileName = "cache/" + id + ".sqlite3";
+
+            try {
+                if (this.fichierS3Service.isObjectExist(fileName)) {
+                    inputStream = this.getObject(fileName);
+                    dbpath = this.writeStreamToTempFile(inputStream, id+".sqlite3").getAbsolutePath();
+                    pathsqlite.put(id,dbpath);
+                }
+            } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
+                e.printStackTrace();
+                return "";
+            }
+        }
+        else {
+            String fileName = id + ".sqlite3";
+            File customDir = new File(UPLOAD_DIR);
+            fileName = customDir.getAbsolutePath() +
+                    File.separator + fileName;
+            if (Paths.get(fileName).toFile().exists()){
+                dbpath = Paths.get(fileName).toFile().getAbsolutePath();
+                pathsqlite.put(id,dbpath);
+
+             }
+        }
+    }
+
+        Connection conn = null;
+        try {
+            // db parameters
+            String url = "jdbc:sqlite:"+dbpath;
+
+            // create a connection to the database
+            conn = DriverManager.getConnection(url);
+
+            String query = "select imageData from align where page="+pagefileter;
+            if (nonalign){
+                 query = "select imageData from nonalign where page="+pagefileter;
+            }
+    try (Statement stmt = conn.createStatement()) {
+      ResultSet rs = stmt.executeQuery(query);
+      boolean hasAline = rs.next();
+      if (hasAline) {
+        String imageData = rs.getString("imageData");
+
+        return imageData;
+    }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+        } catch (SQLException e) {
+
+            System.out.println(e.getMessage());
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                log.error(ex.getMessage());
+            }
+        }
+        return "";
+    }
+
     public String getAlignPage(long id, int pagefileter, boolean nonalign) throws IOException {
         InputStream inputStream = null;
         if (this.uses3){
@@ -232,6 +341,11 @@ public class CacheUploadService {
                 e.printStackTrace();
                 return "";
             }
+            if (inputStream == null) {
+                return this.getAlignPageSqlite(id, pagefileter, nonalign);
+
+            }
+
         }else {
             String fileName = id + "indexdb.json";
             File customDir = new File(UPLOAD_DIR);
@@ -252,6 +366,10 @@ public class CacheUploadService {
                  inputStream = Files.newInputStream(Paths.get(fileName));
 
                  }
+
+            }
+            if (inputStream == null) {
+                return this.getAlignPageSqlite(id, pagefileter, nonalign);
 
             }
 

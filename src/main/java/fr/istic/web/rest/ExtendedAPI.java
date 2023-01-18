@@ -618,6 +618,22 @@ public class ExtendedAPI {
 
         }
     }
+   /*     @GET
+    @Path("/getCacheAlignPageSqlite/{examId}/{pageId}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getCacheAlignPageSqlite(@PathParam("examId") long examId, @PathParam("pageId") int pageId) {
+        try {
+            return Response
+                    .status(Response.Status.OK)
+                    .entity(cacheUploadService.getAlignPageSqlite(examId, pageId, false))
+                    .type(MediaType.TEXT_PLAIN)
+                    .build();
+
+        } catch (Exception e) {
+            return Response.serverError().build();
+
+        }
+    }*/
 
     @GET
     @Path("/getCacheNonAlignPage/{examId}/{pageId}")
@@ -635,6 +651,24 @@ public class ExtendedAPI {
 
         }
     }
+
+  /*  @GET
+    @Path("/getCacheNonAlignPageSqlite/{examId}/{pageId}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getCachePageNoAlignSqlite(@PathParam("examId") long examId, @PathParam("pageId") int pageId) {
+        try {
+            return Response
+            .status(Response.Status.OK)
+            .entity(cacheUploadService.getAlignPageSqlite(examId, pageId, true))
+            .type(MediaType.TEXT_PLAIN)
+            .build();
+
+
+        } catch (Exception e) {
+            return Response.serverError().build();
+
+        }
+    }*/
 
     @GET
     @Path("/getCache/{fileName}")
