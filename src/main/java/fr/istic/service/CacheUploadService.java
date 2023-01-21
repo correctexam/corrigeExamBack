@@ -69,6 +69,16 @@ public class CacheUploadService {
 
     protected void putObject(String name, byte[] bytes, String contenttype)
             throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException {
+                if (this.fichierS3Service.isObjectExist(name)) {
+                    try {
+                        this.fichierS3Service.deleteObject(name);
+                    } catch (ErrorResponseException | InsufficientDataException | InternalException
+                            | InvalidResponseException | ServerException | XmlParserException e) {
+                        e.printStackTrace();
+                    }
+
+
+                }
         this.fichierS3Service.putObject(name, bytes, contenttype);
     }
 
