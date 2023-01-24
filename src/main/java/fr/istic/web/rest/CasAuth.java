@@ -4,6 +4,7 @@ import fr.istic.security.jwt.TokenProvider;
 import fr.istic.service.AuthenticationService;
 import fr.istic.service.UserService;
 import io.quarkus.security.runtime.QuarkusSecurityIdentity;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -35,6 +36,10 @@ public class CasAuth {
     final AuthenticationService authenticationService;
     final TokenProvider tokenProvider;
     final UserService userService;
+    @ConfigProperty(name = "configcas.server_cas")
+    String server_cas;
+    @ConfigProperty(name = "configcas.domain_service")
+    String domain_service;
 
     @Inject
     public CasAuth(AuthenticationService authenticationService, TokenProvider tokenProvider, UserService userService) {
@@ -48,9 +53,7 @@ public class CasAuth {
     @PermitAll
     public Response authorize(@PathParam("st") String serviceTicket) {
         String responseCAS;
-        String addressCAS = "https://sso-cas6-test.univ-rennes1.fr";
-        String serviceURL = "http://127.0.0.1:9000";
-        String constructedURL = String.format("%s/serviceValidate?ticket=%s&service=%s", addressCAS, serviceTicket, serviceURL);
+        String constructedURL = String.format("%s/serviceValidate?ticket=%s&service=%s", server_cas, serviceTicket, domain_service);
         try {
             responseCAS = sendGET(constructedURL);
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
