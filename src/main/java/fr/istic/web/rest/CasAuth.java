@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import javax.annotation.security.PermitAll;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.net.ssl.HttpsURLConnection;
 import javax.ws.rs.*;
@@ -30,6 +31,7 @@ import java.nio.charset.StandardCharsets;
 @Path("/api/cas")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@RequestScoped
 public class CasAuth {
     private final Logger log = LoggerFactory.getLogger(UserJWTController.class);
 
@@ -52,6 +54,7 @@ public class CasAuth {
     @Path("/authenticate/{st}")
     @PermitAll
     public Response authorize(@PathParam("st") String serviceTicket) {
+        log.error("AUTHORIZE CAS ENDPOINT REACHED");
         String responseCAS;
         String constructedURL = String.format("%s/serviceValidate?ticket=%s&service=%s", server_cas, serviceTicket, domain_service);
         try {
