@@ -12,7 +12,7 @@ services:
     restart: always
     ports:
       - 8080:8080
-    command: ./application -Dquarkus.http.host=0.0.0.0 -Dquarkus.datasource.username=root -Dquarkus.datasource.password='' -Dquarkus.datasource.jdbc.url=jdbc:mysql://correctexam-mysql:3306/correctexam?useUnicode=true&characterEncoding=utf8&useSSL=false -Dquarkus.http.cors=true -Dquarkus.http.cors.methods=GET,PUT,POST,DELETE,PATCH,OPTIONS  -Dquarkus.http.cors.headers=accept,origin,authorization,content-type,x-requested-with -Dquarkus.http.cors.exposed-headers=Content-Disposition -Dquarkus.http.cors.access-control-max-age=24H -Dconfigcas.domain_service=https://correctexam-test.univ-rennes.fr
+    command: ./application -Dquarkus.http.host=0.0.0.0 -Dquarkus.datasource.username=root -Dquarkus.datasource.password='' -Dquarkus.datasource.jdbc.url=jdbc:mysql://correctexam-mysql:3306/correctexam?useUnicode=true&characterEncoding=utf8&useSSL=false -Dquarkus.http.cors=true -Dquarkus.http.cors.methods=GET,PUT,POST,DELETE,PATCH,OPTIONS  -Dquarkus.http.cors.headers=accept,origin,authorization,content-type,x-requested-with -Dquarkus.http.cors.exposed-headers=Content-Disposition -Dquarkus.http.cors.access-control-max-age=24H
 #-Dquarkus.http.cors.origins=https://correctexam.github.io
 
   correctexam-mysql:

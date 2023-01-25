@@ -2,7 +2,7 @@ FROM ghcr.io/graalvm/graalvm-ce:ol9-java11 AS build-step
 WORKDIR /app
 RUN gu install native-image
 RUN microdnf install git -y
-RUN git clone https://github.com/Barbapapou/corrigeExamBack.git
+RUN git clone --branch server_auth_cas_test https://github.com/Barbapapou/corrigeExamBack.git
 WORKDIR /app/corrigeExamBack
 
 RUN mkdir -p /opt/maven
