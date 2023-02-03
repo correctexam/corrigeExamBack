@@ -1,13 +1,16 @@
 package fr.istic.config;
 
-import io.quarkus.arc.config.ConfigProperties;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
 
-@ConfigProperties(prefix = "jhipster.info")
+
+@ConfigMapping(prefix = "jhipster.info")
 public interface JHipsterInfo {
 
-    @ConfigProperty(name = "swagger.enable", defaultValue = "true")
+    @WithName("swagger.enable")
+    @WithDefault("true")
     Boolean isEnable();
 
 }
