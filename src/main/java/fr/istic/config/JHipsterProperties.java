@@ -1,32 +1,32 @@
 package fr.istic.config;
 
-import io.quarkus.arc.config.ConfigProperties;
+import io.smallrye.config.ConfigMapping;
 
-@ConfigProperties(prefix = "jhipster")
-public class JHipsterProperties {
-    public Security security;
-    public Mail mail;
+@ConfigMapping(prefix = "jhipster")
+public interface JHipsterProperties {
+    public Security security();
+    public Mail mail();
 
-    public static class Security {
-        public Authentication authentication;
+    public interface Security {
+        public Authentication authentication();
 
-        public static class Authentication {
-            public Jwt jwt;
+        public interface Authentication {
+            public Jwt jwt();
 
-            public static class Jwt {
-                public String issuer;
-                public long tokenValidityInSeconds;
-                public long tokenValidityInSecondsForRememberMe;
-                public PrivateKey privateKey;
+            public interface Jwt {
+                public String issuer();
+                public long tokenValidityInSeconds();
+                public long tokenValidityInSecondsForRememberMe();
+                public PrivateKey privateKey();
 
-                public static class PrivateKey {
-                    public String location;
+                public interface PrivateKey {
+                    public String location();
                 }
             }
         }
     }
 
-    public static class Mail {
-        public String baseUrl;
+    public interface Mail {
+        public String baseUrl();
     }
 }
