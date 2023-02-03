@@ -180,15 +180,15 @@ public class UserService {
         return user;
     }
 
-    public void createUserOnlyLogin(String login, String email)
+    public void createUserOnlyLogin(String login, String email, String lastName, String firstName)
     {
         User user = new User();
         user.login = login.toLowerCase();
-        user.firstName = "CAS_FIRSTNAME";
-        user.lastName = "CAS_LASTNAME";
+        user.firstName = firstName;
+        user.lastName = lastName;
         user.email = email;
         user.imageUrl = "";
-        user.langKey = Constants.DEFAULT_LANGUAGE; // default language
+        user.langKey = "fr";
         user.password = passwordHasher.hash(RandomUtil.generatePassword());
         user.resetKey = RandomUtil.generateResetKey();
         user.resetDate = Instant.now();

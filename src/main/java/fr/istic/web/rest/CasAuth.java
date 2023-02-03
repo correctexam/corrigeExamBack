@@ -66,9 +66,11 @@ public class CasAuth {
             log.info(responseCAS);
             String login = doc.getElementsByTagName("cas:user").item(0).getTextContent();
             String email = doc.getElementsByTagName("cas:mail").item(0).getTextContent();
+            String lastName = doc.getElementsByTagName("cas:sn").item(0).getTextContent();
+            String firstName = doc.getElementsByTagName("cas:givenName").item(0).getTextContent();
             // if the user do not exist yet create an account
             if (userService.getUserWithAuthoritiesByLogin(login).isEmpty()) {
-                userService.createUserOnlyLogin(login, email);
+                userService.createUserOnlyLogin(login, email, lastName, firstName);
             }
             QuarkusSecurityIdentity identity = authenticationService.authenticateNoPwd(login);
             String jwt = tokenProvider.createToken(identity, true);
