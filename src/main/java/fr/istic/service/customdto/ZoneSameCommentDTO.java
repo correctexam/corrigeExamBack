@@ -8,7 +8,9 @@ import fr.istic.domain.enumeration.GradeType;
 import fr.istic.service.dto.GradedCommentDTO;
 import fr.istic.service.dto.TextCommentDTO;
 import fr.istic.service.dto.ZoneDTO;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
+@RegisterForReflection
 public class ZoneSameCommentDTO {
 
     List<ZoneDTO> zones;
