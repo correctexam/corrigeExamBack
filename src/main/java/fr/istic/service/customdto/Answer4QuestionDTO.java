@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.Objects;
 
 import fr.istic.service.dto.CommentsDTO;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
+@RegisterForReflection
 public class Answer4QuestionDTO {
 
     String studentName;
