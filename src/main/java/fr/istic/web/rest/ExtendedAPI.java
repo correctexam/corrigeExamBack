@@ -1003,13 +1003,13 @@ public class ExtendedAPI {
 
     @GET
     @Path("/getZone4GradedComment/{examId}/{gradedCommentId}")
-//     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getZone4GradedComment(@PathParam("examId") final long examId, @PathParam("gradedCommentId") final long gradedCommentId,@Context final UriInfo uriInfo,
     @Context final SecurityContext ctx) {
 
-           /* if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            if (!securityService.canAccess(ctx, examId, Exam.class)) {
                 return Response.status(403, "Current user cannot access this ressource").build();
-            } */
+            }
             List<StudentResponse> r = StudentResponse.getAllStudentResponse4examIdGradedCommentId(examId, gradedCommentId).list();
             ZoneSameCommentDTO dto =  new ZoneSameCommentDTO();
             List<Answer4QuestionDTO> answers = new ArrayList<>();
@@ -1078,13 +1078,13 @@ public class ExtendedAPI {
 
     @GET
     @Path("/getZone4TextComment/{examId}/{textCommentId}")
-//     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getZone4TextComment(@PathParam("examId") final long examId, @PathParam("textCommentId") final long textCommentId,@Context final UriInfo uriInfo,
     @Context final SecurityContext ctx) {
 
-           /* if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            if (!securityService.canAccess(ctx, examId, Exam.class)) {
                 return Response.status(403, "Current user cannot access this ressource").build();
-            } */
+            }
             List<StudentResponse> r = StudentResponse.getAllStudentResponse4examIdTextCommentId(examId, textCommentId).list();
             ZoneSameCommentDTO dto =  new ZoneSameCommentDTO();
             List<Answer4QuestionDTO> answers = new ArrayList<>();
@@ -1158,13 +1158,13 @@ public class ExtendedAPI {
 
     @GET
     @Path("/getZone4Mark/{examId}/{respid}")
-//     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getZone4Mark(@PathParam("examId") final long examId, @PathParam("respid") final long respid,@Context final UriInfo uriInfo,
     @Context final SecurityContext ctx) {
 
-           /* if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            if (!securityService.canAccess(ctx, examId, Exam.class)) {
                 return Response.status(403, "Current user cannot access this ressource").build();
-            } */
+            }
             List<StudentResponse> r = StudentResponse.getAllStudentResponseWithSameGrade4examIdRespId(examId, respid).list();
             ZoneSameCommentDTO dto =  new ZoneSameCommentDTO();
             List<Answer4QuestionDTO> answers = new ArrayList<>();
