@@ -28,15 +28,24 @@ import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 
 import fr.istic.service.StudentService;
 import fr.istic.service.UserService;
+import fr.istic.service.customdto.Answer4QuestionDTO;
 import fr.istic.service.customdto.ListUserModelShare;
 import fr.istic.service.customdto.MailResultDTO;
 import fr.istic.service.customdto.StudentMassDTO;
 import fr.istic.service.customdto.StudentResultDTO;
 import fr.istic.service.customdto.WorstAndBestSolution;
+import fr.istic.service.customdto.ZoneSameCommentDTO;
 import fr.istic.service.customdto.correctexamstate.MarkingExamStateDTO;
 import fr.istic.service.customdto.correctexamstate.QuestionStateDTO;
 import fr.istic.service.customdto.correctexamstate.SheetStateDTO;
+import fr.istic.service.dto.GradedCommentDTO;
 import fr.istic.service.dto.QuestionDTO;
+import fr.istic.service.dto.TextCommentDTO;
+import fr.istic.service.mapper.CommentsMapper;
+import fr.istic.service.mapper.GradedCommentMapper;
+import fr.istic.service.mapper.QuestionMapper;
+import fr.istic.service.mapper.TextCommentMapper;
+import fr.istic.service.mapper.ZoneMapper;
 import fr.istic.web.util.HeaderUtil;
 
 import javax.annotation.security.RolesAllowed;
@@ -105,6 +114,17 @@ public class ExtendedAPI {
 
     @Inject
     ScanService scanService;
+
+    @Inject
+    QuestionMapper questionMapper;
+    @Inject
+    ZoneMapper zoneMapper;
+    @Inject
+    CommentsMapper commentsMapper;
+    @Inject
+    GradedCommentMapper gradedCommentMapper;
+    @Inject
+    TextCommentMapper textCommentMapper;
 
     private final class ComparatorImplementation implements Comparator<StudentResponse> {
 
@@ -203,7 +223,6 @@ public class ExtendedAPI {
                     int currentNote = 0;
                     for (var g : resp.gradedcomments) {
                         if (g.description.startsWith("correct")) {
-                            System.err.println("pass par la " + resp.question.quarterpoint);
                             currentNote = currentNote + resp.question.quarterpoint;
                         }
                     }
@@ -981,4 +1000,247 @@ public class ExtendedAPI {
 
         return Response.ok().entity(result).build();
     }
+
+    @GET
+    @Path("/getZone4GradedComment/{examId}/{gradedCommentId}")
+     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getZone4GradedComment(@PathParam("examId") final long examId, @PathParam("gradedCommentId") final long gradedCommentId,@Context final UriInfo uriInfo,
+    @Context final SecurityContext ctx) {
+
+            if (!securityService.canAccess(ctx, examId, Exam.class)) {
+                return Response.status(403, "Current user cannot access this ressource").build();
+            }
+            List<StudentResponse> r = StudentResponse.getAllStudentResponse4examIdGradedCommentId(examId, gradedCommentId).list();
+            ZoneSameCommentDTO dto =  new ZoneSameCommentDTO();
+            List<Answer4QuestionDTO> answers = new ArrayList<>();
+//            Map<Long,TextCommentDTO> textComments = new HashMap<>();
+            Map<Long,GradedCommentDTO> comments = new HashMap<>();
+
+            if (r.size()>0 && r.get(0).question != null){
+                 int numero = r.get(0).question.numero;
+                 dto.setNumero(numero);
+                List<Question> questions = Question.findQuestionbyExamIdandnumero(examId, numero).list();
+                if (questions.size()>0){
+                    dto.setZones(zoneMapper.toDto(questions.stream().map(q -> q.zone).collect(Collectors.toList())));
+                    dto.setGradeType(questions.get(0).gradeType);
+                    dto.setPoint(Integer.valueOf(questions.get(0).quarterpoint).doubleValue() /4);
+                    dto.setStep(questions.get(0).step);
+                    dto.setValidExpression(questions.get(0).validExpression);
+                    dto.setAlgoName(questions.get(0).type.algoName);
+
+                }
+            }
+
+            for (StudentResponse studentResponse : r) {
+                Answer4QuestionDTO answerdto = new Answer4QuestionDTO();
+                answerdto.setPagemin(studentResponse.sheet.pagemin);
+                answerdto.setPagemax(studentResponse.sheet.pagemax);
+
+                if (studentResponse.star != null){
+                    answerdto.setStar(studentResponse.star);
+                }else {
+                    answerdto.setStar(false);
+                }
+                if (studentResponse.worststar != null){
+                answerdto.setWorststar(studentResponse.worststar);
+                } else {
+                    answerdto.setWorststar(false);
+                }
+                Set<Student> students = studentResponse.sheet.students;
+                String studentName = "";
+                long nbeStudent = students.size();
+                long i =0;
+                for (Student student : students) {
+                    i = i+1;
+                    studentName = studentName + student.firstname + " " + student.name;
+                    if (i !=nbeStudent){
+                        studentName = studentName+ ", ";
+                    }
+
+                }
+                answerdto.setStudentName(studentName);
+                answerdto.setNote(Integer.valueOf(studentResponse.quarternote).doubleValue() /4);
+                answerdto.setComments(commentsMapper.toDto(new ArrayList<>(studentResponse.comments)));
+                answerdto.setGradedComments(studentResponse.gradedcomments.stream().map(gc -> gc.id ).collect(Collectors.toList()));
+                for (GradedComment gc : studentResponse.gradedcomments){
+                    if (!comments.containsKey(gc.id)){
+                        comments.put(gc.id,gradedCommentMapper.toDto(gc));
+                    }
+                }
+                answers.add(answerdto);
+            }
+
+            dto.setAnswers(answers);
+            dto.setGradedComments(new ArrayList(comments.values()));
+            return Response.ok().entity(dto).build();
+
+    }
+
+    @GET
+    @Path("/getZone4TextComment/{examId}/{textCommentId}")
+     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getZone4TextComment(@PathParam("examId") final long examId, @PathParam("textCommentId") final long textCommentId,@Context final UriInfo uriInfo,
+    @Context final SecurityContext ctx) {
+
+            if (!securityService.canAccess(ctx, examId, Exam.class)) {
+                return Response.status(403, "Current user cannot access this ressource").build();
+            }
+            List<StudentResponse> r = StudentResponse.getAllStudentResponse4examIdTextCommentId(examId, textCommentId).list();
+            ZoneSameCommentDTO dto =  new ZoneSameCommentDTO();
+            List<Answer4QuestionDTO> answers = new ArrayList<>();
+            Map<Long,TextCommentDTO> comments = new HashMap<>();
+//            Map<Long,GradedCommentDTO> comments = new HashMap<>();
+
+            if (r.size()>0 && r.get(0).question != null){
+                int numero = r.get(0).question.numero;
+                dto.setNumero(numero);
+                List<Question> questions = Question.findQuestionbyExamIdandnumero(examId, numero).list();
+                if (questions.size()>0){
+                    dto.setZones(zoneMapper.toDto(questions.stream().map(q -> q.zone).collect(Collectors.toList())));
+                    dto.setGradeType(questions.get(0).gradeType);
+                    dto.setPoint(Integer.valueOf(questions.get(0).quarterpoint).doubleValue() /4);
+                    dto.setStep(questions.get(0).step);
+                    dto.setValidExpression(questions.get(0).validExpression);
+                    dto.setAlgoName(questions.get(0).type.algoName);
+
+                }
+                else {
+                    return Response.noContent().build();
+                }
+            } else {
+                return Response.noContent().build();
+            }
+
+            for (StudentResponse studentResponse : r) {
+                Answer4QuestionDTO answerdto = new Answer4QuestionDTO();
+                answerdto.setPagemin(studentResponse.sheet.pagemin);
+                answerdto.setPagemax(studentResponse.sheet.pagemax);
+
+                if (studentResponse.star != null){
+                    answerdto.setStar(studentResponse.star);
+                }else {
+                    answerdto.setStar(false);
+                }
+                if (studentResponse.worststar != null){
+                answerdto.setWorststar(studentResponse.worststar);
+                } else {
+                    answerdto.setWorststar(false);
+                }
+                Set<Student> students = studentResponse.sheet.students;
+                String studentName = "";
+                long nbeStudent = students.size();
+                long i =0;
+                for (Student student : students) {
+                    i = i+1;
+                    studentName = studentName + student.firstname + " " + student.name;
+                    if (i !=nbeStudent){
+                        studentName = studentName+ ", ";
+                    }
+
+                }
+                answerdto.setStudentName(studentName);
+                answerdto.setNote(Integer.valueOf(studentResponse.quarternote).doubleValue() /4);
+                answerdto.setComments(commentsMapper.toDto(new ArrayList<>(studentResponse.comments)));
+                answerdto.setTextComments(studentResponse.textcomments.stream().map(gc -> gc.id ).collect(Collectors.toList()));
+                for (TextComment gc : studentResponse.textcomments){
+                    if (!comments.containsKey(gc.id)){
+                        comments.put(gc.id,textCommentMapper.toDto(gc));
+                    }
+                }
+                answers.add(answerdto);
+            }
+
+            dto.setAnswers(answers);
+            dto.setTextComments(new ArrayList(comments.values()));
+            return Response.ok().entity(dto).build();
+
+    }
+
+    @GET
+    @Path("/getZone4Mark/{examId}/{respid}")
+     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getZone4Mark(@PathParam("examId") final long examId, @PathParam("respid") final long respid,@Context final UriInfo uriInfo,
+    @Context final SecurityContext ctx) {
+
+            if (!securityService.canAccess(ctx, examId, Exam.class)) {
+                return Response.status(403, "Current user cannot access this ressource").build();
+            }
+            List<StudentResponse> r = StudentResponse.getAllStudentResponseWithSameGrade4examIdRespId(examId, respid).list();
+            ZoneSameCommentDTO dto =  new ZoneSameCommentDTO();
+            List<Answer4QuestionDTO> answers = new ArrayList<>();
+            Map<Long,TextCommentDTO> textcomments = new HashMap<>();
+            Map<Long,GradedCommentDTO> gradedcomments = new HashMap<>();
+
+            if (r.size()>0 && r.get(0).question != null){
+                int numero = r.get(0).question.numero;
+                dto.setNumero(numero);
+                List<Question> questions = Question.findQuestionbyExamIdandnumero(examId, numero).list();
+                if (questions.size()>0){
+                    dto.setZones(zoneMapper.toDto(questions.stream().map(q -> q.zone).collect(Collectors.toList())));
+                    dto.setGradeType(questions.get(0).gradeType);
+                    dto.setPoint(Integer.valueOf(questions.get(0).quarterpoint).doubleValue() /4);
+                    dto.setStep(questions.get(0).step);
+                    dto.setValidExpression(questions.get(0).validExpression);
+                    dto.setAlgoName(questions.get(0).type.algoName);
+
+                }
+                else {
+                    return Response.noContent().build();
+                }
+            } else {
+                return Response.noContent().build();
+            }
+
+            for (StudentResponse studentResponse : r) {
+                Answer4QuestionDTO answerdto = new Answer4QuestionDTO();
+                answerdto.setPagemin(studentResponse.sheet.pagemin);
+                answerdto.setPagemax(studentResponse.sheet.pagemax);
+
+                if (studentResponse.star != null){
+                    answerdto.setStar(studentResponse.star);
+                }else {
+                    answerdto.setStar(false);
+                }
+                if (studentResponse.worststar != null){
+                answerdto.setWorststar(studentResponse.worststar);
+                } else {
+                    answerdto.setWorststar(false);
+                }
+                Set<Student> students = studentResponse.sheet.students;
+                String studentName = "";
+                long nbeStudent = students.size();
+                long i =0;
+                for (Student student : students) {
+                    i = i+1;
+                    studentName = studentName + student.firstname + " " + student.name;
+                    if (i !=nbeStudent){
+                        studentName = studentName+ ", ";
+                    }
+
+                }
+                answerdto.setStudentName(studentName);
+                answerdto.setNote(Integer.valueOf(studentResponse.quarternote).doubleValue() /4);
+                answerdto.setComments(commentsMapper.toDto(new ArrayList<>(studentResponse.comments)));
+                answerdto.setTextComments(studentResponse.textcomments.stream().map(gc -> gc.id ).collect(Collectors.toList()));
+                for (TextComment gc : studentResponse.textcomments){
+                    if (!textcomments.containsKey(gc.id)){
+                        textcomments.put(gc.id,textCommentMapper.toDto(gc));
+                    }
+                }
+                for (GradedComment gc : studentResponse.gradedcomments){
+                    if (!gradedcomments.containsKey(gc.id)){
+                        gradedcomments.put(gc.id,gradedCommentMapper.toDto(gc));
+                    }
+                }
+                answers.add(answerdto);
+            }
+
+            dto.setAnswers(answers);
+            dto.setTextComments(new ArrayList(textcomments.values()));
+            dto.setGradedComments(new ArrayList(gradedcomments.values()));
+            return Response.ok().entity(dto).build();
+
+    }
+
+
 }
