@@ -263,8 +263,12 @@ public class UserService {
         return User.findOneWithAuthoritiesByLogin(login);
     }
 
-    public List<UserDTO> getAllManagedUsers() {
-        return User.findAllByLoginNot(Page.ofSize(20), Constants.ANONYMOUS_USER).stream().map(UserDTO::new).collect(Collectors.toList());
+    public Paged<UserDTO> getAllManagedUsers(Page page) {
+        var index = page.index;
+        var size = page.size;
+        var totalCount = User.count();
+        var pageCount = totalCount%size +1;
+        return new Paged<UserDTO>(index,size,totalCount,pageCount,  User.findAllByLoginNot(page, Constants.ANONYMOUS_USER).stream().map(UserDTO::new).collect(Collectors.toList()));
     }
 
     public List<String> getAuthorities() {
