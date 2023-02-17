@@ -70,6 +70,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -153,11 +154,17 @@ public class ExtendedAPI {
     String applicationName;
 
     private Exam computeFinalNote(long examId) {
+        List<StudentResponse> studentResp = StudentResponse.getAllStudentResponseWithexamId(examId).list();
+        Map<ExamSheet, List<StudentResponse>> mapstudentResp = studentResp.stream()
+        .collect(Collectors.groupingBy(StudentResponse::getCSheet));
+
+
         Exam ex = Exam.findById(examId);
-        List<ExamSheet> sheets = ExamSheet.findExamSheetByScan(ex.scanfile.id).list();
-        sheets.forEach(sh -> {
-            // Compute Note
-            List<StudentResponse> resps = StudentResponse.findStudentResponsesbysheetId(sh.id).list();
+//        List<ExamSheet> sheets = ExamSheet.findExamSheetByScan(ex.scanfile.id).list();
+//        sheets.forEach(sh -> {
+    mapstudentResp.forEach((sh, resps) -> {
+        // Compute Note
+//            List<StudentResponse> resps = StudentResponse.findStudentResponsesbysheetId(sh.id).list();
             var finalnote = 0;
             for (StudentResponse resp : resps) {
                 if (resp.question.gradeType == GradeType.DIRECT && !"QCM".equals(resp.question.type.algoName)) {
@@ -234,6 +241,7 @@ public class ExtendedAPI {
                 }
             }
             final var finalnote1 = finalnote;
+
             sh.students.forEach(student -> {
                 var q = FinalResult.findFinalResultByStudentIdAndExamId(student.id, examId);
                 long count = q.count();
@@ -315,20 +323,26 @@ public class ExtendedAPI {
         }
         Exam ex = this.computeFinalNote(examId);
         List<StudentResultDTO> results = new ArrayList<>();
-        List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
-        students.forEach(student -> {
-            long count = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).count();
-            if (count > 0) {
-                FinalResult r = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).firstResult();
-                ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id, student.id).firstResult();
-
+        List<Long>  studentsId= new ArrayList<>();
+//        List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
+//        students.forEach(student -> {
+//            long count = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).count();
+//            if (count > 0) {
+                List<FinalResult> rs = FinalResult.getAll4ExamIdFetchSheet(examId).list();
+                rs.forEach(r -> {
+//                FinalResult r = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).firstResult();
+                List<ExamSheet> sheets  = r.exam.scanfile.sheets.stream().filter(sh -> sh.students.contains(r.student)).collect(Collectors.toList());
+                if (sheets.size() > 0) {
+                ExamSheet sheet=   sheets.get(0);
+                // ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id, r.student.id).firstResult();
                 String uuid = sheet.name;
                 int studentnumber = (sheet.pagemin / (sheet.pagemax - sheet.pagemin + 1)) + 1;
                 var res = new StudentResultDTO();
-                res.setNom(student.name);
-                res.setPrenom(student.firstname);
-                res.setIne(student.ine);
-                res.setMail(student.mail);
+                studentsId.add(r.student.id);
+                res.setNom(r.student.name);
+                res.setPrenom(r.student.firstname);
+                res.setIne(r.student.ine);
+                res.setMail(r.student.mail);
                 final DecimalFormat df = new DecimalFormat("0.00");
                 res.setNote(df.format(r.note.doubleValue() / 100.0));
                 res.setUuid(uuid);
@@ -351,8 +365,8 @@ public class ExtendedAPI {
 
                 });
                 results.add(res);
-
-            } else {
+            }
+            /* } )/*else {
                 var res = new StudentResultDTO();
                 res.setNom(student.name);
                 res.setPrenom(student.firstname);
@@ -360,8 +374,21 @@ public class ExtendedAPI {
                 res.setMail(student.mail);
                 res.setAbi(true);
                 results.add(res);
-            }
+            }*/
         });
+
+        List<Student> studentsAbi = Student.findStudentsAbibyCourseId(ex.course.id, studentsId).list();
+
+        studentsAbi.forEach(student-> {
+            var res = new StudentResultDTO();
+            res.setNom(student.name);
+            res.setPrenom(student.firstname);
+            res.setIne(student.ine);
+            res.setMail(student.mail);
+            res.setAbi(true);
+            results.add(res);
+        } );
+
         return Response.ok().entity(results).build();
     }
 
