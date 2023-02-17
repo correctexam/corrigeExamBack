@@ -62,6 +62,7 @@ import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -377,7 +378,40 @@ public class ExtendedAPI {
             }*/
         });
 
+        Collections.sort(results, new Comparator<StudentResultDTO>() {
+            @Override
+            public int compare(StudentResultDTO arg0, StudentResultDTO arg1) {
+                if (arg0.getNom() == null){
+                    return -1;
+                } else {
+                    if (arg0.getPrenom() != null && arg0.getNom().equals(arg1.getNom())){
+                        return arg0.getPrenom().compareTo(arg1.getPrenom());
+
+                    } else {
+                        return arg0.getNom().compareTo(arg1.getNom());
+                    }
+                }
+            }
+
+        });
+
         List<Student> studentsAbi = Student.findStudentsAbibyCourseId(ex.course.id, studentsId).list();
+        Collections.sort(studentsAbi, new Comparator<Student>() {
+            @Override
+            public int compare(Student arg0, Student arg1) {
+                if (arg0.name == null){
+                    return -1;
+                } else {
+                    if (arg0.firstname != null && arg0.name.equals(arg1.name)){
+                        return arg0.firstname.compareTo(arg1.firstname);
+
+                    } else {
+                        return arg0.name.compareTo(arg1.name);
+                    }
+                }
+            }
+
+        });
 
         studentsAbi.forEach(student-> {
             var res = new StudentResultDTO();
