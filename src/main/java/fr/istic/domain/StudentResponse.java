@@ -59,6 +59,11 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         return sheet.id;
     }
 
+    @Transient
+    public ExamSheet getCSheet(){
+        return sheet;
+    }
+
 
     @ManyToOne
     @JoinColumn(name = "sheet_id")
@@ -262,6 +267,11 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         var qid = sr.question.id;
         return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1 and sr.quarternote = ?2 and q.id = ?3",examId,s,qid);
     }
+
+    public static PanacheQuery<StudentResponse> getAllStudentResponseWithexamId(long examId) {
+        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1",examId);
+    }
+
 
 
     public static PanacheQuery<StudentResponse> canAccess(long srId, String login) {
