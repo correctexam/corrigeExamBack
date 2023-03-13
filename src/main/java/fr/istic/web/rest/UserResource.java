@@ -5,12 +5,16 @@ import static javax.ws.rs.core.UriBuilder.fromPath;
 import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.MailService;
+import fr.istic.service.Paged;
 import fr.istic.service.UserService;
 import fr.istic.service.dto.UserDTO;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.rest.errors.EmailAlreadyUsedException;
 import fr.istic.web.rest.errors.LoginAlreadyUsedException;
+import fr.istic.web.rest.vm.PageRequestVM;
+import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.HeaderUtil;
+import fr.istic.web.util.PaginationUtil;
 import fr.istic.web.util.ResponseUtil;
 import java.util.List;
 import java.util.Optional;
@@ -19,8 +23,12 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,11 +163,21 @@ public class UserResource {
      * @return the {@link Response} with status {@code 200 (OK)} and with body all users.
      */
     @GET
-    public Response getAllUsers(@QueryParam("sort") String pagination) {
-        final List<UserDTO> page = userService.getAllManagedUsers();
-        //        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
-        Response.ResponseBuilder response = Response.ok(page);
+    public Response getAllUsers(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
+        // final List<UserDTO> page = userService.getAllManagedUsers();
+        log.debug("REST request to get a page of Templates");
+        var page = pageRequest.toPage();
+        var sort = sortRequest.toSort();
+        Paged<UserDTO> result = userService.getAllManagedUsers(page);
+        var response = Response.ok().entity(result.content);
+        response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
         return response.build();
+
+
+
+       // HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+       // Response.ResponseBuilder response = Response.ok(page);
+       // return response.build();
     }
 
     /**
