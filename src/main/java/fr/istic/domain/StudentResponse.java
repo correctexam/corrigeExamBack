@@ -59,6 +59,11 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         return sheet.id;
     }
 
+    @Transient
+    public ExamSheet getCSheet(){
+        return sheet;
+    }
+
 
     @ManyToOne
     @JoinColumn(name = "sheet_id")
@@ -247,7 +252,34 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     }
 
 
+    public static PanacheQuery<StudentResponse> getAllStudentResponse4examIdGradedCommentId(long examId, long gradedCommentid) {
+        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet join fetch sr.question as q join fetch q.zone join fetch sheet.students left join fetch sr.gradedcomments gc1 join sr.gradedcomments gc  where sr.question.exam.id = ?1 and gc.id = ?2",examId,gradedCommentid );
+    }
+
+
+    public static PanacheQuery<StudentResponse> getAllStudentResponse4examIdTextCommentId(long examId, long textCommentid) {
+        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone   join fetch sheet.students left join fetch sr.textcomments tc1 join sr.textcomments tc  where sr.question.exam.id = ?1 and tc.id = ?2",examId,textCommentid );
+    }
+
+    public static PanacheQuery<StudentResponse> getAllStudentResponseWithSameGrade4examIdRespId(long examId, long respId) {
+        StudentResponse sr = findById(respId);
+        var s = sr.quarternote;
+        var qid = sr.question.id;
+        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1 and sr.quarternote = ?2 and q.id = ?3",examId,s,qid);
+    }
+
+    public static PanacheQuery<StudentResponse> getAllStudentResponseWithexamId(long examId) {
+        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1",examId);
+    }
+
+
+
     public static PanacheQuery<StudentResponse> canAccess(long srId, String login) {
         return find("select ex from StudentResponse ex join ex.question.exam.course.profs as u where ex.id =?1 and u.login =?2", srId, login);
     }
+
+
+
+
+
 }
