@@ -11,8 +11,10 @@ import org.w3c.dom.Document;
 
 import javax.annotation.security.PermitAll;
 import javax.enterprise.context.RequestScoped;
+import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.net.ssl.HttpsURLConnection;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -33,7 +35,7 @@ import java.nio.charset.StandardCharsets;
 @Consumes(MediaType.APPLICATION_JSON)
 @RequestScoped
 public class CasAuth {
-    private final Logger log = LoggerFactory.getLogger(UserJWTController.class);
+    private final Logger log = LoggerFactory.getLogger(CasAuth.class);
 
     final AuthenticationService authenticationService;
     final TokenProvider tokenProvider;
@@ -42,6 +44,8 @@ public class CasAuth {
     String server_cas;
     @ConfigProperty(name = "configcas.domain_service")
     String domain_service;
+    @Inject
+    HttpServletRequest requestNotUsed;
 
     @Inject
     public CasAuth(AuthenticationService authenticationService, TokenProvider tokenProvider, UserService userService) {
@@ -55,6 +59,8 @@ public class CasAuth {
     @PermitAll
     public Response authorize(@PathParam("st") String serviceTicket) {
         log.error("AUTHORIZE CAS ENDPOINT REACHED");
+        HttpServletRequest HSR = CDI.current().select(HttpServletRequest.class).get();
+        var headersName = HSR.getHeaderNames();
         String responseCAS;
         String constructedURL = String.format("%s/serviceValidate?ticket=%s&service=%s", server_cas, serviceTicket, domain_service);
         try {
@@ -63,7 +69,6 @@ public class CasAuth {
             DocumentBuilder db = dbf.newDocumentBuilder();
             Document doc = db.parse(new ByteArrayInputStream(responseCAS.getBytes(StandardCharsets.UTF_8)));
             doc.getDocumentElement().normalize();
-            log.info(responseCAS);
             String login = doc.getElementsByTagName("cas:user").item(0).getTextContent();
             String email = doc.getElementsByTagName("cas:mail").item(0).getTextContent();
             String lastName = doc.getElementsByTagName("cas:sn").item(0).getTextContent();
