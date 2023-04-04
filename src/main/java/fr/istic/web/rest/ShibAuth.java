@@ -3,6 +3,7 @@ package fr.istic.web.rest;
 import fr.istic.security.jwt.TokenProvider;
 import fr.istic.service.AuthenticationService;
 import fr.istic.service.UserService;
+import io.quarkus.security.runtime.QuarkusSecurityIdentity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,12 +51,22 @@ public class ShibAuth {
     @Path("/authenticate")
     @PermitAll
     public Response getShibAuth() {
+
         log.error("SHIB AUTH SERVICE CONTACTED GET");
         HttpServletRequest HSR = CDI.current().select(HttpServletRequest.class).get();
-        var headersName = HSR.getHeaderNames();
-        headersName.asIterator().forEachRemaining(headerName -> {
-            log.error(headerName + " : " + HSR.getHeader(headerName));
-        });
-        return Response.ok("SHIB AUTH GET SERVICE CONTACTED").build();
+        String login = HSR.getHeader("eppn");
+        String email = HSR.getHeader("mail");
+        String lastName = HSR.getHeader("sn");
+        String firstName = HSR.getHeader("givenName");
+        log.error(login);
+        log.error(email);
+        log.error(lastName);
+        log.error(firstName);
+        if (userService.getUserWithAuthoritiesByLogin(login).isEmpty()) {
+            userService.createUserOnlyLogin(login, email, lastName, firstName);
+        }
+        QuarkusSecurityIdentity identity = authenticationService.authenticateNoPwd(login);
+        String jwt = tokenProvider.createToken(identity, true);
+        return Response.ok().entity(new UserJWTController.JWTToken(jwt)).header("Authorization", "Bearer " + jwt).build();
     }
 }
