@@ -11,6 +11,7 @@ import javax.validation.constraints.*;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Optional;
 
@@ -138,6 +139,14 @@ public class Student extends PanacheEntityBase implements Serializable {
      //return find("select distinct e.students from ExamSheet as e join e.students as s join s.groups as g  where g.course.id =?1", courseId);
 
     }
+
+    public static PanacheQuery<Student> findStudentsAbibyCourseId( long courseId, List<Long> studentsId) {
+        return find("select distinct student from Student student LEFT join student.examSheets join student.groups as g  where g.course.id =?1 and student.id not IN ?2", courseId,studentsId);
+     //return find("select distinct e.students from ExamSheet as e join e.students as s join s.groups as g  where g.course.id =?1", courseId);
+
+    }
+
+
     public static PanacheQuery<Student> findStudentsbyCourseIdAndINE( long courseId, String ine) {
         return find("select distinct student from Student student join student.groups as g where g.course.id =?1 and student.ine = ?2", courseId, ine);
     }
