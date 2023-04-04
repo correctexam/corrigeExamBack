@@ -36,14 +36,14 @@ public class ShibAuth {
     @POST
     @Path("/authenticate")
     @PermitAll
-    public Response authorize() {
-        log.error("SHIB AUTH SERVICE CONTACTED GET");
+    public Response postShibAuth() {
+        log.error("SHIB AUTH SERVICE CONTACTED POST");
         HttpServletRequest HSR = CDI.current().select(HttpServletRequest.class).get();
         var headersName = HSR.getHeaderNames();
         headersName.asIterator().forEachRemaining(headerName -> {
             log.error(headerName + " : " + HSR.getHeader(headerName));
         });
-        return Response.ok("SHIB AUTH SERVICE CONTACTED").build();
+        return Response.ok("SHIB AUTH POST SERVICE CONTACTED").build();
     }
 
     @GET
@@ -56,6 +56,6 @@ public class ShibAuth {
         headersName.asIterator().forEachRemaining(headerName -> {
             log.error(headerName + " : " + HSR.getHeader(headerName));
         });
-        return Response.ok("SHIB AUTH SERVICE CONTACTED").build();
+        return Response.ok("SHIB AUTH GET SERVICE CONTACTED").build();
     }
 }
