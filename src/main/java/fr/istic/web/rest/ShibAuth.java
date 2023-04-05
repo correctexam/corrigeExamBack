@@ -49,12 +49,14 @@ public class ShibAuth {
         log.error(email);
         log.error(lastName);
         log.error(firstName);
+        // User not logged
+        if (login.isEmpty())
+            return Response.status(401).build();
         if (userService.getUserWithAuthoritiesByLogin(login).isEmpty()) {
             userService.createUserOnlyLogin(login, email, lastName, firstName);
         }
         QuarkusSecurityIdentity identity = authenticationService.authenticateNoPwd(login);
         String jwt = tokenProvider.createToken(identity, true);
-        return Response.temporaryRedirect(new java.net.URI("https://correctexam-test.univ-rennes.fr/")).header("Authorization", "Bearer " + jwt).build();
-//        return Response.ok().entity(new UserJWTController.JWTToken(jwt)).header("Authorization", "Bearer " + jwt).build();
+        return Response.ok().entity(new UserJWTController.JWTToken(jwt)).header("Authorization", "Bearer " + jwt).build();
     }
 }
