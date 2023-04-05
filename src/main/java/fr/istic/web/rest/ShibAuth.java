@@ -38,7 +38,7 @@ public class ShibAuth {
     @GET
     @Path("/authenticate")
     @PermitAll
-    public Response getShibAuth() throws URISyntaxException {
+    public Response getShibAuth() {
         log.error("SHIB AUTH SERVICE CONTACTED GET");
         HttpServletRequest HSR = CDI.current().select(HttpServletRequest.class).get();
         String login = HSR.getHeader("eppn");
