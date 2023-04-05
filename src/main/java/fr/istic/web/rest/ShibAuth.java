@@ -57,6 +57,7 @@ public class ShibAuth {
         }
         QuarkusSecurityIdentity identity = authenticationService.authenticateNoPwd(login);
         String jwt = tokenProvider.createToken(identity, true);
-        return Response.ok().entity(new UserJWTController.JWTToken(jwt)).header("Authorization", "Bearer " + jwt).build();
+        return Response.redirect("https://correctexam-test.univ-rennes.fr?shib=true").header("Authorization", "Bearer " + jwt).build();
+//        return Response.ok().entity(new UserJWTController.JWTToken(jwt)).header("Authorization", "Bearer " + jwt).build();
     }
 }
