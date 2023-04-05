@@ -16,6 +16,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
+import java.net.URISyntaxException;
 
 @Path("/api/shib")
 @RequestScoped
@@ -34,24 +35,10 @@ public class ShibAuth {
         this.userService = userService;
     }
 
-    @POST
-    @Path("/authenticate")
-    @PermitAll
-    public Response postShibAuth() {
-        log.error("SHIB AUTH SERVICE CONTACTED POST");
-        HttpServletRequest HSR = CDI.current().select(HttpServletRequest.class).get();
-        var headersName = HSR.getHeaderNames();
-        headersName.asIterator().forEachRemaining(headerName -> {
-            log.error(headerName + " : " + HSR.getHeader(headerName));
-        });
-        return Response.ok("SHIB AUTH POST SERVICE CONTACTED").build();
-    }
-
     @GET
     @Path("/authenticate")
     @PermitAll
-    public Response getShibAuth() {
-
+    public Response getShibAuth() throws URISyntaxException {
         log.error("SHIB AUTH SERVICE CONTACTED GET");
         HttpServletRequest HSR = CDI.current().select(HttpServletRequest.class).get();
         String login = HSR.getHeader("eppn");
@@ -67,6 +54,7 @@ public class ShibAuth {
         }
         QuarkusSecurityIdentity identity = authenticationService.authenticateNoPwd(login);
         String jwt = tokenProvider.createToken(identity, true);
-        return Response.ok().entity(new UserJWTController.JWTToken(jwt)).header("Authorization", "Bearer " + jwt).build();
+        return Response.temporaryRedirect(new java.net.URI("https://correctexam-test.univ-rennes.fr/")).header("Authorization", "Bearer " + jwt).build();
+//        return Response.ok().entity(new UserJWTController.JWTToken(jwt)).header("Authorization", "Bearer " + jwt).build();
     }
 }
