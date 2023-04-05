@@ -16,6 +16,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
+import java.net.URI;
 import java.net.URISyntaxException;
 
 @Path("/api/shib")
@@ -57,7 +58,7 @@ public class ShibAuth {
         }
         QuarkusSecurityIdentity identity = authenticationService.authenticateNoPwd(login);
         String jwt = tokenProvider.createToken(identity, true);
-        return Response.redirect("https://correctexam-test.univ-rennes.fr?shib=true").header("Authorization", "Bearer " + jwt).build();
+        return Response.seeOther(URI.create("https://correctexam-test.univ-rennes.fr?shib=true")).header("Authorization", "Bearer " + jwt).build();
 //        return Response.ok().entity(new UserJWTController.JWTToken(jwt)).header("Authorization", "Bearer " + jwt).build();
     }
 }
