@@ -36,6 +36,26 @@ public class ShibAuth {
         this.userService = userService;
     }
 
+    public void logHeadersShib()
+    {
+        HttpServletRequest HSR = CDI.current().select(HttpServletRequest.class).get();
+        log.error("HEADERS SHIB");
+        log.error(HSR.getHeader("eppn"));
+        log.error(HSR.getHeader("mail"));
+        log.error(HSR.getHeader("sn"));
+        log.error(HSR.getHeader("givenName"));
+    }
+
+    @GET
+    @Path("/redirection")
+    @PermitAll
+    public Response askForRedirection()
+    {
+        log.error("SHIB REDIRECTION HANDSHAKE");
+        logHeadersShib();
+        return Response.seeOther(URI.create("https://correctexam-test.univ-rennes.fr?shib=true")).build();
+    }
+
     @GET
     @Path("/authenticate")
     @PermitAll
@@ -46,10 +66,7 @@ public class ShibAuth {
         String email = HSR.getHeader("mail");
         String lastName = HSR.getHeader("sn");
         String firstName = HSR.getHeader("givenName");
-        log.error(login);
-        log.error(email);
-        log.error(lastName);
-        log.error(firstName);
+        logHeadersShib();
         // User not logged
         if (login.isEmpty())
             return Response.status(401).build();
@@ -58,7 +75,6 @@ public class ShibAuth {
         }
         QuarkusSecurityIdentity identity = authenticationService.authenticateNoPwd(login);
         String jwt = tokenProvider.createToken(identity, true);
-        return Response.seeOther(URI.create("https://correctexam-test.univ-rennes.fr?shib=true")).header("Authorization", "Bearer " + jwt).build();
-//        return Response.ok().entity(new UserJWTController.JWTToken(jwt)).header("Authorization", "Bearer " + jwt).build();
+        return Response.ok().entity(new UserJWTController.JWTToken(jwt)).header("Authorization", "Bearer " + jwt).build();
     }
 }
