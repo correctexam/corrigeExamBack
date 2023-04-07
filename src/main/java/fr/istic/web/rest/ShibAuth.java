@@ -9,15 +9,12 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.enterprise.context.RequestScoped;
-import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 @Path("/api/shib")
 @RequestScoped
@@ -26,24 +23,27 @@ public class ShibAuth {
     final AuthenticationService authenticationService;
     final TokenProvider tokenProvider;
     final UserService userService;
-    @Inject
-    HttpServletRequest requestNotUsed;
+    HttpServletRequest request;
+    final String shibbolethUID = "eppn";
+    final String shibbolethMail = "mail";
+    final String shibbolethLastName = "sn";
+    final String shibbolethFirstName = "givenName";
 
     @Inject
-    public ShibAuth(AuthenticationService authenticationService, TokenProvider tokenProvider, UserService userService) {
+    public ShibAuth(AuthenticationService authenticationService, TokenProvider tokenProvider, UserService userService, HttpServletRequest request) {
         this.authenticationService = authenticationService;
         this.tokenProvider = tokenProvider;
         this.userService = userService;
+        this.request = request;
     }
 
     public void logHeadersShib()
     {
-        HttpServletRequest HSR = CDI.current().select(HttpServletRequest.class).get();
-        log.error("HEADERS SHIB");
-        log.error(HSR.getHeader("eppn"));
-        log.error(HSR.getHeader("mail"));
-        log.error(HSR.getHeader("sn"));
-        log.error(HSR.getHeader("givenName"));
+        log.debug("HEADERS SHIB");
+        log.debug(request.getHeader(shibbolethUID));
+        log.debug(request.getHeader(shibbolethMail));
+        log.debug(request.getHeader(shibbolethLastName));
+        log.debug(request.getHeader(shibbolethFirstName));
     }
 
     @GET
@@ -51,7 +51,7 @@ public class ShibAuth {
     @PermitAll
     public Response askForRedirection()
     {
-        log.error("SHIB REDIRECTION HANDSHAKE");
+        log.debug("SHIB REDIRECTION");
         logHeadersShib();
         return Response.seeOther(URI.create("https://correctexam-test.univ-rennes.fr?shib=true")).build();
     }
@@ -60,19 +60,22 @@ public class ShibAuth {
     @Path("/authenticate")
     @PermitAll
     public Response getShibAuth() {
-        log.error("SHIB AUTH SERVICE CONTACTED GET");
-        HttpServletRequest HSR = CDI.current().select(HttpServletRequest.class).get();
-        String login = HSR.getHeader("eppn");
-        String email = HSR.getHeader("mail");
-        String lastName = HSR.getHeader("sn");
-        String firstName = HSR.getHeader("givenName");
+        log.debug("SHIB AUTH SERVICE CONTACTED GET");
+        String login = request.getHeader(shibbolethUID);
+        String email = request.getHeader(shibbolethMail);
+        String lastName = request.getHeader(shibbolethLastName);
+        String firstName = request.getHeader(shibbolethFirstName);
         logHeadersShib();
+
         // User not logged
         if (login.isEmpty())
-            return Response.status(401).build();
-        if (userService.getUserWithAuthoritiesByLogin(login).isEmpty()) {
+            return Response.status(400).build();
+
+        // User not in database, create a new account
+        var user = userService.getUserWithAuthoritiesByLogin(login);
+        if (user.isEmpty())
             userService.createUserOnlyLogin(login, email, lastName, firstName);
-        }
+
         QuarkusSecurityIdentity identity = authenticationService.authenticateNoPwd(login);
         String jwt = tokenProvider.createToken(identity, true);
         return Response.ok().entity(new UserJWTController.JWTToken(jwt)).header("Authorization", "Bearer " + jwt).build();
