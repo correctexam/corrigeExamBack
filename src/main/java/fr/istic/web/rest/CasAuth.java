@@ -33,8 +33,7 @@ import java.nio.charset.StandardCharsets;
 @Consumes(MediaType.APPLICATION_JSON)
 @RequestScoped
 public class CasAuth {
-    private final Logger log = LoggerFactory.getLogger(UserJWTController.class);
-
+    private final Logger log = LoggerFactory.getLogger(CasAuth.class);
     final AuthenticationService authenticationService;
     final TokenProvider tokenProvider;
     final UserService userService;
@@ -54,7 +53,7 @@ public class CasAuth {
     @Path("/authenticate/{st}")
     @PermitAll
     public Response authorize(@PathParam("st") String serviceTicket) {
-        log.error("AUTHORIZE CAS ENDPOINT REACHED");
+        log.debug("AUTHORIZE CAS ENDPOINT REACHED");
         String responseCAS;
         String constructedURL = String.format("%s/serviceValidate?ticket=%s&service=%s", server_cas, serviceTicket, domain_service);
         try {
@@ -63,12 +62,13 @@ public class CasAuth {
             DocumentBuilder db = dbf.newDocumentBuilder();
             Document doc = db.parse(new ByteArrayInputStream(responseCAS.getBytes(StandardCharsets.UTF_8)));
             doc.getDocumentElement().normalize();
-            log.info(responseCAS);
             String login = doc.getElementsByTagName("cas:user").item(0).getTextContent();
             String email = doc.getElementsByTagName("cas:mail").item(0).getTextContent();
+            String lastName = doc.getElementsByTagName("cas:sn").item(0).getTextContent();
+            String firstName = doc.getElementsByTagName("cas:givenName").item(0).getTextContent();
             // if the user do not exist yet create an account
             if (userService.getUserWithAuthoritiesByLogin(login).isEmpty()) {
-                userService.createUserOnlyLogin(login, email);
+                userService.createUserOnlyLogin(login, email, lastName, firstName);
             }
             QuarkusSecurityIdentity identity = authenticationService.authenticateNoPwd(login);
             String jwt = tokenProvider.createToken(identity, true);
