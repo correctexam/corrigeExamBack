@@ -11,10 +11,8 @@ import org.w3c.dom.Document;
 
 import javax.annotation.security.PermitAll;
 import javax.enterprise.context.RequestScoped;
-import javax.enterprise.inject.spi.CDI;
 import javax.inject.Inject;
 import javax.net.ssl.HttpsURLConnection;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -36,7 +34,6 @@ import java.nio.charset.StandardCharsets;
 @RequestScoped
 public class CasAuth {
     private final Logger log = LoggerFactory.getLogger(CasAuth.class);
-
     final AuthenticationService authenticationService;
     final TokenProvider tokenProvider;
     final UserService userService;
@@ -44,8 +41,6 @@ public class CasAuth {
     String server_cas;
     @ConfigProperty(name = "configcas.domain_service")
     String domain_service;
-    @Inject
-    HttpServletRequest requestNotUsed;
 
     @Inject
     public CasAuth(AuthenticationService authenticationService, TokenProvider tokenProvider, UserService userService) {
@@ -58,9 +53,7 @@ public class CasAuth {
     @Path("/authenticate/{st}")
     @PermitAll
     public Response authorize(@PathParam("st") String serviceTicket) {
-        log.error("AUTHORIZE CAS ENDPOINT REACHED");
-        HttpServletRequest HSR = CDI.current().select(HttpServletRequest.class).get();
-        var headersName = HSR.getHeaderNames();
+        log.debug("AUTHORIZE CAS ENDPOINT REACHED");
         String responseCAS;
         String constructedURL = String.format("%s/serviceValidate?ticket=%s&service=%s", server_cas, serviceTicket, domain_service);
         try {
