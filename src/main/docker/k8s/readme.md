@@ -44,7 +44,7 @@ microk8s kubectl apply -f minio-dev.yaml
 # connect your Browser to the MinIO Server
 
 ```bash
-microk8s kubectl port-forward -n correctexam service/minio 9000 9090
+microk8s kubectl port-forward -n doodle service/minio 9000 9090
 ```
 
 Access the MinIO Console by opening a browser on the local machine and navigating to http://127.0.0.1:9090.
@@ -58,13 +58,13 @@ Log in to the Console with the credentials minioadmin | minioadmin. These are th
 ## build your image locally
 
 ```bash
-git clone -b develop https://github.com/correctexam/corrigeExamBack
+git clone -b develop https://github.com/doodle/corrigeExamBack
 cd corrigeExamBack/src/main/docker
 docker-compose -f app.yml build --no-cache  back front
-docker image tag barais/correctexam-back:latest localhost:32000/barais/correctexam-back:latest
-docker image tag barais/correctexam-front:latest localhost:32000/barais/correctexam-front:latest
-docker image push localhost:32000/barais/correctexam-back:latest
-docker image push localhost:32000/barais/correctexam-front:latest
+docker image tag barais/doodle-back:latest localhost:32000/barais/doodle-back:latest
+docker image tag barais/doodle-front:latest localhost:32000/barais/doodle-front:latest
+docker image push localhost:32000/barais/doodle-back:latest
+docker image push localhost:32000/barais/doodle-front:latest
 ```
 
 
@@ -85,18 +85,18 @@ and the app at http://localhost
 If you want to access the php myadmin service
 
 ```bash
-microk8s kubectl port-forward -n correctexam service/myadmin 8082:80
+microk8s kubectl port-forward -n doodle service/myadmin 8082:80
 ```
 and you can access to phpmyadmin at http://127.0.0.1:8082
 
 ### remove everything
 
 ```bash
-microk8s kubectl delete deploy -n correctexam  correctexam-mysql  back front maildev myadmin
-microk8s kubectl delete service -n correctexam correctexam-mysql  back front maildev myadmin
-microk8s kubectl delete ingress -n correctexam correctexam
-microk8s kubectl delete configmaps -n correctexam  mysqlinit-cfgmap
-microk8s kubectl delete pod -n correctexam minio 
-microk8s kubectl delete service -n correctexam minio 
-microk8s kubectl delete namespace  correctexam
+microk8s kubectl delete deploy -n doodle  doodle-mysql  back front maildev myadmin
+microk8s kubectl delete service -n doodle doodle-mysql  back front maildev myadmin
+microk8s kubectl delete ingress -n doodle doodle
+microk8s kubectl delete configmaps -n doodle  mysqlinit-cfgmap
+microk8s kubectl delete pod -n doodle minio 
+microk8s kubectl delete service -n doodle minio 
+microk8s kubectl delete namespace  doodle
 ```

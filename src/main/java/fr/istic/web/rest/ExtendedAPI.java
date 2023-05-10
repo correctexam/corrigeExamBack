@@ -444,6 +444,7 @@ public class ExtendedAPI {
             if (count > 0) {
                 CourseGroup cgdest = CourseGroup.findByNameandCourse(c.id, g).firstResult();
                 groupesentities.put(g, cgdest);
+
             } else {
                 CourseGroup g1 = new CourseGroup();
                 g1.course = c;
@@ -460,10 +461,18 @@ public class ExtendedAPI {
             st.firstname = s.getPrenom();
             st.mail = s.getMail();
             Student st1 = Student.persistOrUpdate(st);
+            st1.groups.add(groupesentities.get(s.getGroupe()));
             groupesentities.get(s.getGroupe()).students.add(st1);
+            Student.flush();
+            CourseGroup.flush();
+
         });
 
-        groupesentities.values().forEach(gc -> CourseGroup.persistOrUpdate(gc));
+        groupesentities.values().forEach(gc -> {
+            CourseGroup.persistOrUpdate(gc) ;
+            CourseGroup.flush();
+        });
+
         return Response.ok().build();
 
     }
