@@ -854,6 +854,40 @@ public class ExtendedAPI {
 
     @DELETE
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    @Path("/deleteAnswerAndUnsetComment/{studentResponseId}")
+    @Transactional
+    public Response deleteAnswerAndUnsetComment(@PathParam("studentResponseId") long examId, @Context UriInfo uriInfo,
+            @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        Optional<StudentResponse> sr = StudentResponse.findByIdOptional(examId);
+        if (sr.isPresent()) {
+            sr.get().gradedcomments.forEach(gc -> {
+
+                gc.studentResponses.remove(sr.get());
+                gc.persistOrUpdate();
+            }
+            );
+            sr.get().textcomments.forEach(tc -> {
+
+                tc.studentResponses.remove(sr.get());
+                tc.persistOrUpdate();
+            }
+            );
+            sr.get().clearComments();
+            sr.get().delete();
+        }
+        var response = Response.noContent();
+        HeaderUtil.createEntityDeletionAlert(applicationName, true, "studentResponse", "-1")
+                .forEach(response::header);
+        return response.build();
+    }
+
+
+
+    @DELETE
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Path("/deleteAllAnswerAndComment/{examId}")
     @Transactional
     public Response deleteAllAnswerAndComment(@PathParam("examId") long examId, @Context UriInfo uriInfo,
