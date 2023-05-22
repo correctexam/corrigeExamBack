@@ -3,7 +3,7 @@ WORKDIR /app
 ENV NG_CLI_ANALYTICS=ci
 RUN apk update && apk upgrade && \
     apk add --no-cache bash git cairo pango jpeg giflib python3 pkgconfig build-base g++ cairo-dev jpeg-dev pango-dev giflib-dev
-RUN git clone --branch server_auth_cas_test https://github.com/Barbapapou/corrigeExamFront.git
+RUN git https://github.com/correctexam/corrigeExamFront
 WORKDIR /app/corrigeExamFront
 RUN npm install --force
 RUN npm run webapp:build:prod
