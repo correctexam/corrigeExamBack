@@ -378,9 +378,9 @@
                             <requireJavaVersion>
                                 <message>You are running an incompatible version of Java. JHipster Quarkus supports JDK
                                     8 to
-                                    13.
+                                    17.
                                 </message>
-                                <version>[1.8,14)</version>
+                                <version>[1.8,19)</version>
                             </requireJavaVersion>
                         </rules>
                     </configuration>

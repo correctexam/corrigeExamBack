@@ -444,6 +444,7 @@ public class ExtendedAPI {
             if (count > 0) {
                 CourseGroup cgdest = CourseGroup.findByNameandCourse(c.id, g).firstResult();
                 groupesentities.put(g, cgdest);
+
             } else {
                 CourseGroup g1 = new CourseGroup();
                 g1.course = c;
@@ -460,10 +461,18 @@ public class ExtendedAPI {
             st.firstname = s.getPrenom();
             st.mail = s.getMail();
             Student st1 = Student.persistOrUpdate(st);
+            st1.groups.add(groupesentities.get(s.getGroupe()));
             groupesentities.get(s.getGroupe()).students.add(st1);
+            Student.flush();
+            CourseGroup.flush();
+
         });
 
-        groupesentities.values().forEach(gc -> CourseGroup.persistOrUpdate(gc));
+        groupesentities.values().forEach(gc -> {
+            CourseGroup.persistOrUpdate(gc) ;
+            CourseGroup.flush();
+        });
+
         return Response.ok().build();
 
     }
@@ -842,6 +851,40 @@ public class ExtendedAPI {
                 .forEach(response::header);
         return response.build();
     }
+
+    @DELETE
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    @Path("/deleteAnswerAndUnsetComment/{studentResponseId}")
+    @Transactional
+    public Response deleteAnswerAndUnsetComment(@PathParam("studentResponseId") long examId, @Context UriInfo uriInfo,
+            @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        Optional<StudentResponse> sr = StudentResponse.findByIdOptional(examId);
+        if (sr.isPresent()) {
+            sr.get().gradedcomments.forEach(gc -> {
+
+                gc.studentResponses.remove(sr.get());
+                gc.persistOrUpdate();
+            }
+            );
+            sr.get().textcomments.forEach(tc -> {
+
+                tc.studentResponses.remove(sr.get());
+                tc.persistOrUpdate();
+            }
+            );
+            sr.get().clearComments();
+            sr.get().delete();
+        }
+        var response = Response.noContent();
+        HeaderUtil.createEntityDeletionAlert(applicationName, true, "studentResponse", "-1")
+                .forEach(response::header);
+        return response.build();
+    }
+
+
 
     @DELETE
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
