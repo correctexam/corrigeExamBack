@@ -15,6 +15,7 @@
 
 	<addColumn tableName="student_response" >
 		<column name="worststar"  type="boolean"
+			    position="4"
             defaultValueBoolean="false"
             afterColumn="star"
 
