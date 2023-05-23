@@ -45,7 +45,7 @@ public class UserJWTController {
     public Response authorize(@Valid LoginVM loginVM) {
         try {
             QuarkusSecurityIdentity identity = authenticationService.authenticate(loginVM.username, loginVM.password);
-            boolean rememberMe = (loginVM.rememberMe == null) ? false : loginVM.rememberMe;
+            boolean rememberMe = loginVM.rememberMe != null && loginVM.rememberMe;
             String jwt = tokenProvider.createToken(identity, rememberMe);
             return Response.ok().entity(new JWTToken(jwt)).header("Authorization", "Bearer " + jwt).build();
         } catch (SecurityException e) {
