@@ -41,6 +41,11 @@ public class AuthenticationService {
         throw new AuthenticationFailedException("Authentication failed: password does not match stored value");
     }
 
+    public QuarkusSecurityIdentity authenticateNoPwd(String login) {
+        User user = loadByUsername(login);
+        return createQuarkusSecurityIdentity(user);
+    }
+
     private User loadByUsername(String login) {
         log.debug("Authenticating {}", login);
 

@@ -9,14 +9,14 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod,swagger
       - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
-#      - JHIPSTER_SLEEP=30 # gives time for other services to boot before the application
+    #      - JHIPSTER_SLEEP=30 # gives time for other services to boot before the application
     restart: always
     ports:
       - 8080
     command: ./application -Dquarkus.http.host=0.0.0.0 -Dquarkus.datasource.username=root -Dquarkus.datasource.password='' -Dquarkus.datasource.jdbc.url=jdbc:mysql://correctexam-mysql:3306/correctexam?useUnicode=true&characterEncoding=utf8&useSSL=false -Dquarkus.http.cors=true   -Dquarkus.http.cors.methods=GET,PUT,POST,DELETE,PATCH,OPTIONS  -Dquarkus.http.cors.headers=accept,origin,authorization,content-type,x-requested-with -Dquarkus.http.cors.exposed-headers=Content-Disposition -Dquarkus.http.cors.access-control-max-age=24H -Dquarkus.mailer.from=olivier.barais@univ-rennes1.fr -Dquarkus.mailer.host=maildev -Dquarkus.mailer.port=25 -Dquarkus.mailer.ssl=false -Djhipster.mail.base-url=http://localhost:9000 -Dquarkus.minio.allow-empty=false -Dcorrectexam.bucketname=correctexam -Dcorrectexam.uses3=true  -Dquarkus.minio.url=http://minio:9000 -Dquarkus.minio.access-key=admin -Dquarkus.minio.secret-key=minioadmin
 
-#    -Dquarkus.mailer.username=USERNAME -Dquarkus.mailer.password=PASS
-#-Dquarkus.http.cors.origins=https://correctexam.github.io
+  #    -Dquarkus.mailer.username=USERNAME -Dquarkus.mailer.password=PASS
+  #-Dquarkus.http.cors.origins=https://correctexam.github.io
 
   correctexam-mysql:
     extends:
