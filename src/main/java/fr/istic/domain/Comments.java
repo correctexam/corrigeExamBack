@@ -110,5 +110,8 @@ public class Comments extends PanacheEntityBase implements Serializable {
         return delete("delete from Comments as c where SUBSTRING(c.zonegeneratedid, 1, LOCATE('_', c.zonegeneratedid) -1) =?1",examId);
     }
 
+    public static PanacheQuery<Comments>  findCommentByExamId( String examId) {
+        return find("select c from Comments as c where SUBSTRING(c.zonegeneratedid, 1, LOCATE('_', c.zonegeneratedid) -1) =?1",examId);
+    }
 
 }

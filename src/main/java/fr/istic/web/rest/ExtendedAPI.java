@@ -17,6 +17,7 @@ import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.CacheUploadService;
 import fr.istic.service.CourseGroupService;
 import fr.istic.service.CourseService;
+import fr.istic.service.ImportExportService;
 import fr.istic.service.MailService;
 import fr.istic.service.QuestionService;
 import fr.istic.service.ScanService;
@@ -55,7 +56,8 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.io.File;
+
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -71,10 +73,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Map.Entry;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
+
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
 
@@ -127,6 +131,10 @@ public class ExtendedAPI {
     GradedCommentMapper gradedCommentMapper;
     @Inject
     TextCommentMapper textCommentMapper;
+
+    @Inject
+    ImportExportService importExportService;
+
 
     private final class ComparatorImplementation implements Comparator<StudentResponse> {
 
@@ -783,6 +791,38 @@ public class ExtendedAPI {
                         }
                     }, MediaType.APPLICATION_OCTET_STREAM)
                     .header("Content-Disposition", "attachment;filename=" + fileName).build();
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            return Response.noContent().build();
+        }
+    }
+
+    @GET
+    @Path("/exportCourse/{courseId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getFile(@PathParam("courseId") long courseId) {
+        try {
+            return Response.ok(
+                    new StreamingOutput() {
+                        @Override
+                        public void write(OutputStream outputStream) throws IOException, WebApplicationException {
+                            InputStream source = null;
+                            try {
+                                source = new ByteArrayInputStream(new Gson().toJson( importExportService.export(courseId)).getBytes());
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                return;
+                            }
+                            byte[] buf = new byte[8192];
+                            int length;
+                            while ((length = source.read(buf)) != -1) {
+                                outputStream.write(buf, 0, length);
+                            }
+                        }
+                    }, MediaType.APPLICATION_OCTET_STREAM)
+                    .header("Content-Disposition", "attachment;filename=" + courseId +".json").build();
         } catch (Exception e) {
 
             e.printStackTrace();
