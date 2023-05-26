@@ -17,6 +17,7 @@ import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.CacheUploadService;
 import fr.istic.service.CourseGroupService;
 import fr.istic.service.CourseService;
+import fr.istic.service.ImportExportService;
 import fr.istic.service.MailService;
 import fr.istic.service.QuestionService;
 import fr.istic.service.ScanService;
@@ -38,6 +39,7 @@ import fr.istic.service.customdto.ZoneSameCommentDTO;
 import fr.istic.service.customdto.correctexamstate.MarkingExamStateDTO;
 import fr.istic.service.customdto.correctexamstate.QuestionStateDTO;
 import fr.istic.service.customdto.correctexamstate.SheetStateDTO;
+import fr.istic.service.dto.CourseDTO;
 import fr.istic.service.dto.GradedCommentDTO;
 import fr.istic.service.dto.QuestionDTO;
 import fr.istic.service.dto.TextCommentDTO;
@@ -55,7 +57,8 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.io.File;
+
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -71,10 +74,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Map.Entry;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
+
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
 
@@ -127,6 +132,10 @@ public class ExtendedAPI {
     GradedCommentMapper gradedCommentMapper;
     @Inject
     TextCommentMapper textCommentMapper;
+
+    @Inject
+    ImportExportService importExportService;
+
 
     private final class ComparatorImplementation implements Comparator<StudentResponse> {
 
@@ -788,6 +797,83 @@ public class ExtendedAPI {
             e.printStackTrace();
             return Response.noContent().build();
         }
+    }
+
+    @GET
+    @Path("/exportCourse/{courseId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+
+    public Response getFile(@PathParam("courseId") long courseId,@Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, courseId, Course.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        try {
+            return Response.ok(
+                    new StreamingOutput() {
+                        @Override
+                        public void write(OutputStream outputStream) throws IOException, WebApplicationException {
+                            InputStream source = null;
+                            try {
+                                source = new ByteArrayInputStream(new Gson().toJson( importExportService.export(courseId)).getBytes());
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                return;
+                            }
+                            byte[] buf = new byte[8192];
+                            int length;
+                            while ((length = source.read(buf)) != -1) {
+                                outputStream.write(buf, 0, length);
+                            }
+                        }
+                    }, MediaType.APPLICATION_OCTET_STREAM ).header("Content-Disposition", "attachment;filename=" + courseId +".json")
+                    .build();
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            return Response.noContent().build();
+        }
+    }
+
+
+    @POST
+    @Path("/importCourse")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+
+    public Response importCourse(@MultipartForm MultipartFormDataInput input,@Context SecurityContext ctx) {
+        var userLogin = Optional
+            .ofNullable(ctx.getUserPrincipal().getName());
+        if (!userLogin.isPresent()){
+            throw new AccountResourceException("Current user login not found");
+        }
+        var user = User.findOneByLogin(userLogin.get());
+        if (!user.isPresent()) {
+            throw new AccountResourceException("User could not be found");
+        }
+        if (!userLogin.equals("system")){
+
+//            courseDTO.profId =user.get().id;
+
+        try {
+
+
+
+            CourseDTO dto = importExportService.importCourse(input,user.get());
+            if (dto != null){
+                return Response.ok().entity(dto).build();
+            } else {
+                return Response.noContent().build();
+
+            }
+        } catch (Exception e) {
+            return Response.serverError().build();
+
+        }
+        }
+        throw new AccountResourceException("User could not be found");
     }
 
     /**

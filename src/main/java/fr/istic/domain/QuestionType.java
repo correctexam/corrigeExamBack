@@ -1,5 +1,6 @@
 package fr.istic.domain;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 import javax.persistence.*;
@@ -92,6 +93,11 @@ public class QuestionType extends PanacheEntityBase implements Serializable {
             return update(questionType);
         }
     }
+
+    public static PanacheQuery<QuestionType> findQuestionTypebyAlgoName( String algoName) {
+        return find("select questionType from QuestionType questionType where questionType.algoName =?1", algoName);
+    }
+
 
 
 }

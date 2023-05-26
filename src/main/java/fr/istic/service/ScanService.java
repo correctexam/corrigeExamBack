@@ -268,7 +268,7 @@ public class ScanService {
         byte[] b64bytes  = encoder.decode(bytes);
 
         if (this.uses3){
-            String fileName = "scan/" +  + scanId + ".pdf";
+            String fileName = "scan/" +  scanId + ".pdf";
             try {
                 this.putObject(fileName, b64bytes,contenttype);
             } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
