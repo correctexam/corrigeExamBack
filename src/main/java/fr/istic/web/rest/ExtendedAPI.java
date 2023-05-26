@@ -802,7 +802,12 @@ public class ExtendedAPI {
     @GET
     @Path("/exportCourse/{courseId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getFile(@PathParam("courseId") long courseId) {
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+
+    public Response getFile(@PathParam("courseId") long courseId,@Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, courseId, Course.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         try {
             return Response.ok(
                     new StreamingOutput() {
