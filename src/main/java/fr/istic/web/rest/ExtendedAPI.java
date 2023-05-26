@@ -822,8 +822,8 @@ public class ExtendedAPI {
                                 outputStream.write(buf, 0, length);
                             }
                         }
-                    }, MediaType.APPLICATION_OCTET_STREAM)
-                    .header("Content-Disposition", "attachment;filename=" + courseId +".json").build();
+                    }, MediaType.APPLICATION_OCTET_STREAM ).header("Content-Disposition", "attachment;filename=" + courseId +".json")
+                    .build();
         } catch (Exception e) {
 
             e.printStackTrace();
@@ -836,12 +836,27 @@ public class ExtendedAPI {
     @Path("/importCourse")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importCourse(@MultipartForm MultipartFormDataInput input) {
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+
+    public Response importCourse(@MultipartForm MultipartFormDataInput input,@Context SecurityContext ctx) {
+        var userLogin = Optional
+            .ofNullable(ctx.getUserPrincipal().getName());
+        if (!userLogin.isPresent()){
+            throw new AccountResourceException("Current user login not found");
+        }
+        var user = User.findOneByLogin(userLogin.get());
+        if (!user.isPresent()) {
+            throw new AccountResourceException("User could not be found");
+        }
+        if (!userLogin.equals("system")){
+
+//            courseDTO.profId =user.get().id;
+
         try {
 
 
 
-            CourseDTO dto = importExportService.importCourse(input);
+            CourseDTO dto = importExportService.importCourse(input,user.get());
             if (dto != null){
                 return Response.ok().entity(dto).build();
             } else {
@@ -852,6 +867,8 @@ public class ExtendedAPI {
             return Response.serverError().build();
 
         }
+        }
+        throw new AccountResourceException("User could not be found");
     }
 
     /**

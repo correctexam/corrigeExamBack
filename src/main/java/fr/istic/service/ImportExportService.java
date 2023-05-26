@@ -18,7 +18,6 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.core.MultivaluedMap;
 
-import org.apache.commons.io.IOUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
@@ -28,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
@@ -46,6 +44,7 @@ import fr.istic.domain.Student;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.Template;
 import fr.istic.domain.TextComment;
+import fr.istic.domain.User;
 import fr.istic.domain.Zone;
 import fr.istic.domain.enumeration.GradeType;
 import fr.istic.service.dto.CourseDTO;
@@ -172,7 +171,7 @@ public class ImportExportService {
                     byte[] encodedContent = encoder
                             .encode(template.content);
 
-                    templateJ.addProperty("content", new String(encodedContent));
+                     templateJ.addProperty("content", new String(encodedContent));
 
                 }
                 templateJ.addProperty("mark", template.mark);
@@ -193,6 +192,8 @@ public class ImportExportService {
                 Scan scan = Scan.findById(exam.scanfile.id);
                 JsonObject scanJ = new JsonObject();
                 UUID scanU = UUID.randomUUID();
+                scansUID.put(scan.id, scanU);
+
                 uuidMap.put(scanU, scan.id);
                 scanJ.addProperty("uuid", scanU.toString());
                 scanJ.addProperty("name", scan.name);
@@ -216,7 +217,6 @@ public class ImportExportService {
 
                 scanJ.addProperty("contentContentType", scan.contentContentType);
                 scans.add(scanJ);
-                scansUID.put(scan.id, scanU);
             }
         });
 
@@ -229,19 +229,19 @@ public class ImportExportService {
             Exam exam = Exam.findById(examid);
             if (exam.idzone != null) {
                 Zone zone = Zone.findById(exam.idzone.id);
-                createZone("idzone", zone, zonesUID, zones, uuidMap);
+                createZone(zone, zonesUID, zones, uuidMap);
             }
             if (exam.namezone != null) {
                 Zone zone = Zone.findById(exam.namezone.id);
-                createZone("namezone", zone, zonesUID, zones, uuidMap);
+                createZone( zone, zonesUID, zones, uuidMap);
             }
             if (exam.firstnamezone != null) {
                 Zone zone = Zone.findById(exam.firstnamezone.id);
-                createZone("firstnamezone", zone, zonesUID, zones, uuidMap);
+                createZone( zone, zonesUID, zones, uuidMap);
             }
             if (exam.notezone != null) {
                 Zone zone = Zone.findById(exam.notezone.id);
-                createZone("notezone", zone, zonesUID, zones, uuidMap);
+                createZone(zone, zonesUID, zones, uuidMap);
             }
         });
 
@@ -267,7 +267,7 @@ public class ImportExportService {
                 if (question.zone != null) {
 
                     Zone zone = Zone.findById(question.zone.id);
-                    createZone("question", zone, zonesUID, zones, uuidMap);
+                    createZone(zone, zonesUID, zones, uuidMap);
                 }
                 questions.add(questionJ);
                 questionsUID.put(question.id, questionU);
@@ -512,7 +512,7 @@ public class ImportExportService {
                 JsonObject ob = new JsonObject();
                 ob.addProperty("left", examsUID.get(exid).toString());
                 ob.addProperty("right", questionsUID.get(q.id).toString());
-                examsscanfileR.add(ob);
+                examsquestionsR.add(ob);
 
             });
         });
@@ -536,11 +536,9 @@ public class ImportExportService {
             JsonObject ob = new JsonObject();
             ob.addProperty("left", finalResultsUID.get(frid).toString());
             if (fr.exam != null) {
-
                 ob.addProperty("right", examsUID.get(fr.exam.id).toString());
                 finalResultStudentR.add(ob);
             }
-
         });
 
         JsonArray studentResponsesQuestionR = new JsonArray();
@@ -601,8 +599,10 @@ public class ImportExportService {
                 ob.addProperty("left", questionsUID.get(sid).toString());
                 ob.addProperty("right", zonesUID.get(s.zone.id).toString());
                 questionZoneR.add(ob);
-
+            } else {
+                log.error("question without zone");
             }
+
         });
 
         JsonArray questionTextCommentsR = new JsonArray();
@@ -687,7 +687,7 @@ public class ImportExportService {
 
     }
 
-    private void createZone(String idzone, Zone zone, Map<Long, UUID> zonesUID, JsonArray zones,
+    private void createZone(Zone zone, Map<Long, UUID> zonesUID, JsonArray zones,
             Map<UUID, Long> uuidMap) {
         JsonObject zoneJ = new JsonObject();
         UUID zoneU = UUID.randomUUID();
@@ -698,12 +698,11 @@ public class ImportExportService {
         zoneJ.addProperty("xInit", zone.xInit);
         zoneJ.addProperty("yInit", zone.yInit);
         zoneJ.addProperty("pageNumber", zone.pageNumber);
-        zoneJ.addProperty("idzone", idzone);
         zones.add(zoneJ);
         zonesUID.put(zone.id, zoneU);
     }
 
-    public Course importCourse(JsonObject _course) {
+    public Course importCourse(JsonObject _course, User user) {
         Map<Long, String> importstudentsUID = new HashMap<>();
         Map<Long, String> importexamsUID = new HashMap<>();
         _course.getAsJsonArray("studentIdUidMappings").forEach(st -> {
@@ -721,6 +720,7 @@ public class ImportExportService {
         JsonObject courseJ = _course.getAsJsonObject("course");
         course.name = courseJ.get("name").getAsString();
         course.persistAndFlush();
+        course.profs.add(user);
 
         Map<String, Long> uuidId = new HashMap<>();
         _course.getAsJsonArray("groups").forEach(gr -> {
@@ -730,6 +730,8 @@ public class ImportExportService {
             uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), group.id);
         });
 
+
+
         _course.getAsJsonArray("exams").forEach(gr -> {
             Exam exam = new Exam();
             exam.name = gr.getAsJsonObject().get("name").getAsString();
@@ -737,24 +739,50 @@ public class ImportExportService {
             uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), exam.id);
         });
 
+
+
         _course.getAsJsonArray("students").forEach(gr -> {
             Student student = new Student();
-            student.name = gr.getAsJsonObject().get("name").getAsString();
-            student.firstname = gr.getAsJsonObject().get("firstname").getAsString();
-            student.caslogin = gr.getAsJsonObject().get("caslogin").getAsString();
-            student.ine = gr.getAsJsonObject().get("ine").getAsString();
-            student.mail = gr.getAsJsonObject().get("mail").getAsString();
+            if (gr.getAsJsonObject().get("name") != null){
+                student.name = gr.getAsJsonObject().get("name").getAsString();
+            }
+            if (gr.getAsJsonObject().get("firstname") != null){
+                student.firstname = gr.getAsJsonObject().get("firstname").getAsString();
+            }
+            if (gr.getAsJsonObject().get("caslogin") != null){
+                student.caslogin = gr.getAsJsonObject().get("caslogin").getAsString();
+            }
+            if (gr.getAsJsonObject().get("ine") != null){
+                student.ine = gr.getAsJsonObject().get("ine").getAsString();
+            }
+            if (gr.getAsJsonObject().get("mail") != null){
+                student.ine = gr.getAsJsonObject().get("mail").getAsString();
+            }
+
             student.persistAndFlush();
             uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), student.id);
         });
 
+
+
+
         _course.getAsJsonArray("templates").forEach(gr -> {
             Template template = new Template();
-            template.name = gr.getAsJsonObject().get("name").getAsString();
-            template.autoMapStudentCopyToList = gr.getAsJsonObject().get("autoMapStudentCopyToList").getAsBoolean();
-            template.contentContentType = gr.getAsJsonObject().get("contentContentType").getAsString();
-            template.mark = gr.getAsJsonObject().get("mark").getAsBoolean();
+            if (gr.getAsJsonObject().get("name") != null){
+                template.name = gr.getAsJsonObject().get("name").getAsString();
+            }
+            if (gr.getAsJsonObject().get("autoMapStudentCopyToList") != null){
+                template.autoMapStudentCopyToList = gr.getAsJsonObject().get("autoMapStudentCopyToList").getAsBoolean();
+            }
+            if (gr.getAsJsonObject().get("contentContentType") != null){
+                template.contentContentType = gr.getAsJsonObject().get("contentContentType").getAsString();
+            }
+            if (gr.getAsJsonObject().get("mark") != null){
+                template.mark = gr.getAsJsonObject().get("mark").getAsBoolean();
+            }
             template.persistAndFlush();
+            if ( gr.getAsJsonObject().get("content")!= null){
+
 
             byte[] bytes = gr.getAsJsonObject().get("content").getAsString().getBytes();
 
@@ -772,15 +800,26 @@ public class ImportExportService {
                 template.content = b64bytes;
                 template.persistAndFlush();
             }
+        }
 
             uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), template.id);
         });
 
-        _course.getAsJsonArray("templates").forEach(gr -> {
+        _course.getAsJsonArray("scans").forEach(gr -> {
             Scan scan = new Scan();
-            scan.name = gr.getAsJsonObject().get("name").getAsString();
-            scan.contentContentType = gr.getAsJsonObject().get("contentContentType").getAsString();
+
+            if (gr.getAsJsonObject().get("name") != null){
+                scan.name = gr.getAsJsonObject().get("name").getAsString();
+            }
+            if (gr.getAsJsonObject().get("contentContentType") != null){
+                scan.contentContentType = gr.getAsJsonObject().get("contentContentType").getAsString();
+            }
             scan.persistAndFlush();
+            uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), scan.id);
+
+            if ( gr.getAsJsonObject().get("content")!= null){
+
+
             byte[] bytes = gr.getAsJsonObject().get("content").getAsString().getBytes();
 
             Base64.Decoder decoder = Base64.getDecoder();
@@ -797,16 +836,27 @@ public class ImportExportService {
                 scan.content = b64bytes;
                 scan.persistAndFlush();
             }
-            uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), scan.id);
+            }
         });
 
         _course.getAsJsonArray("zones").forEach(gr -> {
             Zone zone = new Zone();
-            zone.height = gr.getAsJsonObject().get("height").getAsInt();
-            zone.width = gr.getAsJsonObject().get("width").getAsInt();
-            zone.xInit = gr.getAsJsonObject().get("xInit").getAsInt();
-            zone.yInit = gr.getAsJsonObject().get("yInit").getAsInt();
-            zone.pageNumber = gr.getAsJsonObject().get("pageNumber").getAsInt();
+            if (gr.getAsJsonObject().get("height") != null){
+                zone.height = gr.getAsJsonObject().get("height").getAsInt();
+
+            }
+            if (gr.getAsJsonObject().get("width") != null){
+                zone.width = gr.getAsJsonObject().get("width").getAsInt();
+            }
+            if (gr.getAsJsonObject().get("xInit") != null){
+                zone.xInit = gr.getAsJsonObject().get("xInit").getAsInt();
+            }
+            if (gr.getAsJsonObject().get("yInit") != null){
+                zone.yInit = gr.getAsJsonObject().get("yInit").getAsInt();
+            }
+            if (gr.getAsJsonObject().get("pageNumber") != null){
+                zone.pageNumber = gr.getAsJsonObject().get("pageNumber").getAsInt();
+            }
             zone.persistAndFlush();
             uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), zone.id);
         });
@@ -814,34 +864,60 @@ public class ImportExportService {
         // Questions
         _course.getAsJsonArray("questions").forEach(gr -> {
             Question question = new Question();
-            question.numero = gr.getAsJsonObject().get("numero").getAsInt();
-            question.quarterpoint = gr.getAsJsonObject().get("quarterpoint").getAsInt();
-            question.step = gr.getAsJsonObject().get("step").getAsInt();
-            question.validExpression = gr.getAsJsonObject().get("validExpression").getAsString();
-            question.gradeType = GradeType.valueOf(gr.getAsJsonObject().get("gradeType").getAsString());
-            question.type = QuestionType.findQuestionTypebyAlgoName(gr.getAsJsonObject().get("type").getAsString())
+            if (gr.getAsJsonObject().get("numero") != null){
+                question.numero = gr.getAsJsonObject().get("numero").getAsInt();
+            }
+            if (gr.getAsJsonObject().get("quarterpoint") != null){
+                question.quarterpoint = gr.getAsJsonObject().get("quarterpoint").getAsInt();
+            }
+            if (gr.getAsJsonObject().get("step") != null){
+                question.step = gr.getAsJsonObject().get("step").getAsInt();
+            }
+            if (gr.getAsJsonObject().get("validExpression") != null){
+                question.validExpression = gr.getAsJsonObject().get("validExpression").getAsString();
+            }
+            if (gr.getAsJsonObject().get("gradeType") != null){
+                question.gradeType = GradeType.valueOf(gr.getAsJsonObject().get("gradeType").getAsString());
+            }
+            if (gr.getAsJsonObject().get("type") != null){
+                question.type = QuestionType.findQuestionTypebyAlgoName(gr.getAsJsonObject().get("type").getAsString())
                     .firstResult();
+            }
             question.persistAndFlush();
             uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), question.id);
         });
 
         // TextComments
-        _course.getAsJsonArray("questions").forEach(gr -> {
+        _course.getAsJsonArray("textcomments").forEach(gr -> {
             TextComment textComment = new TextComment();
-            textComment.text = gr.getAsJsonObject().get("text").getAsString();
-            textComment.description = gr.getAsJsonObject().get("description").getAsString();
-            textComment.zonegeneratedid = gr.getAsJsonObject().get("zonegeneratedid").getAsString();
+            if (gr.getAsJsonObject().get("text") != null){
+                textComment.text = gr.getAsJsonObject().get("text").getAsString();
+            }
+            if (gr.getAsJsonObject().get("description") != null){
+                textComment.description = gr.getAsJsonObject().get("description").getAsString();
+            }
+            if (gr.getAsJsonObject().get("zonegeneratedid") != null){
+                textComment.zonegeneratedid = gr.getAsJsonObject().get("zonegeneratedid").getAsString();
+            }
             textComment.persistAndFlush();
             uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), textComment.id);
         });
 
         // GradedComments
-        _course.getAsJsonArray("questions").forEach(gr -> {
+        _course.getAsJsonArray("gradedcomments").forEach(gr -> {
             GradedComment gradedComment = new GradedComment();
-            gradedComment.text = gr.getAsJsonObject().get("text").getAsString();
-            gradedComment.description = gr.getAsJsonObject().get("description").getAsString();
-            gradedComment.zonegeneratedid = gr.getAsJsonObject().get("zonegeneratedid").getAsString();
-            gradedComment.gradequarter = gr.getAsJsonObject().get("gradequarter").getAsInt();
+            if (gr.getAsJsonObject().get("text") != null){
+                gradedComment.text = gr.getAsJsonObject().get("text").getAsString();
+            }
+            if (gr.getAsJsonObject().get("description") != null){
+                gradedComment.description = gr.getAsJsonObject().get("description").getAsString();
+            }
+            if (gr.getAsJsonObject().get("zonegeneratedid") != null){
+                gradedComment.zonegeneratedid = gr.getAsJsonObject().get("zonegeneratedid").getAsString();
+            }
+            if (gr.getAsJsonObject().get("gradequarter") != null){
+                gradedComment.gradequarter = gr.getAsJsonObject().get("gradequarter").getAsInt();
+            }
             gradedComment.persistAndFlush();
             uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), gradedComment.id);
         });
@@ -849,9 +925,15 @@ public class ImportExportService {
         // ExamSheets
         _course.getAsJsonArray("examSheets").forEach(gr -> {
             ExamSheet examSheet = new ExamSheet();
-            examSheet.name = gr.getAsJsonObject().get("name").getAsString();
-            examSheet.pagemax = gr.getAsJsonObject().get("pagemax").getAsInt();
-            examSheet.pagemin = gr.getAsJsonObject().get("pagemin").getAsInt();
+            if (gr.getAsJsonObject().get("name") != null){
+                examSheet.name = gr.getAsJsonObject().get("name").getAsString();
+            }
+            if (gr.getAsJsonObject().get("pagemax") != null){
+                examSheet.pagemax = gr.getAsJsonObject().get("pagemax").getAsInt();
+            }
+            if (gr.getAsJsonObject().get("pagemin") != null){
+                examSheet.pagemin = gr.getAsJsonObject().get("pagemin").getAsInt();
+            }
             examSheet.persistAndFlush();
             uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), examSheet.id);
         });
@@ -860,9 +942,15 @@ public class ImportExportService {
 
         _course.getAsJsonArray("studentResponses").forEach(gr -> {
             StudentResponse studentResponse = new StudentResponse();
-            studentResponse.star = gr.getAsJsonObject().get("star").getAsBoolean();
-            studentResponse.worststar = gr.getAsJsonObject().get("worststar").getAsBoolean();
-            studentResponse.quarternote = gr.getAsJsonObject().get("quarternote").getAsInt();
+            if (gr.getAsJsonObject().get("star") != null){
+                studentResponse.star = gr.getAsJsonObject().get("star").getAsBoolean();
+            }
+            if (gr.getAsJsonObject().get("worststar") != null){
+                studentResponse.worststar = gr.getAsJsonObject().get("worststar").getAsBoolean();
+            }
+            if (gr.getAsJsonObject().get("quarternote") != null){
+                studentResponse.quarternote = gr.getAsJsonObject().get("quarternote").getAsInt();
+            }
             studentResponse.persistAndFlush();
             uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), studentResponse.id);
         });
@@ -870,10 +958,13 @@ public class ImportExportService {
         // FinalResult
         _course.getAsJsonArray("finalResults").forEach(gr -> {
             FinalResult finalResult = new FinalResult();
-            finalResult.note = gr.getAsJsonObject().get("note").getAsInt();
-            finalResult.persistAndFlush();
+            if (gr.getAsJsonObject().get("note") != null){
+                finalResult.note = gr.getAsJsonObject().get("note").getAsInt();
+                }
+                    finalResult.persistAndFlush();
             uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), finalResult.id);
         });
+
 
         // Comment
         _course.getAsJsonArray("comments").forEach(gr -> {
@@ -933,8 +1024,9 @@ public class ImportExportService {
             Exam ex = Exam.findById(uuidId.get(left));
             Template st = Template.findById(uuidId.get(right));
             ex.template = st;
-            st.exam = ex;
+//            st.exam = ex;
         });
+
 
         _course.getAsJsonArray("examsidzoneR").forEach(gr -> {
             String left = gr.getAsJsonObject().get("left").getAsString();
@@ -974,6 +1066,7 @@ public class ImportExportService {
             Exam ex = Exam.findById(uuidId.get(left));
             Scan st = Scan.findById(uuidId.get(right));
             ex.scanfile = st;
+
         });
 
         _course.getAsJsonArray("examsquestionsR").forEach(gr -> {
@@ -1000,6 +1093,7 @@ public class ImportExportService {
             Exam st = Exam.findById(uuidId.get(right));
             ex.exam = st;
         });
+
 
         _course.getAsJsonArray("studentResponsesQuestionR").forEach(gr -> {
             String left = gr.getAsJsonObject().get("left").getAsString();
@@ -1029,6 +1123,7 @@ public class ImportExportService {
         _course.getAsJsonArray("scanExamSheetsR").forEach(gr -> {
             String left = gr.getAsJsonObject().get("left").getAsString();
             String right = gr.getAsJsonObject().get("right").getAsString();
+
             Scan ex = Scan.findById(uuidId.get(left));
             ExamSheet st = ExamSheet.findById(uuidId.get(right));
             ex.sheets.add(st);
@@ -1096,7 +1191,7 @@ public class ImportExportService {
         this.fichierS3Service.putObject(name, bytes, contenttype);
     }
 
-    public CourseDTO importCourse(MultipartFormDataInput input) {
+    public CourseDTO importCourse(MultipartFormDataInput input, User user) {
         Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
 
         List<String> fileNames = new ArrayList<>();
@@ -1111,7 +1206,8 @@ public class ImportExportService {
                     inputStream = inputPart.getBody(InputStream.class, null);
                     JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
                     JsonElement jelement = JsonParser.parseReader(reader);
-                    Course c  = this.importCourse(jelement.getAsJsonObject());
+                    Course c  = this.importCourse(jelement.getAsJsonObject(),user);
+
                     return courseMapper.toDto(c);
                     } catch (IOException e) {
                     e.printStackTrace();
