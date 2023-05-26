@@ -1,8 +1,11 @@
 package fr.istic.service;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -13,13 +16,21 @@ import java.util.UUID;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.resteasy.plugins.providers.multipart.InputPart;
+import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 
 import fr.istic.domain.Comments;
 import fr.istic.domain.Course;
@@ -37,6 +48,8 @@ import fr.istic.domain.Template;
 import fr.istic.domain.TextComment;
 import fr.istic.domain.Zone;
 import fr.istic.domain.enumeration.GradeType;
+import fr.istic.service.dto.CourseDTO;
+import fr.istic.service.mapper.CourseMapper;
 
 class Relation {
     public String left, right;
@@ -58,6 +71,10 @@ public class ImportExportService {
 
     @Inject
     FichierS3Service fichierS3Service;
+
+    @Inject
+    CourseMapper courseMapper;
+
 
     public JsonObject export(long courseId) {
         Map<UUID, Long> uuidMap = new HashMap<UUID, Long>();
@@ -686,7 +703,7 @@ public class ImportExportService {
         zonesUID.put(zone.id, zoneU);
     }
 
-    public long importCourse(JsonObject _course) {
+    public Course importCourse(JsonObject _course) {
         Map<Long, String> importstudentsUID = new HashMap<>();
         Map<Long, String> importexamsUID = new HashMap<>();
         _course.getAsJsonArray("studentIdUidMappings").forEach(st -> {
@@ -870,12 +887,12 @@ public class ImportExportService {
                 String studentId = t.nextToken();
                 String questiono = t.nextToken();
                 String index = t.nextToken();
-            /*
-             * '' + this.exam!.id + '_' + this.selectionStudents![0].id + '_' +
-             * this.questionno + '_' + index
-             *
-             */
-            comment.zonegeneratedid = "" + uuidId.get(importexamsUID.get(Long.parseLong(examId))) + "_" +
+                /*
+                 * '' + this.exam!.id + '_' + this.selectionStudents![0].id + '_' +
+                 * this.questionno + '_' + index
+                 *
+                 */
+                comment.zonegeneratedid = "" + uuidId.get(importexamsUID.get(Long.parseLong(examId))) + "_" +
                         uuidId.get(importstudentsUID.get(Long.parseLong(studentId))) + "_" + questiono + "_" + index;
             }
 
@@ -1070,13 +1087,49 @@ public class ImportExportService {
             ex.zone = st;
         });
 
-        return course.id;
+        return course;
 
     }
 
     protected void putObject(String name, byte[] bytes, String contenttype)
             throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException {
         this.fichierS3Service.putObject(name, bytes, contenttype);
+    }
+
+    public CourseDTO importCourse(MultipartFormDataInput input) {
+        Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
+
+        List<String> fileNames = new ArrayList<>();
+        List<InputPart> inputParts = uploadForm.get("file");
+        String fileName = null;
+        for (InputPart inputPart : inputParts) {
+                MultivaluedMap<String, String> header = inputPart.getHeaders();
+                fileName = getFileName(header);
+                fileNames.add(fileName);
+                InputStream inputStream;
+                try {
+                    inputStream = inputPart.getBody(InputStream.class, null);
+                    JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
+                    JsonElement jelement = JsonParser.parseReader(reader);
+                    Course c  = this.importCourse(jelement.getAsJsonObject());
+                    return courseMapper.toDto(c);
+                    } catch (IOException e) {
+                    e.printStackTrace();
+                }
+        }
+        return null;
+    }
+
+    protected String getFileName(MultivaluedMap<String, String> header) {
+        String[] contentDisposition = header.getFirst("Content-Disposition").split(";");
+        for (String filename : contentDisposition) {
+            if ((filename.trim().startsWith("filename"))) {
+                String[] name = filename.split("=");
+                String finalFileName = name[1].trim().replaceAll("\"", "");
+                return finalFileName;
+            }
+        }
+        return "";
     }
 
 }

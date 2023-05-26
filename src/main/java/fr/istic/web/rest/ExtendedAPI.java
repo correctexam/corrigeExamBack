@@ -39,6 +39,7 @@ import fr.istic.service.customdto.ZoneSameCommentDTO;
 import fr.istic.service.customdto.correctexamstate.MarkingExamStateDTO;
 import fr.istic.service.customdto.correctexamstate.QuestionStateDTO;
 import fr.istic.service.customdto.correctexamstate.SheetStateDTO;
+import fr.istic.service.dto.CourseDTO;
 import fr.istic.service.dto.GradedCommentDTO;
 import fr.istic.service.dto.QuestionDTO;
 import fr.istic.service.dto.TextCommentDTO;
@@ -827,6 +828,29 @@ public class ExtendedAPI {
 
             e.printStackTrace();
             return Response.noContent().build();
+        }
+    }
+
+
+    @POST
+    @Path("/importCourse")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response importCourse(@MultipartForm MultipartFormDataInput input) {
+        try {
+
+
+
+            CourseDTO dto = importExportService.importCourse(input);
+            if (dto != null){
+                return Response.ok().entity(dto).build();
+            } else {
+                return Response.noContent().build();
+
+            }
+        } catch (Exception e) {
+            return Response.serverError().build();
+
         }
     }
 
