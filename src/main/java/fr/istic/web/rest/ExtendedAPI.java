@@ -82,7 +82,6 @@ import com.google.gson.Gson;
 
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
-
 /**
  * REST controller for managing {@link fr.istic.domain.Comments}.
  */
@@ -136,7 +135,6 @@ public class ExtendedAPI {
     @Inject
     ImportExportService importExportService;
 
-
     private final class ComparatorImplementation implements Comparator<StudentResponse> {
 
         @Override
@@ -144,6 +142,7 @@ public class ExtendedAPI {
             return arg0.sheet.pagemin - arg1.sheet.pagemin;
         }
     }
+
     private final class ComparatorImplementation2 implements Comparator<StudentResponse> {
 
         @Override
@@ -151,6 +150,7 @@ public class ExtendedAPI {
             return arg0.question.numero - arg1.question.numero;
         }
     }
+
     private static class AccountResourceException extends RuntimeException {
 
         private AccountResourceException(String message) {
@@ -166,15 +166,16 @@ public class ExtendedAPI {
     private Exam computeFinalNote(long examId) {
         List<StudentResponse> studentResp = StudentResponse.getAllStudentResponseWithexamId(examId).list();
         Map<ExamSheet, List<StudentResponse>> mapstudentResp = studentResp.stream()
-        .collect(Collectors.groupingBy(StudentResponse::getCSheet));
-
+                .collect(Collectors.groupingBy(StudentResponse::getCSheet));
 
         Exam ex = Exam.findById(examId);
-//        List<ExamSheet> sheets = ExamSheet.findExamSheetByScan(ex.scanfile.id).list();
-//        sheets.forEach(sh -> {
-    mapstudentResp.forEach((sh, resps) -> {
-        // Compute Note
-//            List<StudentResponse> resps = StudentResponse.findStudentResponsesbysheetId(sh.id).list();
+        // List<ExamSheet> sheets =
+        // ExamSheet.findExamSheetByScan(ex.scanfile.id).list();
+        // sheets.forEach(sh -> {
+        mapstudentResp.forEach((sh, resps) -> {
+            // Compute Note
+            // List<StudentResponse> resps =
+            // StudentResponse.findStudentResponsesbysheetId(sh.id).list();
             var finalnote = 0;
             for (StudentResponse resp : resps) {
                 if (resp.question.gradeType == GradeType.DIRECT && !"QCM".equals(resp.question.type.algoName)) {
@@ -333,18 +334,22 @@ public class ExtendedAPI {
         }
         Exam ex = this.computeFinalNote(examId);
         List<StudentResultDTO> results = new ArrayList<>();
-        List<Long>  studentsId= new ArrayList<>();
-//        List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
-//        students.forEach(student -> {
-//            long count = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).count();
-//            if (count > 0) {
-                List<FinalResult> rs = FinalResult.getAll4ExamIdFetchSheet(examId).list();
-                rs.forEach(r -> {
-//                FinalResult r = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).firstResult();
-                List<ExamSheet> sheets  = r.exam.scanfile.sheets.stream().filter(sh -> sh.students.contains(r.student)).collect(Collectors.toList());
-                if (sheets.size() > 0) {
-                ExamSheet sheet=   sheets.get(0);
-                // ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id, r.student.id).firstResult();
+        List<Long> studentsId = new ArrayList<>();
+        // List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
+        // students.forEach(student -> {
+        // long count = FinalResult.findFinalResultByStudentIdAndExamId(student.id,
+        // ex.id).count();
+        // if (count > 0) {
+        List<FinalResult> rs = FinalResult.getAll4ExamIdFetchSheet(examId).list();
+        rs.forEach(r -> {
+            // FinalResult r = FinalResult.findFinalResultByStudentIdAndExamId(student.id,
+            // ex.id).firstResult();
+            List<ExamSheet> sheets = r.exam.scanfile.sheets.stream().filter(sh -> sh.students.contains(r.student))
+                    .collect(Collectors.toList());
+            if (sheets.size() > 0) {
+                ExamSheet sheet = sheets.get(0);
+                // ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id,
+                // r.student.id).firstResult();
                 String uuid = sheet.name;
                 int studentnumber = (sheet.pagemin / (sheet.pagemax - sheet.pagemin + 1)) + 1;
                 var res = new StudentResultDTO();
@@ -376,24 +381,26 @@ public class ExtendedAPI {
                 });
                 results.add(res);
             }
-            /* } )/*else {
-                var res = new StudentResultDTO();
-                res.setNom(student.name);
-                res.setPrenom(student.firstname);
-                res.setIne(student.ine);
-                res.setMail(student.mail);
-                res.setAbi(true);
-                results.add(res);
-            }*/
+            /*
+             * } )/*else {
+             * var res = new StudentResultDTO();
+             * res.setNom(student.name);
+             * res.setPrenom(student.firstname);
+             * res.setIne(student.ine);
+             * res.setMail(student.mail);
+             * res.setAbi(true);
+             * results.add(res);
+             * }
+             */
         });
 
         Collections.sort(results, new Comparator<StudentResultDTO>() {
             @Override
             public int compare(StudentResultDTO arg0, StudentResultDTO arg1) {
-                if (arg0.getNom() == null){
+                if (arg0.getNom() == null) {
                     return -1;
                 } else {
-                    if (arg0.getPrenom() != null && arg0.getNom().equals(arg1.getNom())){
+                    if (arg0.getPrenom() != null && arg0.getNom().equals(arg1.getNom())) {
                         return arg0.getPrenom().compareTo(arg1.getPrenom());
 
                     } else {
@@ -408,10 +415,10 @@ public class ExtendedAPI {
         Collections.sort(studentsAbi, new Comparator<Student>() {
             @Override
             public int compare(Student arg0, Student arg1) {
-                if (arg0.name == null){
+                if (arg0.name == null) {
                     return -1;
                 } else {
-                    if (arg0.firstname != null && arg0.name.equals(arg1.name)){
+                    if (arg0.firstname != null && arg0.name.equals(arg1.name)) {
                         return arg0.firstname.compareTo(arg1.firstname);
 
                     } else {
@@ -422,7 +429,7 @@ public class ExtendedAPI {
 
         });
 
-        studentsAbi.forEach(student-> {
+        studentsAbi.forEach(student -> {
             var res = new StudentResultDTO();
             res.setNom(student.name);
             res.setPrenom(student.firstname);
@@ -430,7 +437,7 @@ public class ExtendedAPI {
             res.setMail(student.mail);
             res.setAbi(true);
             results.add(res);
-        } );
+        });
 
         return Response.ok().entity(results).build();
     }
@@ -478,7 +485,7 @@ public class ExtendedAPI {
         });
 
         groupesentities.values().forEach(gc -> {
-            CourseGroup.persistOrUpdate(gc) ;
+            CourseGroup.persistOrUpdate(gc);
             CourseGroup.flush();
         });
 
@@ -716,22 +723,27 @@ public class ExtendedAPI {
 
         }
     }
-   /*     @GET
-    @Path("/getCacheAlignPageSqlite/{examId}/{pageId}")
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response getCacheAlignPageSqlite(@PathParam("examId") long examId, @PathParam("pageId") int pageId) {
-        try {
-            return Response
-                    .status(Response.Status.OK)
-                    .entity(cacheUploadService.getAlignPageSqlite(examId, pageId, false))
-                    .type(MediaType.TEXT_PLAIN)
-                    .build();
-
-        } catch (Exception e) {
-            return Response.serverError().build();
-
-        }
-    }*/
+    /*
+     * @GET
+     *
+     * @Path("/getCacheAlignPageSqlite/{examId}/{pageId}")
+     *
+     * @Produces(MediaType.TEXT_PLAIN)
+     * public Response getCacheAlignPageSqlite(@PathParam("examId") long
+     * examId, @PathParam("pageId") int pageId) {
+     * try {
+     * return Response
+     * .status(Response.Status.OK)
+     * .entity(cacheUploadService.getAlignPageSqlite(examId, pageId, false))
+     * .type(MediaType.TEXT_PLAIN)
+     * .build();
+     *
+     * } catch (Exception e) {
+     * return Response.serverError().build();
+     *
+     * }
+     * }
+     */
 
     @GET
     @Path("/getCacheNonAlignPage/{examId}/{pageId}")
@@ -750,23 +762,28 @@ public class ExtendedAPI {
         }
     }
 
-  /*  @GET
-    @Path("/getCacheNonAlignPageSqlite/{examId}/{pageId}")
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response getCachePageNoAlignSqlite(@PathParam("examId") long examId, @PathParam("pageId") int pageId) {
-        try {
-            return Response
-            .status(Response.Status.OK)
-            .entity(cacheUploadService.getAlignPageSqlite(examId, pageId, true))
-            .type(MediaType.TEXT_PLAIN)
-            .build();
-
-
-        } catch (Exception e) {
-            return Response.serverError().build();
-
-        }
-    }*/
+    /*
+     * @GET
+     *
+     * @Path("/getCacheNonAlignPageSqlite/{examId}/{pageId}")
+     *
+     * @Produces(MediaType.TEXT_PLAIN)
+     * public Response getCachePageNoAlignSqlite(@PathParam("examId") long
+     * examId, @PathParam("pageId") int pageId) {
+     * try {
+     * return Response
+     * .status(Response.Status.OK)
+     * .entity(cacheUploadService.getAlignPageSqlite(examId, pageId, true))
+     * .type(MediaType.TEXT_PLAIN)
+     * .build();
+     *
+     *
+     * } catch (Exception e) {
+     * return Response.serverError().build();
+     *
+     * }
+     * }
+     */
 
     @GET
     @Path("/getCache/{fileName}")
@@ -804,7 +821,7 @@ public class ExtendedAPI {
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
 
-    public Response getFile(@PathParam("courseId") long courseId,@Context SecurityContext ctx) {
+    public Response exportCourse(@PathParam("courseId") long courseId, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseId, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -815,7 +832,8 @@ public class ExtendedAPI {
                         public void write(OutputStream outputStream) throws IOException, WebApplicationException {
                             InputStream source = null;
                             try {
-                                source = new ByteArrayInputStream(new Gson().toJson( importExportService.export(courseId)).getBytes());
+                                source = new ByteArrayInputStream(
+                                        new Gson().toJson(importExportService.export(courseId, true)).getBytes());
 
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -827,7 +845,8 @@ public class ExtendedAPI {
                                 outputStream.write(buf, 0, length);
                             }
                         }
-                    }, MediaType.APPLICATION_OCTET_STREAM ).header("Content-Disposition", "attachment;filename=" + courseId +".json")
+                    }, MediaType.APPLICATION_OCTET_STREAM)
+                    .header("Content-Disposition", "attachment;filename=" + courseId + ".json")
                     .build();
         } catch (Exception e) {
 
@@ -836,6 +855,44 @@ public class ExtendedAPI {
         }
     }
 
+    @GET
+    @Path("/exportCourseWithoutStudentData/{courseId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+
+    public Response exportCourseWithoutStudentData(@PathParam("courseId") long courseId, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, courseId, Course.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        try {
+            return Response.ok(
+                    new StreamingOutput() {
+                        @Override
+                        public void write(OutputStream outputStream) throws IOException, WebApplicationException {
+                            InputStream source = null;
+                            try {
+                                source = new ByteArrayInputStream(
+                                        new Gson().toJson(importExportService.export(courseId, false)).getBytes());
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                return;
+                            }
+                            byte[] buf = new byte[8192];
+                            int length;
+                            while ((length = source.read(buf)) != -1) {
+                                outputStream.write(buf, 0, length);
+                            }
+                        }
+                    }, MediaType.APPLICATION_OCTET_STREAM)
+                    .header("Content-Disposition", "attachment;filename=" + courseId + ".json")
+                    .build();
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            return Response.noContent().build();
+        }
+    }
 
     @POST
     @Path("/importCourse")
@@ -843,35 +900,63 @@ public class ExtendedAPI {
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
 
-    public Response importCourse(@MultipartForm MultipartFormDataInput input,@Context SecurityContext ctx) {
+    public Response importCourse(@MultipartForm MultipartFormDataInput input, @Context SecurityContext ctx) {
         var userLogin = Optional
-            .ofNullable(ctx.getUserPrincipal().getName());
-        if (!userLogin.isPresent()){
+                .ofNullable(ctx.getUserPrincipal().getName());
+        if (!userLogin.isPresent()) {
             throw new AccountResourceException("Current user login not found");
         }
         var user = User.findOneByLogin(userLogin.get());
         if (!user.isPresent()) {
             throw new AccountResourceException("User could not be found");
         }
-        if (!userLogin.equals("system")){
+        if (!userLogin.equals("system")) {
+            try {
+                CourseDTO dto = importExportService.importCourse(input, user.get(), true);
+                if (dto != null) {
+                    return Response.ok().entity(dto).build();
+                } else {
+                    return Response.noContent().build();
 
-//            courseDTO.profId =user.get().id;
-
-        try {
-
-
-
-            CourseDTO dto = importExportService.importCourse(input,user.get());
-            if (dto != null){
-                return Response.ok().entity(dto).build();
-            } else {
-                return Response.noContent().build();
+                }
+            } catch (Exception e) {
+                return Response.serverError().build();
 
             }
-        } catch (Exception e) {
-            return Response.serverError().build();
-
         }
+        throw new AccountResourceException("User could not be found");
+    }
+
+    @POST
+    @Path("/importCourseWithoutStudentData")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+
+    public Response importCourseWithoutStudentData(@MultipartForm MultipartFormDataInput input,
+            @Context SecurityContext ctx) {
+        var userLogin = Optional
+                .ofNullable(ctx.getUserPrincipal().getName());
+        if (!userLogin.isPresent()) {
+            throw new AccountResourceException("Current user login not found");
+        }
+        var user = User.findOneByLogin(userLogin.get());
+        if (!user.isPresent()) {
+            throw new AccountResourceException("User could not be found");
+        }
+        if (!userLogin.equals("system")) {
+            try {
+                CourseDTO dto = importExportService.importCourse(input, user.get(), false);
+                if (dto != null) {
+                    return Response.ok().entity(dto).build();
+                } else {
+                    return Response.noContent().build();
+
+                }
+            } catch (Exception e) {
+                return Response.serverError().build();
+
+            }
         }
         throw new AccountResourceException("User could not be found");
     }
@@ -953,14 +1038,12 @@ public class ExtendedAPI {
 
                 gc.studentResponses.remove(sr.get());
                 gc.persistOrUpdate();
-            }
-            );
+            });
             sr.get().textcomments.forEach(tc -> {
 
                 tc.studentResponses.remove(sr.get());
                 tc.persistOrUpdate();
-            }
-            );
+            });
             sr.get().clearComments();
             sr.get().delete();
         }
@@ -969,8 +1052,6 @@ public class ExtendedAPI {
                 .forEach(response::header);
         return response.build();
     }
-
-
 
     @DELETE
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
@@ -1008,6 +1089,7 @@ public class ExtendedAPI {
 
     /**
      * Provides summary data of a given exam.
+     *
      * @param examId The ID of the exam
      */
     @GET
@@ -1020,7 +1102,6 @@ public class ExtendedAPI {
             return Response.status(403, "Current user cannot access this ressource").build();
         }
 
-
         final MarkingExamStateDTO result = new MarkingExamStateDTO();
         final Exam exam = Exam.findById(examId);
         final List<StudentResponse> stdResponses = StudentResponse.getAll4ExamId(examId).list();
@@ -1030,47 +1111,47 @@ public class ExtendedAPI {
 
         result.setNameExam(exam.name);
 
-
         // Populate initial questions
 
         // ExamSheetID
-        Map<Long,QuestionStateDTO>  q = new LinkedHashMap<>();
+        Map<Long, QuestionStateDTO> q = new LinkedHashMap<>();
         questionsExam.sort(new Comparator<Question>() {
 
-			@Override
-			public int compare(Question arg0, Question arg1) {
-                return arg0.numero - arg1.numero;			}
+            @Override
+            public int compare(Question arg0, Question arg1) {
+                return arg0.numero - arg1.numero;
+            }
 
         });
 
-        for (Question quest : questionsExam){
-            //if (!q.containsKey(quest.numero)){
-                final var res = new QuestionStateDTO();
-                res.setAnsweredSheets(0);
-                res.setFirstUnmarkedSheet(0);
-                res.setId(quest.id);
-                res.setNumero(quest.numero);
+        for (Question quest : questionsExam) {
+            // if (!q.containsKey(quest.numero)){
+            final var res = new QuestionStateDTO();
+            res.setAnsweredSheets(0);
+            res.setFirstUnmarkedSheet(0);
+            res.setId(quest.id);
+            res.setNumero(quest.numero);
 
-                q.put(quest.id, res);
-         //       result.getQuestions().add(res);
+            q.put(quest.id, res);
+            // result.getQuestions().add(res);
             // }
         }
-
 
         // Populate initial sheets
 
         // ExamSheetID
-        Map<Long,SheetStateDTO>  s = new LinkedHashMap<>();
+        Map<Long, SheetStateDTO> s = new LinkedHashMap<>();
         List<ExamSheet> sheets = exam.scanfile.sheets.stream().collect(Collectors.toList());
         sheets.sort(new Comparator<ExamSheet>() {
 
-			@Override
-			public int compare(ExamSheet arg0, ExamSheet arg1) {
-                return arg0.pagemin - arg1.pagemin;			}
+            @Override
+            public int compare(ExamSheet arg0, ExamSheet arg1) {
+                return arg0.pagemin - arg1.pagemin;
+            }
 
         });
 
-        for (ExamSheet sh : sheets){
+        for (ExamSheet sh : sheets) {
             final var res = new SheetStateDTO();
             res.setAnsweredSheets(0);
             res.setFirstUnmarkedQuestion(1);
@@ -1079,358 +1160,365 @@ public class ExtendedAPI {
             result.getSheets().add(res);
         }
 
-
-
-
-        // The ID of all the sheet. Used to find the first sheet that has a given question not answered yet
+        // The ID of all the sheet. Used to find the first sheet that has a given
+        // question not answered yet
 
         // Filling the questions part of the DTO
-        for (Question quest : questionsExam){
-                // The responses for this question
-                final List<StudentResponse> responsesForQ = byQuestion.computeIfAbsent(quest.id, i -> new ArrayList<>());
-                // Getting the ID of the sheets that have an answer for this question
-                responsesForQ.sort(new ComparatorImplementation());
-                QuestionStateDTO qs = q.get(quest.id);
-                if (responsesForQ.size()>0 && responsesForQ.get(0).sheet.pagemin == 0) {
-                    if (responsesForQ.size() == 1){
-                            qs.setFirstUnmarkedSheet(Long.valueOf(responsesForQ.get(0).sheet.pagemax +1));
-                    }
-                    for ( int i = 0;i< responsesForQ.size()-1; i++) {
-                        StudentResponse sl1 = responsesForQ.get(i);
-                        StudentResponse sl2 = responsesForQ.get(i+1);
-                        qs.setFirstUnmarkedSheet(Long.valueOf(sl1.sheet.pagemax +1));
-                        if (sl1.sheet.pagemax + 1 < sl2.sheet.pagemin){
-                            break;
-                        } else if (i == responsesForQ.size()-2 ){
-                            qs.setFirstUnmarkedSheet(Long.valueOf(sl2.sheet.pagemax +1));
-                        }
+        for (Question quest : questionsExam) {
+            // The responses for this question
+            final List<StudentResponse> responsesForQ = byQuestion.computeIfAbsent(quest.id, i -> new ArrayList<>());
+            // Getting the ID of the sheets that have an answer for this question
+            responsesForQ.sort(new ComparatorImplementation());
+            QuestionStateDTO qs = q.get(quest.id);
+            if (responsesForQ.size() > 0 && responsesForQ.get(0).sheet.pagemin == 0) {
+                if (responsesForQ.size() == 1) {
+                    qs.setFirstUnmarkedSheet(Long.valueOf(responsesForQ.get(0).sheet.pagemax + 1));
+                }
+                for (int i = 0; i < responsesForQ.size() - 1; i++) {
+                    StudentResponse sl1 = responsesForQ.get(i);
+                    StudentResponse sl2 = responsesForQ.get(i + 1);
+                    qs.setFirstUnmarkedSheet(Long.valueOf(sl1.sheet.pagemax + 1));
+                    if (sl1.sheet.pagemax + 1 < sl2.sheet.pagemin) {
+                        break;
+                    } else if (i == responsesForQ.size() - 2) {
+                        qs.setFirstUnmarkedSheet(Long.valueOf(sl2.sheet.pagemax + 1));
                     }
                 }
-                qs.setAnsweredSheets(responsesForQ.size());
             }
+            qs.setAnsweredSheets(responsesForQ.size());
+        }
 
-            List<QuestionStateDTO> toRemove = q.values().stream().filter(q2 -> {
-                return  q.values().stream().anyMatch(q1 ->  q1 != q2 && q1.getNumero() == q2.getNumero() && (q2.getAnsweredSheets() < q1.getAnsweredSheets() || (q2.getAnsweredSheets() <= q1.getAnsweredSheets() && q2.getId() > q1.getId())));
-             } ).collect(Collectors.toList());
+        List<QuestionStateDTO> toRemove = q.values().stream().filter(q2 -> {
+            return q.values().stream()
+                    .anyMatch(q1 -> q1 != q2 && q1.getNumero() == q2.getNumero()
+                            && (q2.getAnsweredSheets() < q1.getAnsweredSheets()
+                                    || (q2.getAnsweredSheets() <= q1.getAnsweredSheets() && q2.getId() > q1.getId())));
+        }).collect(Collectors.toList());
 
-             for (QuestionStateDTO tor: toRemove){
-                q.remove(tor.getId());
-             }
-             result.getQuestions().addAll(q.values());
-          /*   */
-
+        for (QuestionStateDTO tor : toRemove) {
+            q.remove(tor.getId());
+        }
+        result.getQuestions().addAll(q.values());
+        /*   */
 
         // Filling the sheet part of the DTO
 
+        /*
+         * final Map<Set<Long>, List<StudentResponse>> byStudent = stdResponses
+         * .stream()
+         * .collect(Collectors.groupingBy(resp -> Set.copyOf(resp.getStudentId())));
+         */
 
+        stdResponses.sort(new ComparatorImplementation());
 
-/*        final Map<Set<Long>, List<StudentResponse>> byStudent = stdResponses
-            .stream()
-            .collect(Collectors.groupingBy(resp -> Set.copyOf(resp.getStudentId())));*/
+        Map<Long, List<StudentResponse>> byStudent = stdResponses.stream()
+                .collect(Collectors.groupingBy(StudentResponse::getSheetId));
+        /*
+         * var students = new HashMap<Long, List<StudentResponse>>();
+         * byStudent.entrySet().stream().forEach(e-> {
+         * for (long id : e.getKey()){
+         * List<StudentResponse> sts = students.getOrDefault(id, new
+         * ArrayList<StudentResponse>());
+         * sts.addAll(e.getValue());
+         * if (!students.containsKey(id)){
+         * students.put(id,sts);
+         * }
+         * }
+         * });
+         */
+        /*
+         * byStudent.values().stream().forEach(std -> {
+         * std.sort(new ComparatorImplementation2());
+         *
+         * });
+         * byStudent.entrySet().stream().forEach(ent -> {
+         * log.error("pass par la");
+         * ent.getKey().stream().forEach(e-> log.error("" +e));
+         * });
+         */
 
-            stdResponses.sort(new ComparatorImplementation());
+        // The ID of all the questions. Used to find the first question that has a given
+        // sheet not answered yet
 
-            Map<Long, List<StudentResponse>> byStudent =  stdResponses.stream()
-            .collect(Collectors.groupingBy(StudentResponse::getSheetId));
-/*            var students = new HashMap<Long, List<StudentResponse>>();
-            byStudent.entrySet().stream().forEach(e-> {
-                for (long id : e.getKey()){
-                    List<StudentResponse> sts = students.getOrDefault(id, new ArrayList<StudentResponse>());
-                    sts.addAll(e.getValue());
-                    if (!students.containsKey(id)){
-                        students.put(id,sts);
+        for (Entry<Long, List<StudentResponse>> ent : byStudent.entrySet()) {
+            final var res = s.get(ent.getKey());
+
+            List<StudentResponse> l = ent.getValue();
+            l.sort(new ComparatorImplementation2());
+            res.setAnsweredSheets(Long.valueOf(l.size()));
+
+            if (l.size() == 0) {
+                res.setFirstUnmarkedQuestion(Long.valueOf(1));
+
+            } else if (l.size() == 1 && l.get(0).question.numero == 1) {
+                res.setFirstUnmarkedQuestion(Long.valueOf(2));
+
+            } else if (l.size() > 0 && l.get(0).question.numero != 1) {
+                res.setFirstUnmarkedQuestion(Long.valueOf(1));
+            } else {
+                for (int i = 0; i < l.size() - 1; i++) {
+                    StudentResponse sl1 = l.get(i);
+                    StudentResponse sl2 = l.get(i + 1);
+                    if (sl1.question.numero + 1 < sl2.question.numero) {
+                        res.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero + 1));
+                        break;
+                    } else if (i == l.size() - 2) {
+                        res.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero + 2));
                     }
                 }
-            }); */
- /*           byStudent.values().stream().forEach(std -> {
-                std.sort(new ComparatorImplementation2());
-
-            });
-            byStudent.entrySet().stream().forEach(ent -> {
-                log.error("pass par la");
-                ent.getKey().stream().forEach(e-> log.error("" +e));
-            });  */
-
-        // The ID of all the questions. Used to find the first question that has a given sheet not answered yet
-
-        for (Entry<Long, List<StudentResponse>> ent : byStudent.entrySet())
-             {
-                final var res = s.get(ent.getKey());
-
-                List<StudentResponse> l =  ent.getValue();
-                l.sort(new ComparatorImplementation2());
-                res.setAnsweredSheets(Long.valueOf(l.size()));
-
-                if (l.size() ==0){
-                    res.setFirstUnmarkedQuestion(Long.valueOf(1));
-
-                } else if (l.size() ==1 && l.get(0).question.numero ==1) {
-                    res.setFirstUnmarkedQuestion(Long.valueOf(2));
-
-                } else if (l.size() >0 && l.get(0).question.numero !=1) {
-                    res.setFirstUnmarkedQuestion(Long.valueOf(1));
-                }
-                else {
-                    for ( int i = 0;i< l.size()-1; i++) {
-                        StudentResponse sl1 = l.get(i);
-                        StudentResponse sl2 = l.get(i+1);
-                        if (sl1.question.numero + 1 < sl2.question.numero ){
-                            res.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero +1));
-                            break;
-                        } else if (i == l.size()-2 ){
-                            res.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero +2));
-                        }
-                    }
-                }
-
-
-
             }
 
+        }
 
         return Response.ok().entity(result).build();
     }
 
     @GET
     @Path("/getZone4GradedComment/{examId}/{gradedCommentId}")
-     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getZone4GradedComment(@PathParam("examId") final long examId, @PathParam("gradedCommentId") final long gradedCommentId,@Context final UriInfo uriInfo,
-    @Context final SecurityContext ctx) {
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getZone4GradedComment(@PathParam("examId") final long examId,
+            @PathParam("gradedCommentId") final long gradedCommentId, @Context final UriInfo uriInfo,
+            @Context final SecurityContext ctx) {
 
-            if (!securityService.canAccess(ctx, examId, Exam.class)) {
-                return Response.status(403, "Current user cannot access this ressource").build();
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access this ressource").build();
+        }
+        List<StudentResponse> r = StudentResponse.getAllStudentResponse4examIdGradedCommentId(examId, gradedCommentId)
+                .list();
+        ZoneSameCommentDTO dto = new ZoneSameCommentDTO();
+        List<Answer4QuestionDTO> answers = new ArrayList<>();
+        // Map<Long,TextCommentDTO> textComments = new HashMap<>();
+        Map<Long, GradedCommentDTO> comments = new HashMap<>();
+
+        if (r.size() > 0 && r.get(0).question != null) {
+            int numero = r.get(0).question.numero;
+            dto.setNumero(numero);
+            List<Question> questions = Question.findQuestionbyExamIdandnumero(examId, numero).list();
+            if (questions.size() > 0) {
+                dto.setZones(zoneMapper.toDto(questions.stream().map(q -> q.zone).collect(Collectors.toList())));
+                dto.setGradeType(questions.get(0).gradeType);
+                dto.setPoint(Integer.valueOf(questions.get(0).quarterpoint).doubleValue() / 4);
+                dto.setStep(questions.get(0).step);
+                dto.setValidExpression(questions.get(0).validExpression);
+                dto.setAlgoName(questions.get(0).type.algoName);
+
             }
-            List<StudentResponse> r = StudentResponse.getAllStudentResponse4examIdGradedCommentId(examId, gradedCommentId).list();
-            ZoneSameCommentDTO dto =  new ZoneSameCommentDTO();
-            List<Answer4QuestionDTO> answers = new ArrayList<>();
-//            Map<Long,TextCommentDTO> textComments = new HashMap<>();
-            Map<Long,GradedCommentDTO> comments = new HashMap<>();
+        }
 
-            if (r.size()>0 && r.get(0).question != null){
-                 int numero = r.get(0).question.numero;
-                 dto.setNumero(numero);
-                List<Question> questions = Question.findQuestionbyExamIdandnumero(examId, numero).list();
-                if (questions.size()>0){
-                    dto.setZones(zoneMapper.toDto(questions.stream().map(q -> q.zone).collect(Collectors.toList())));
-                    dto.setGradeType(questions.get(0).gradeType);
-                    dto.setPoint(Integer.valueOf(questions.get(0).quarterpoint).doubleValue() /4);
-                    dto.setStep(questions.get(0).step);
-                    dto.setValidExpression(questions.get(0).validExpression);
-                    dto.setAlgoName(questions.get(0).type.algoName);
+        for (StudentResponse studentResponse : r) {
+            Answer4QuestionDTO answerdto = new Answer4QuestionDTO();
+            answerdto.setPagemin(studentResponse.sheet.pagemin);
+            answerdto.setPagemax(studentResponse.sheet.pagemax);
 
-                }
+            if (studentResponse.star != null) {
+                answerdto.setStar(studentResponse.star);
+            } else {
+                answerdto.setStar(false);
             }
-
-            for (StudentResponse studentResponse : r) {
-                Answer4QuestionDTO answerdto = new Answer4QuestionDTO();
-                answerdto.setPagemin(studentResponse.sheet.pagemin);
-                answerdto.setPagemax(studentResponse.sheet.pagemax);
-
-                if (studentResponse.star != null){
-                    answerdto.setStar(studentResponse.star);
-                }else {
-                    answerdto.setStar(false);
-                }
-                if (studentResponse.worststar != null){
+            if (studentResponse.worststar != null) {
                 answerdto.setWorststar(studentResponse.worststar);
-                } else {
-                    answerdto.setWorststar(false);
-                }
-                Set<Student> students = studentResponse.sheet.students;
-                String studentName = "";
-                long nbeStudent = students.size();
-                long i =0;
-                for (Student student : students) {
-                    i = i+1;
-                    studentName = studentName + student.firstname + " " + student.name;
-                    if (i !=nbeStudent){
-                        studentName = studentName+ ", ";
-                    }
-
-                }
-                answerdto.setStudentName(studentName);
-                answerdto.setNote(Integer.valueOf(studentResponse.quarternote).doubleValue() /4);
-                answerdto.setComments(commentsMapper.toDto(new ArrayList<>(studentResponse.comments)));
-                answerdto.setGradedComments(studentResponse.gradedcomments.stream().map(gc -> gc.id ).collect(Collectors.toList()));
-                for (GradedComment gc : studentResponse.gradedcomments){
-                    if (!comments.containsKey(gc.id)){
-                        comments.put(gc.id,gradedCommentMapper.toDto(gc));
-                    }
-                }
-                answers.add(answerdto);
+            } else {
+                answerdto.setWorststar(false);
             }
+            Set<Student> students = studentResponse.sheet.students;
+            String studentName = "";
+            long nbeStudent = students.size();
+            long i = 0;
+            for (Student student : students) {
+                i = i + 1;
+                studentName = studentName + student.firstname + " " + student.name;
+                if (i != nbeStudent) {
+                    studentName = studentName + ", ";
+                }
 
-            dto.setAnswers(answers);
-            dto.setGradedComments(new ArrayList(comments.values()));
-            return Response.ok().entity(dto).build();
+            }
+            answerdto.setStudentName(studentName);
+            answerdto.setNote(Integer.valueOf(studentResponse.quarternote).doubleValue() / 4);
+            answerdto.setComments(commentsMapper.toDto(new ArrayList<>(studentResponse.comments)));
+            answerdto.setGradedComments(
+                    studentResponse.gradedcomments.stream().map(gc -> gc.id).collect(Collectors.toList()));
+            for (GradedComment gc : studentResponse.gradedcomments) {
+                if (!comments.containsKey(gc.id)) {
+                    comments.put(gc.id, gradedCommentMapper.toDto(gc));
+                }
+            }
+            answers.add(answerdto);
+        }
+
+        dto.setAnswers(answers);
+        dto.setGradedComments(new ArrayList(comments.values()));
+        return Response.ok().entity(dto).build();
 
     }
 
     @GET
     @Path("/getZone4TextComment/{examId}/{textCommentId}")
-     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getZone4TextComment(@PathParam("examId") final long examId, @PathParam("textCommentId") final long textCommentId,@Context final UriInfo uriInfo,
-    @Context final SecurityContext ctx) {
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getZone4TextComment(@PathParam("examId") final long examId,
+            @PathParam("textCommentId") final long textCommentId, @Context final UriInfo uriInfo,
+            @Context final SecurityContext ctx) {
 
-            if (!securityService.canAccess(ctx, examId, Exam.class)) {
-                return Response.status(403, "Current user cannot access this ressource").build();
-            }
-            List<StudentResponse> r = StudentResponse.getAllStudentResponse4examIdTextCommentId(examId, textCommentId).list();
-            ZoneSameCommentDTO dto =  new ZoneSameCommentDTO();
-            List<Answer4QuestionDTO> answers = new ArrayList<>();
-            Map<Long,TextCommentDTO> comments = new HashMap<>();
-//            Map<Long,GradedCommentDTO> comments = new HashMap<>();
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access this ressource").build();
+        }
+        List<StudentResponse> r = StudentResponse.getAllStudentResponse4examIdTextCommentId(examId, textCommentId)
+                .list();
+        ZoneSameCommentDTO dto = new ZoneSameCommentDTO();
+        List<Answer4QuestionDTO> answers = new ArrayList<>();
+        Map<Long, TextCommentDTO> comments = new HashMap<>();
+        // Map<Long,GradedCommentDTO> comments = new HashMap<>();
 
-            if (r.size()>0 && r.get(0).question != null){
-                int numero = r.get(0).question.numero;
-                dto.setNumero(numero);
-                List<Question> questions = Question.findQuestionbyExamIdandnumero(examId, numero).list();
-                if (questions.size()>0){
-                    dto.setZones(zoneMapper.toDto(questions.stream().map(q -> q.zone).collect(Collectors.toList())));
-                    dto.setGradeType(questions.get(0).gradeType);
-                    dto.setPoint(Integer.valueOf(questions.get(0).quarterpoint).doubleValue() /4);
-                    dto.setStep(questions.get(0).step);
-                    dto.setValidExpression(questions.get(0).validExpression);
-                    dto.setAlgoName(questions.get(0).type.algoName);
+        if (r.size() > 0 && r.get(0).question != null) {
+            int numero = r.get(0).question.numero;
+            dto.setNumero(numero);
+            List<Question> questions = Question.findQuestionbyExamIdandnumero(examId, numero).list();
+            if (questions.size() > 0) {
+                dto.setZones(zoneMapper.toDto(questions.stream().map(q -> q.zone).collect(Collectors.toList())));
+                dto.setGradeType(questions.get(0).gradeType);
+                dto.setPoint(Integer.valueOf(questions.get(0).quarterpoint).doubleValue() / 4);
+                dto.setStep(questions.get(0).step);
+                dto.setValidExpression(questions.get(0).validExpression);
+                dto.setAlgoName(questions.get(0).type.algoName);
 
-                }
-                else {
-                    return Response.noContent().build();
-                }
             } else {
                 return Response.noContent().build();
             }
+        } else {
+            return Response.noContent().build();
+        }
 
-            for (StudentResponse studentResponse : r) {
-                Answer4QuestionDTO answerdto = new Answer4QuestionDTO();
-                answerdto.setPagemin(studentResponse.sheet.pagemin);
-                answerdto.setPagemax(studentResponse.sheet.pagemax);
+        for (StudentResponse studentResponse : r) {
+            Answer4QuestionDTO answerdto = new Answer4QuestionDTO();
+            answerdto.setPagemin(studentResponse.sheet.pagemin);
+            answerdto.setPagemax(studentResponse.sheet.pagemax);
 
-                if (studentResponse.star != null){
-                    answerdto.setStar(studentResponse.star);
-                }else {
-                    answerdto.setStar(false);
-                }
-                if (studentResponse.worststar != null){
-                answerdto.setWorststar(studentResponse.worststar);
-                } else {
-                    answerdto.setWorststar(false);
-                }
-                Set<Student> students = studentResponse.sheet.students;
-                String studentName = "";
-                long nbeStudent = students.size();
-                long i =0;
-                for (Student student : students) {
-                    i = i+1;
-                    studentName = studentName + student.firstname + " " + student.name;
-                    if (i !=nbeStudent){
-                        studentName = studentName+ ", ";
-                    }
-
-                }
-                answerdto.setStudentName(studentName);
-                answerdto.setNote(Integer.valueOf(studentResponse.quarternote).doubleValue() /4);
-                answerdto.setComments(commentsMapper.toDto(new ArrayList<>(studentResponse.comments)));
-                answerdto.setTextComments(studentResponse.textcomments.stream().map(gc -> gc.id ).collect(Collectors.toList()));
-                for (TextComment gc : studentResponse.textcomments){
-                    if (!comments.containsKey(gc.id)){
-                        comments.put(gc.id,textCommentMapper.toDto(gc));
-                    }
-                }
-                answers.add(answerdto);
+            if (studentResponse.star != null) {
+                answerdto.setStar(studentResponse.star);
+            } else {
+                answerdto.setStar(false);
             }
+            if (studentResponse.worststar != null) {
+                answerdto.setWorststar(studentResponse.worststar);
+            } else {
+                answerdto.setWorststar(false);
+            }
+            Set<Student> students = studentResponse.sheet.students;
+            String studentName = "";
+            long nbeStudent = students.size();
+            long i = 0;
+            for (Student student : students) {
+                i = i + 1;
+                studentName = studentName + student.firstname + " " + student.name;
+                if (i != nbeStudent) {
+                    studentName = studentName + ", ";
+                }
 
-            dto.setAnswers(answers);
-            dto.setTextComments(new ArrayList(comments.values()));
-            return Response.ok().entity(dto).build();
+            }
+            answerdto.setStudentName(studentName);
+            answerdto.setNote(Integer.valueOf(studentResponse.quarternote).doubleValue() / 4);
+            answerdto.setComments(commentsMapper.toDto(new ArrayList<>(studentResponse.comments)));
+            answerdto.setTextComments(
+                    studentResponse.textcomments.stream().map(gc -> gc.id).collect(Collectors.toList()));
+            for (TextComment gc : studentResponse.textcomments) {
+                if (!comments.containsKey(gc.id)) {
+                    comments.put(gc.id, textCommentMapper.toDto(gc));
+                }
+            }
+            answers.add(answerdto);
+        }
+
+        dto.setAnswers(answers);
+        dto.setTextComments(new ArrayList(comments.values()));
+        return Response.ok().entity(dto).build();
 
     }
 
     @GET
     @Path("/getZone4Mark/{examId}/{respid}")
-     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getZone4Mark(@PathParam("examId") final long examId, @PathParam("respid") final long respid,@Context final UriInfo uriInfo,
-    @Context final SecurityContext ctx) {
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getZone4Mark(@PathParam("examId") final long examId, @PathParam("respid") final long respid,
+            @Context final UriInfo uriInfo,
+            @Context final SecurityContext ctx) {
 
-            if (!securityService.canAccess(ctx, examId, Exam.class)) {
-                return Response.status(403, "Current user cannot access this ressource").build();
-            }
-            List<StudentResponse> r = StudentResponse.getAllStudentResponseWithSameGrade4examIdRespId(examId, respid).list();
-            ZoneSameCommentDTO dto =  new ZoneSameCommentDTO();
-            List<Answer4QuestionDTO> answers = new ArrayList<>();
-            Map<Long,TextCommentDTO> textcomments = new HashMap<>();
-            Map<Long,GradedCommentDTO> gradedcomments = new HashMap<>();
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access this ressource").build();
+        }
+        List<StudentResponse> r = StudentResponse.getAllStudentResponseWithSameGrade4examIdRespId(examId, respid)
+                .list();
+        ZoneSameCommentDTO dto = new ZoneSameCommentDTO();
+        List<Answer4QuestionDTO> answers = new ArrayList<>();
+        Map<Long, TextCommentDTO> textcomments = new HashMap<>();
+        Map<Long, GradedCommentDTO> gradedcomments = new HashMap<>();
 
-            if (r.size()>0 && r.get(0).question != null){
-                int numero = r.get(0).question.numero;
-                dto.setNumero(numero);
-                List<Question> questions = Question.findQuestionbyExamIdandnumero(examId, numero).list();
-                if (questions.size()>0){
-                    dto.setZones(zoneMapper.toDto(questions.stream().map(q -> q.zone).collect(Collectors.toList())));
-                    dto.setGradeType(questions.get(0).gradeType);
-                    dto.setPoint(Integer.valueOf(questions.get(0).quarterpoint).doubleValue() /4);
-                    dto.setStep(questions.get(0).step);
-                    dto.setValidExpression(questions.get(0).validExpression);
-                    dto.setAlgoName(questions.get(0).type.algoName);
+        if (r.size() > 0 && r.get(0).question != null) {
+            int numero = r.get(0).question.numero;
+            dto.setNumero(numero);
+            List<Question> questions = Question.findQuestionbyExamIdandnumero(examId, numero).list();
+            if (questions.size() > 0) {
+                dto.setZones(zoneMapper.toDto(questions.stream().map(q -> q.zone).collect(Collectors.toList())));
+                dto.setGradeType(questions.get(0).gradeType);
+                dto.setPoint(Integer.valueOf(questions.get(0).quarterpoint).doubleValue() / 4);
+                dto.setStep(questions.get(0).step);
+                dto.setValidExpression(questions.get(0).validExpression);
+                dto.setAlgoName(questions.get(0).type.algoName);
 
-                }
-                else {
-                    return Response.noContent().build();
-                }
             } else {
                 return Response.noContent().build();
             }
+        } else {
+            return Response.noContent().build();
+        }
 
-            for (StudentResponse studentResponse : r) {
-                Answer4QuestionDTO answerdto = new Answer4QuestionDTO();
-                answerdto.setPagemin(studentResponse.sheet.pagemin);
-                answerdto.setPagemax(studentResponse.sheet.pagemax);
+        for (StudentResponse studentResponse : r) {
+            Answer4QuestionDTO answerdto = new Answer4QuestionDTO();
+            answerdto.setPagemin(studentResponse.sheet.pagemin);
+            answerdto.setPagemax(studentResponse.sheet.pagemax);
 
-                if (studentResponse.star != null){
-                    answerdto.setStar(studentResponse.star);
-                }else {
-                    answerdto.setStar(false);
-                }
-                if (studentResponse.worststar != null){
-                answerdto.setWorststar(studentResponse.worststar);
-                } else {
-                    answerdto.setWorststar(false);
-                }
-                Set<Student> students = studentResponse.sheet.students;
-                String studentName = "";
-                long nbeStudent = students.size();
-                long i =0;
-                for (Student student : students) {
-                    i = i+1;
-                    studentName = studentName + student.firstname + " " + student.name;
-                    if (i !=nbeStudent){
-                        studentName = studentName+ ", ";
-                    }
-
-                }
-                answerdto.setStudentName(studentName);
-                answerdto.setNote(Integer.valueOf(studentResponse.quarternote).doubleValue() /4);
-                answerdto.setComments(commentsMapper.toDto(new ArrayList<>(studentResponse.comments)));
-                answerdto.setTextComments(studentResponse.textcomments.stream().map(gc -> gc.id ).collect(Collectors.toList()));
-                for (TextComment gc : studentResponse.textcomments){
-                    if (!textcomments.containsKey(gc.id)){
-                        textcomments.put(gc.id,textCommentMapper.toDto(gc));
-                    }
-                }
-                for (GradedComment gc : studentResponse.gradedcomments){
-                    if (!gradedcomments.containsKey(gc.id)){
-                        gradedcomments.put(gc.id,gradedCommentMapper.toDto(gc));
-                    }
-                }
-                answers.add(answerdto);
+            if (studentResponse.star != null) {
+                answerdto.setStar(studentResponse.star);
+            } else {
+                answerdto.setStar(false);
             }
+            if (studentResponse.worststar != null) {
+                answerdto.setWorststar(studentResponse.worststar);
+            } else {
+                answerdto.setWorststar(false);
+            }
+            Set<Student> students = studentResponse.sheet.students;
+            String studentName = "";
+            long nbeStudent = students.size();
+            long i = 0;
+            for (Student student : students) {
+                i = i + 1;
+                studentName = studentName + student.firstname + " " + student.name;
+                if (i != nbeStudent) {
+                    studentName = studentName + ", ";
+                }
 
-            dto.setAnswers(answers);
-            dto.setTextComments(new ArrayList(textcomments.values()));
-            dto.setGradedComments(new ArrayList(gradedcomments.values()));
-            return Response.ok().entity(dto).build();
+            }
+            answerdto.setStudentName(studentName);
+            answerdto.setNote(Integer.valueOf(studentResponse.quarternote).doubleValue() / 4);
+            answerdto.setComments(commentsMapper.toDto(new ArrayList<>(studentResponse.comments)));
+            answerdto.setTextComments(
+                    studentResponse.textcomments.stream().map(gc -> gc.id).collect(Collectors.toList()));
+            for (TextComment gc : studentResponse.textcomments) {
+                if (!textcomments.containsKey(gc.id)) {
+                    textcomments.put(gc.id, textCommentMapper.toDto(gc));
+                }
+            }
+            for (GradedComment gc : studentResponse.gradedcomments) {
+                if (!gradedcomments.containsKey(gc.id)) {
+                    gradedcomments.put(gc.id, gradedCommentMapper.toDto(gc));
+                }
+            }
+            answers.add(answerdto);
+        }
+
+        dto.setAnswers(answers);
+        dto.setTextComments(new ArrayList(textcomments.values()));
+        dto.setGradedComments(new ArrayList(gradedcomments.values()));
+        return Response.ok().entity(dto).build();
 
     }
-
 
 }
