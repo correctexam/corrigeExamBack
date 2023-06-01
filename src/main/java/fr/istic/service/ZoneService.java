@@ -50,6 +50,7 @@ public class ZoneService {
      *
      * @param id the id of the entity.
      */
+    @Transactional
     public void delete(Long id) {
         log.debug("Request to delete Zone : {}", id);
         Optional<Question> q = Question.findQuestionbyZoneId(id).firstResultOptional();

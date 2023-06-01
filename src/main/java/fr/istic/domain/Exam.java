@@ -181,6 +181,20 @@ public class Exam extends PanacheEntityBase implements Serializable {
     }
 
 
+    @Transactional
+    public static long removeAllZone(Exam exam) {
+        if (exam == null) {
+            throw new IllegalArgumentException("exam can't be null");
+        }
+        if (exam.id == null) {
+            return 0;
+        } else {
+            return  update("notezone = NULL,  idzone = NULL, firstnamezone = NULL, namezone = NULL  where id = ?1", exam.id);
+
+        }
+    }
+
+
     public static PanacheQuery<Exam> findExambyCourseId( long courseId) {
         return find("select exam from Exam exam where exam.course.id =?1", courseId);
     }

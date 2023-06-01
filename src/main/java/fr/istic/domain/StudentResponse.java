@@ -38,7 +38,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     @Column(name = "worststar")
     public Boolean worststar;
 
-    @OneToMany(mappedBy = "studentResponse")
+    @OneToMany(mappedBy = "studentResponse", cascade = {CascadeType.REMOVE})
     public Set<Comments> comments = new HashSet<>();
 
     @ManyToOne
@@ -70,7 +70,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     @JsonbTransient
     public ExamSheet sheet;
 
-    @ManyToMany(cascade = CascadeType.REMOVE)
+    @ManyToMany
 //    @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     @JoinTable(name = "student_response_textcomments",
                joinColumns = @JoinColumn(name = "student_response_id", referencedColumnName = "id"),
@@ -273,6 +273,9 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     }
 
 
+    public static  long deleteByQIds( Set<Long> qids) {
+        return delete("delete from StudentResponse sr where sr.question.id in ?1", qids);
+    }
 
     public static PanacheQuery<StudentResponse> canAccess(long srId, String login) {
         return find("select ex from StudentResponse ex join ex.question.exam.course.profs as u where ex.id =?1 and u.login =?2", srId, login);

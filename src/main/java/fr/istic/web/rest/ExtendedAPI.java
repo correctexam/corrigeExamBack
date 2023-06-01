@@ -12,11 +12,13 @@ import fr.istic.domain.Student;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.TextComment;
 import fr.istic.domain.User;
+import fr.istic.domain.Zone;
 import fr.istic.domain.enumeration.GradeType;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.CacheUploadService;
 import fr.istic.service.CourseGroupService;
 import fr.istic.service.CourseService;
+import fr.istic.service.ExamService;
 import fr.istic.service.ImportExportService;
 import fr.istic.service.MailService;
 import fr.istic.service.QuestionService;
@@ -29,6 +31,7 @@ import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 
 import fr.istic.service.StudentService;
 import fr.istic.service.UserService;
+import fr.istic.service.ZoneService;
 import fr.istic.service.customdto.Answer4QuestionDTO;
 import fr.istic.service.customdto.ListUserModelShare;
 import fr.istic.service.customdto.MailResultDTO;
@@ -40,10 +43,12 @@ import fr.istic.service.customdto.correctexamstate.MarkingExamStateDTO;
 import fr.istic.service.customdto.correctexamstate.QuestionStateDTO;
 import fr.istic.service.customdto.correctexamstate.SheetStateDTO;
 import fr.istic.service.dto.CourseDTO;
+import fr.istic.service.dto.ExamDTO;
 import fr.istic.service.dto.GradedCommentDTO;
 import fr.istic.service.dto.QuestionDTO;
 import fr.istic.service.dto.TextCommentDTO;
 import fr.istic.service.mapper.CommentsMapper;
+import fr.istic.service.mapper.ExamMapper;
 import fr.istic.service.mapper.GradedCommentMapper;
 import fr.istic.service.mapper.QuestionMapper;
 import fr.istic.service.mapper.TextCommentMapper;
@@ -133,7 +138,17 @@ public class ExtendedAPI {
     TextCommentMapper textCommentMapper;
 
     @Inject
+    ZoneService zoneService;
+
+    @Inject
+    ExamMapper examMapper;
+
+
+    @Inject
     ImportExportService importExportService;
+
+    @Inject
+    ExamService examService;
 
     private final class ComparatorImplementation implements Comparator<StudentResponse> {
 
@@ -1022,6 +1037,62 @@ public class ExtendedAPI {
                 .forEach(response::header);
         return response.build();
     }
+
+    @DELETE()
+    @Path("/cleanExam/{examId}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response cleanAllQuestionZone4Exam(@PathParam("examId") long examId,@Context UriInfo uriInfo,@Context SecurityContext ctx) {
+        log.debug("REST request to clean all Questions and zone : {}");
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+
+
+
+            Optional<Exam> optEx = Exam.findByIdOptional(examId);
+
+            if (optEx.isPresent()) {
+                examService.deleteQuestionCommentAndZone(examId);
+/*                List<Zone> zones = Zone.getQuestionZone4ExamId(examId).list();
+                zones.forEach(z -> {
+                    this.zoneService.delete(z.id);
+                });
+
+                Exam ex = optEx.get();
+                if (ex.idzone != null){
+                    this.zoneService.delete(ex.idzone.id);
+                }
+                if (ex.namezone != null){
+
+                    this.zoneService.delete(ex.namezone.id);
+                }
+                if (ex.firstnamezone != null){
+                    this.zoneService.delete(ex.firstnamezone.id);
+                }
+                if (ex.notezone != null){
+                        this.zoneService.delete(ex.notezone.id);
+                }
+                 */
+                ExamDTO result = this.examMapper.toDto(optEx.get());
+
+
+                 var response = Response.created(fromPath(uriInfo.getPath()).path(result.id.toString()).build()).entity(result);
+                 HeaderUtil.createEntityCreationAlert(applicationName, true, "exam", result.id.toString())
+                         .forEach(response::header);
+                 return response.build();
+
+            }
+            else {
+                    var response = Response.noContent();
+                    HeaderUtil.createEntityDeletionAlert(applicationName, true, "exam", "-1")
+                            .forEach(response::header);
+                    return response.build();
+                }
+
+
+
+    }
+
 
     @DELETE
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })

@@ -108,6 +108,11 @@ public class FinalResult extends PanacheEntityBase implements Serializable {
     public static PanacheQuery<FinalResult> getAll4ExamId( long examId) {
         return find("select f from FinalResult f where  f.exam.id = ?1",examId);
     }
+
+     public static long deleteAllByExamId( long examId) {
+        return delete("delete from FinalResult f where  f.exam.id = ?1",examId);
+    }
+
     public static PanacheQuery<FinalResult> getAll4ExamIdFetchSheet( long examId) {
         return find("select distinct f from FinalResult f join fetch f.exam as e join fetch e.scanfile as scan join fetch scan.sheets as sheets where  f.exam.id = ?1",examId);
     }

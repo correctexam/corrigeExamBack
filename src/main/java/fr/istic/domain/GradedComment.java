@@ -119,4 +119,11 @@ public class GradedComment extends PanacheEntityBase implements Serializable {
         return find("select ex from GradedComment ex join ex.question.exam.course.profs as u where ex.id =?1 and u.login =?2", commentId, login);
     }
 
+
+
+    public static  long deleteByQIds( Set<Long> qids) {
+        return delete("delete from GradedComment sr where sr.question.id in ?1", qids);
+    }
+
+
 }
