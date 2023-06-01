@@ -52,16 +52,20 @@ public class QuestionService {
         List<TextComment> textComments = new ArrayList<TextComment>();
         gradeComment.addAll(GradedComment.findByQuestionId(question.id).list());
         textComments.addAll(TextComment.findByQuestionId(question.id).list());
-        this.updateCorrectionAndAnswer(question, gradeComment, textComments);
+        Set<StudentResponse> srs= this.updateCorrectionAndAnswer(question, gradeComment, textComments);
         List<Long> gradeCommentids = gradeComment.stream().map(gc -> gc.id).collect(Collectors.toList());
         List<Long> textCommentsids = textComments.stream().map(gc -> gc.id).collect(Collectors.toList());
 
         this.deleteComments(gradeCommentids, textCommentsids);
-
+        srs.forEach(sr -> {
+            sr.delete();
+        });
         return question;
     }
 
-    public void updateCorrectionAndAnswer(Question question, List<GradedComment> gradeComment,
+
+
+    public Set<StudentResponse> updateCorrectionAndAnswer(Question question, List<GradedComment> gradeComment,
             List<TextComment> textComments) {
         Set<StudentResponse> srs = new HashSet(StudentResponse.findAllByQuestionId(question.id).list());
         for (GradedComment gc : gradeComment) {
@@ -86,6 +90,7 @@ public class QuestionService {
         question.textcomments.clear();
 
         Question.update(question).persistOrUpdate();
+        return srs;
 
     }
 
