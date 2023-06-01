@@ -1,11 +1,15 @@
 package fr.istic.service;
 
 import io.quarkus.panache.common.Page;
+import fr.istic.domain.Exam;
 import fr.istic.domain.GradedComment;
 import fr.istic.domain.Question;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.TextComment;
+import fr.istic.domain.Zone;
+import fr.istic.service.dto.ExamDTO;
 import fr.istic.service.dto.QuestionDTO;
+import fr.istic.service.mapper.ExamMapper;
 import fr.istic.service.mapper.QuestionMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +33,14 @@ public class QuestionService {
 
     @Inject
     QuestionMapper questionMapper;
+
+
+    @Inject
+    ExamMapper examMapper;
+
+    @Inject
+    ZoneService zoneService;
+
 
     @Transactional
     public QuestionDTO persistOrUpdate(QuestionDTO questionDTO) {
@@ -116,6 +128,7 @@ public class QuestionService {
         Question.findByIdOptional(id).ifPresent(question -> {
             question.delete();
         });
+
     }
 
     /**
@@ -159,5 +172,6 @@ public class QuestionService {
         return new Paged<>(Question.findQuestionbyZoneId(zoneId).page(page))
                 .map(question -> questionMapper.toDto((Question) question));
     }
+
 
 }

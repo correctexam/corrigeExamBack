@@ -6,6 +6,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import javax.persistence.*;
 
 import java.io.Serializable;
+import java.util.Set;
 
 /**
  * A Zone.
@@ -102,11 +103,23 @@ public class Zone extends PanacheEntityBase implements Serializable {
         }
     }
 
+    public static PanacheQuery<Zone> getQuestionZone4ExamId(long examId) {
+        return find("select q.zone from Question q where q.exam.id =?1", examId);
+    }
+
+
+    public static long deleteAllZonesIds(Set<Long> zonesId) {
+        return delete("delete from Zone z where z.id in ?1", zonesId);
+    }
+
     public static PanacheQuery<Zone> canAccess1(long zoneId, String login) {
         return find("select q.zone from Question q join q.exam.course.profs as u where q.zone.id =?1 and u.login =?2", zoneId, login);
     }
     public static PanacheQuery<Zone> canAccess2(long zoneId, String login) {
         return find("select e from Exam e join e.course.profs as u where (e.firstnamezone.id =?1 or e.idzone.id =?1 or e.namezone.id =?1)  and u.login =?2", zoneId, login);
     }
+
+
+
 
 }
