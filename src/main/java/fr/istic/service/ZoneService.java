@@ -24,6 +24,10 @@ public class ZoneService {
     @Inject
     ZoneMapper zoneMapper;
 
+    @Inject
+    QuestionService questionSerivce;
+
+
     @Transactional
     public ZoneDTO persistOrUpdate(ZoneDTO zoneDTO) {
         log.debug("Request to save Zone : {}", zoneDTO);
@@ -48,7 +52,34 @@ public class ZoneService {
      */
     public void delete(Long id) {
         log.debug("Request to delete Zone : {}", id);
-        Question.findQuestionbyZoneId(id).firstResultOptional().ifPresentOrElse(q -> {
+        Optional<Question> q = Question.findQuestionbyZoneId(id).firstResultOptional();
+        if (q.isPresent()) {
+            questionSerivce.cleanAllCorrectionAndComment(q.get());
+            questionSerivce.delete(q.get().id);
+        } else{
+            Optional<Exam> exam =   Exam.findExamThatMatchZoneId(id).firstResultOptional();
+            if (exam.isPresent()) {
+                if (exam.get().namezone != null && exam.get().namezone.id.equals(id)){
+                    Exam.removeNameZoneId(exam.get());
+                }
+                else if (exam.get().firstnamezone != null &&  exam.get().firstnamezone.id.equals(id)){
+                    Exam.removeFirstNameZoneId(exam.get());
+
+                }
+                else if (exam.get().idzone != null && exam.get().idzone.id.equals(id)){
+                    Exam.removeIdZoneId(exam.get());
+                }
+                else if (exam.get().notezone != null && exam.get().notezone.id.equals(id))
+                {
+                    Exam.removeNoteZoneId(exam.get());
+                }
+            }
+            ZoneService.this.deleteZone(id);
+
+
+        }
+/*
+        .ifPresentOrElse(q -> {
             q.delete();
         }, new Runnable() {
             public void run() {
@@ -78,7 +109,7 @@ public class ZoneService {
 
 
             }
-        });
+        }); */
     }
 
     /**
