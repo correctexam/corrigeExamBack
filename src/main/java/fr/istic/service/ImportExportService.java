@@ -769,7 +769,7 @@ public class ImportExportService {
                     student.ine = gr.getAsJsonObject().get("ine").getAsString();
                 }
                 if (gr.getAsJsonObject().get("mail") != null) {
-                    student.ine = gr.getAsJsonObject().get("mail").getAsString();
+                    student.mail = gr.getAsJsonObject().get("mail").getAsString();
                 }
 
                 student.persistAndFlush();
