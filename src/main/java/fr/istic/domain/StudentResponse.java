@@ -227,6 +227,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         return find("select distinct sr.sheet from StudentResponse sr where sr.question.numero = ?2 and  sr.question.exam.id = ?1 and sr.star = true",examId,questionNo );
     }
 
+
     public static PanacheQuery<StudentResponse> findAllByQuestionId( long questionId) {
         return find("select distinct sr from StudentResponse sr where sr.question.id = ?1",questionId );
     }
@@ -267,6 +268,11 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         var qid = sr.question.id;
         return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1 and sr.quarternote = ?2 and q.id = ?3",examId,s,qid);
     }
+
+    public static PanacheQuery<StudentResponse> getAllStudentResponseWithExamIdNumeroAndSheetId(long examId, int numero, long sheetid) {
+        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1 and sr.question.numero = ?2 and sheet.id = ?3",examId,numero,sheetid);
+    }
+
 
     public static PanacheQuery<StudentResponse> getAllStudentResponseWithexamId(long examId) {
         return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1",examId);

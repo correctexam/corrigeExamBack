@@ -1585,11 +1585,106 @@ public class ExtendedAPI {
             answers.add(answerdto);
         }
 
+
+
         dto.setAnswers(answers);
         dto.setTextComments(new ArrayList(textcomments.values()));
         dto.setGradedComments(new ArrayList(gradedcomments.values()));
         return Response.ok().entity(dto).build();
 
     }
+
+    @GET
+    @Path("/getZone4Numero/{examId}/{qid}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getZone4Question(@PathParam("examId") final long examId, @PathParam("qid") final long qid,
+            @Context final UriInfo uriInfo,
+            @Context final SecurityContext ctx) {
+
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access this ressource").build();
+        }
+
+        Question question = Question.findById(qid);
+        ZoneSameCommentDTO dto = new ZoneSameCommentDTO();
+        List<Answer4QuestionDTO> answers = new ArrayList<>();
+        Map<Long, TextCommentDTO> textcomments = new HashMap<>();
+        Map<Long, GradedCommentDTO> gradedcomments = new HashMap<>();
+
+            int numero = question.numero;
+            dto.setNumero(numero);
+            List<Question> questions = Question.findQuestionbyExamIdandnumero(examId, numero).list();
+            if (questions.size() > 0) {
+                dto.setZones(zoneMapper.toDto(questions.stream().map(q -> q.zone).collect(Collectors.toList())));
+                dto.setGradeType(questions.get(0).gradeType);
+                dto.setPoint(Integer.valueOf(questions.get(0).quarterpoint).doubleValue() / 4);
+                dto.setStep(questions.get(0).step);
+                dto.setValidExpression(questions.get(0).validExpression);
+                dto.setAlgoName(questions.get(0).type.algoName);
+
+            } else {
+                return Response.noContent().build();
+            }
+        List<ExamSheet> sheets = ExamSheet.getAll4ExamId(examId).list();
+
+        for (ExamSheet sheet : sheets) {
+            Answer4QuestionDTO answerdto = new Answer4QuestionDTO();
+            answerdto.setPagemin(sheet.pagemin);
+            answerdto.setPagemax(sheet.pagemax);
+            Set<Student> students = sheet.students;
+            String studentName = "";
+            long nbeStudent = students.size();
+            long i = 0;
+            for (Student student : students) {
+                i = i + 1;
+                studentName = studentName + student.firstname + " " + student.name;
+                if (i != nbeStudent) {
+                    studentName = studentName + ", ";
+                }
+
+            }
+            answerdto.setStudentName(studentName);
+
+            List<StudentResponse> r = StudentResponse.getAllStudentResponseWithExamIdNumeroAndSheetId(examId, numero, sheet.id)
+            .list();
+            if (r.size() > 0) {
+                StudentResponse studentResponse = r.get(0);
+            if (studentResponse.star != null) {
+                answerdto.setStar(studentResponse.star);
+            } else {
+                answerdto.setStar(false);
+            }
+            if (studentResponse.worststar != null) {
+                answerdto.setWorststar(studentResponse.worststar);
+            } else {
+                answerdto.setWorststar(false);
+            }
+            answerdto.setNote(Integer.valueOf(studentResponse.quarternote).doubleValue() / 4);
+            answerdto.setComments(commentsMapper.toDto(new ArrayList<>(studentResponse.comments)));
+            answerdto.setTextComments(
+                    studentResponse.textcomments.stream().map(gc -> gc.id).collect(Collectors.toList()));
+            for (TextComment gc : studentResponse.textcomments) {
+                if (!textcomments.containsKey(gc.id)) {
+                    textcomments.put(gc.id, textCommentMapper.toDto(gc));
+                }
+            }
+            for (GradedComment gc : studentResponse.gradedcomments) {
+                if (!gradedcomments.containsKey(gc.id)) {
+                    gradedcomments.put(gc.id, gradedCommentMapper.toDto(gc));
+                }
+            }
+
+        }
+
+            answers.add(answerdto);
+        }
+
+        dto.setAnswers(answers);
+        dto.setTextComments(new ArrayList(textcomments.values()));
+        dto.setGradedComments(new ArrayList(gradedcomments.values()));
+        return Response.ok().entity(dto).build();
+
+    }
+
 
 }
