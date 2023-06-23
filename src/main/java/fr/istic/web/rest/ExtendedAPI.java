@@ -1098,12 +1098,12 @@ public class ExtendedAPI {
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Path("/deleteAnswerAndUnsetComment/{studentResponseId}")
     @Transactional
-    public Response deleteAnswerAndUnsetComment(@PathParam("studentResponseId") long examId, @Context UriInfo uriInfo,
+    public Response deleteAnswerAndUnsetComment(@PathParam("studentResponseId") long studentResponseId, @Context UriInfo uriInfo,
             @Context SecurityContext ctx) {
-        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+        if (!securityService.canAccess(ctx, studentResponseId, StudentResponse.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
-        Optional<StudentResponse> sr = StudentResponse.findByIdOptional(examId);
+        Optional<StudentResponse> sr = StudentResponse.findByIdOptional(studentResponseId);
         if (sr.isPresent()) {
             sr.get().gradedcomments.forEach(gc -> {
 
