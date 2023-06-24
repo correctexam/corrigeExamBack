@@ -718,17 +718,26 @@ public class ImportExportService {
         Map<Long, String> importstudentsUID = new HashMap<>();
         Map<String, Long> uuidId = new HashMap<>();
 
+        log.error("pass par la9");
+
         _course.getAsJsonArray("examIdUidMappings").forEach(st -> {
             importexamsUID.put(st.getAsJsonObject().get("left").getAsLong(),
                     st.getAsJsonObject().get("right").getAsString());
         });
+        log.error("pass par la10");
 
         if (includeStudentData) {
-            _course.getAsJsonArray("studentIdUidMappings").forEach(st -> {
-                importstudentsUID.put(st.getAsJsonObject().get("left").getAsLong(),
-                        st.getAsJsonObject().get("right").getAsString());
-            });
+            if (_course.getAsJsonArray("studentIdUidMappings") != null) {
+
+                _course.getAsJsonArray("studentIdUidMappings").forEach(st -> {
+                    importstudentsUID.put(st.getAsJsonObject().get("left").getAsLong(),
+                            st.getAsJsonObject().get("right").getAsString());
+                });
+            }
+
         }
+
+        log.error("pass par la8");
 
         // Course
         Course course = new Course();
@@ -738,469 +747,585 @@ public class ImportExportService {
         course.profs.add(user);
 
         if (includeStudentData) {
-            _course.getAsJsonArray("groups").forEach(gr -> {
-                CourseGroup group = new CourseGroup();
-                group.groupName = gr.getAsJsonObject().get("groupName").getAsString();
-                group.persistAndFlush();
-                uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), group.id);
-            });
+            if (_course.getAsJsonArray("groups") != null) {
+                _course.getAsJsonArray("groups").forEach(gr -> {
+                    CourseGroup group = new CourseGroup();
+                    group.groupName = gr.getAsJsonObject().get("groupName").getAsString();
+                    group.persistAndFlush();
+                    uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), group.id);
+                });
+            }
         }
 
-        _course.getAsJsonArray("exams").forEach(gr -> {
-            Exam exam = new Exam();
-            exam.name = gr.getAsJsonObject().get("name").getAsString();
-            exam.persistAndFlush();
-            uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), exam.id);
-        });
+        if (_course.getAsJsonArray("exams") != null) {
+            _course.getAsJsonArray("exams").forEach(gr -> {
+                Exam exam = new Exam();
+                exam.name = gr.getAsJsonObject().get("name").getAsString();
+                exam.persistAndFlush();
+                uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), exam.id);
+            });
+        }
+        log.error("pass par la7");
 
         if (includeStudentData) {
-            _course.getAsJsonArray("students").forEach(gr -> {
-                Student student = new Student();
-                if (gr.getAsJsonObject().get("name") != null) {
-                    student.name = gr.getAsJsonObject().get("name").getAsString();
-                }
-                if (gr.getAsJsonObject().get("firstname") != null) {
-                    student.firstname = gr.getAsJsonObject().get("firstname").getAsString();
-                }
-                if (gr.getAsJsonObject().get("caslogin") != null) {
-                    student.caslogin = gr.getAsJsonObject().get("caslogin").getAsString();
-                }
-                if (gr.getAsJsonObject().get("ine") != null) {
-                    student.ine = gr.getAsJsonObject().get("ine").getAsString();
-                }
-                if (gr.getAsJsonObject().get("mail") != null) {
-                    student.mail = gr.getAsJsonObject().get("mail").getAsString();
-                }
+            if (_course.getAsJsonArray("students") != null) {
 
-                student.persistAndFlush();
-                uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), student.id);
-            });
-        }
-
-        _course.getAsJsonArray("templates").forEach(gr -> {
-            Template template = new Template();
-            if (gr.getAsJsonObject().get("name") != null) {
-                template.name = gr.getAsJsonObject().get("name").getAsString();
-            }
-            if (gr.getAsJsonObject().get("autoMapStudentCopyToList") != null) {
-                template.autoMapStudentCopyToList = gr.getAsJsonObject().get("autoMapStudentCopyToList").getAsBoolean();
-            }
-            if (gr.getAsJsonObject().get("contentContentType") != null) {
-                template.contentContentType = gr.getAsJsonObject().get("contentContentType").getAsString();
-            }
-            if (gr.getAsJsonObject().get("mark") != null) {
-                template.mark = gr.getAsJsonObject().get("mark").getAsBoolean();
-            }
-            template.persistAndFlush();
-            if (gr.getAsJsonObject().get("content") != null) {
-
-                byte[] bytes = gr.getAsJsonObject().get("content").getAsString().getBytes();
-
-                Base64.Decoder decoder = Base64.getDecoder();
-                byte[] b64bytes = decoder.decode(bytes);
-
-                if (this.uses3) {
-                    String fileName = "template/" + template.id + ".pdf";
-                    try {
-                        this.putObject(fileName, b64bytes, template.contentContentType);
-                    } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException
-                            | IOException e) {
-                        e.printStackTrace();
+                _course.getAsJsonArray("students").forEach(gr -> {
+                    Student student = new Student();
+                    if (gr.getAsJsonObject().get("name") != null) {
+                        student.name = gr.getAsJsonObject().get("name").getAsString();
                     }
-                } else {
-                    template.content = b64bytes;
-                    template.persistAndFlush();
-                }
+                    if (gr.getAsJsonObject().get("firstname") != null) {
+                        student.firstname = gr.getAsJsonObject().get("firstname").getAsString();
+                    }
+                    if (gr.getAsJsonObject().get("caslogin") != null) {
+                        student.caslogin = gr.getAsJsonObject().get("caslogin").getAsString();
+                    }
+                    if (gr.getAsJsonObject().get("ine") != null) {
+                        student.ine = gr.getAsJsonObject().get("ine").getAsString();
+                    }
+                    if (gr.getAsJsonObject().get("mail") != null) {
+                        student.mail = gr.getAsJsonObject().get("mail").getAsString();
+                    }
+
+                    student.persistAndFlush();
+                    uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), student.id);
+                });
             }
+        }
 
-            uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), template.id);
-        });
+        if (_course.getAsJsonArray("templates") != null) {
+                    log.error("pass par la77");
 
-        if (includeStudentData) {
-
-            _course.getAsJsonArray("scans").forEach(gr -> {
-                Scan scan = new Scan();
-
+            _course.getAsJsonArray("templates").forEach(gr -> {
+                Template template = new Template();
                 if (gr.getAsJsonObject().get("name") != null) {
-                    scan.name = gr.getAsJsonObject().get("name").getAsString();
+                    template.name = gr.getAsJsonObject().get("name").getAsString();
+                }
+                if (gr.getAsJsonObject().get("autoMapStudentCopyToList") != null) {
+                    template.autoMapStudentCopyToList = gr.getAsJsonObject().get("autoMapStudentCopyToList")
+                            .getAsBoolean();
                 }
                 if (gr.getAsJsonObject().get("contentContentType") != null) {
-                    scan.contentContentType = gr.getAsJsonObject().get("contentContentType").getAsString();
+                    template.contentContentType = gr.getAsJsonObject().get("contentContentType").getAsString();
                 }
-                scan.persistAndFlush();
-                uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), scan.id);
+                if (gr.getAsJsonObject().get("mark") != null) {
+                    template.mark = gr.getAsJsonObject().get("mark").getAsBoolean();
+                }
+                template.persistAndFlush();
+                                    log.error("pass par la78");
 
                 if (gr.getAsJsonObject().get("content") != null) {
 
                     byte[] bytes = gr.getAsJsonObject().get("content").getAsString().getBytes();
+                                        log.error("pass par la799");
+
 
                     Base64.Decoder decoder = Base64.getDecoder();
                     byte[] b64bytes = decoder.decode(bytes);
 
                     if (this.uses3) {
-                        String fileName = "scan/" + scan.id + ".pdf";
+                        String fileName = "template/" + template.id + ".pdf";
                         try {
-                            this.putObject(fileName, b64bytes, scan.contentContentType);
+                                                                    log.error("pass par la798");
+
+                            this.putObject(fileName, b64bytes, template.contentContentType);
+
+                                                                    log.error("pass par la797");
                         } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException
                                 | IOException e) {
+                                                log.error(e.getMessage());
+
                             e.printStackTrace();
                         }
                     } else {
-                        scan.content = b64bytes;
-                        scan.persistAndFlush();
+                        template.content = b64bytes;
+                        template.persistAndFlush();
                     }
                 }
+                    log.error("pass par la79");
+
+                uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), template.id);
+            });
+        }
+        log.error("pass par la6");
+
+        if (includeStudentData) {
+
+            if (_course.getAsJsonArray("scans") != null) {
+
+                _course.getAsJsonArray("scans").forEach(gr -> {
+                    Scan scan = new Scan();
+
+                    if (gr.getAsJsonObject().get("name") != null) {
+                        scan.name = gr.getAsJsonObject().get("name").getAsString();
+                    }
+                    if (gr.getAsJsonObject().get("contentContentType") != null) {
+                        scan.contentContentType = gr.getAsJsonObject().get("contentContentType").getAsString();
+                    }
+                    scan.persistAndFlush();
+                    uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), scan.id);
+
+                    if (gr.getAsJsonObject().get("content") != null) {
+
+                        byte[] bytes = gr.getAsJsonObject().get("content").getAsString().getBytes();
+
+                        Base64.Decoder decoder = Base64.getDecoder();
+                        byte[] b64bytes = decoder.decode(bytes);
+
+                        if (this.uses3) {
+                            String fileName = "scan/" + scan.id + ".pdf";
+                            try {
+                                this.putObject(fileName, b64bytes, scan.contentContentType);
+                            } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException
+                                    | IOException e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            scan.content = b64bytes;
+                            scan.persistAndFlush();
+                        }
+                    }
+                });
+            }
+        }
+        log.error("pass par la5");
+
+        if (_course.getAsJsonArray("zones") != null) {
+
+            _course.getAsJsonArray("zones").forEach(gr -> {
+                Zone zone = new Zone();
+                if (gr.getAsJsonObject().get("height") != null) {
+                    zone.height = gr.getAsJsonObject().get("height").getAsInt();
+
+                }
+                if (gr.getAsJsonObject().get("width") != null) {
+                    zone.width = gr.getAsJsonObject().get("width").getAsInt();
+                }
+                if (gr.getAsJsonObject().get("xInit") != null) {
+                    zone.xInit = gr.getAsJsonObject().get("xInit").getAsInt();
+                }
+                if (gr.getAsJsonObject().get("yInit") != null) {
+                    zone.yInit = gr.getAsJsonObject().get("yInit").getAsInt();
+                }
+                if (gr.getAsJsonObject().get("pageNumber") != null) {
+                    zone.pageNumber = gr.getAsJsonObject().get("pageNumber").getAsInt();
+                }
+                zone.persistAndFlush();
+                uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), zone.id);
+            });
+        }
+        log.error("pass par la3");
+
+        // Questions
+        if (_course.getAsJsonArray("questions") != null) {
+
+            _course.getAsJsonArray("questions").forEach(gr -> {
+                Question question = new Question();
+                if (gr.getAsJsonObject().get("numero") != null) {
+                    question.numero = gr.getAsJsonObject().get("numero").getAsInt();
+                }
+                if (gr.getAsJsonObject().get("quarterpoint") != null) {
+                    question.quarterpoint = gr.getAsJsonObject().get("quarterpoint").getAsInt();
+                }
+                if (gr.getAsJsonObject().get("step") != null) {
+                    question.step = gr.getAsJsonObject().get("step").getAsInt();
+                }
+                if (gr.getAsJsonObject().get("validExpression") != null) {
+                    question.validExpression = gr.getAsJsonObject().get("validExpression").getAsString();
+                }
+                if (gr.getAsJsonObject().get("gradeType") != null) {
+                    question.gradeType = GradeType.valueOf(gr.getAsJsonObject().get("gradeType").getAsString());
+                }
+                if (gr.getAsJsonObject().get("type") != null) {
+                    question.type = QuestionType
+                            .findQuestionTypebyAlgoName(gr.getAsJsonObject().get("type").getAsString())
+                            .firstResult();
+                }
+                question.persistAndFlush();
+                uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), question.id);
+            });
+            log.error("pass par la2");
+        }
+
+        // TextComments
+        if (_course.getAsJsonArray("textcomments") != null) {
+
+            _course.getAsJsonArray("textcomments").forEach(gr -> {
+                TextComment textComment = new TextComment();
+                if (gr.getAsJsonObject().get("text") != null) {
+                    textComment.text = gr.getAsJsonObject().get("text").getAsString();
+                }
+                if (gr.getAsJsonObject().get("description") != null) {
+                    textComment.description = gr.getAsJsonObject().get("description").getAsString();
+                }
+                if (gr.getAsJsonObject().get("zonegeneratedid") != null) {
+                    textComment.zonegeneratedid = gr.getAsJsonObject().get("zonegeneratedid").getAsString();
+                }
+                textComment.persistAndFlush();
+                uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), textComment.id);
             });
         }
 
-        _course.getAsJsonArray("zones").forEach(gr -> {
-            Zone zone = new Zone();
-            if (gr.getAsJsonObject().get("height") != null) {
-                zone.height = gr.getAsJsonObject().get("height").getAsInt();
-
-            }
-            if (gr.getAsJsonObject().get("width") != null) {
-                zone.width = gr.getAsJsonObject().get("width").getAsInt();
-            }
-            if (gr.getAsJsonObject().get("xInit") != null) {
-                zone.xInit = gr.getAsJsonObject().get("xInit").getAsInt();
-            }
-            if (gr.getAsJsonObject().get("yInit") != null) {
-                zone.yInit = gr.getAsJsonObject().get("yInit").getAsInt();
-            }
-            if (gr.getAsJsonObject().get("pageNumber") != null) {
-                zone.pageNumber = gr.getAsJsonObject().get("pageNumber").getAsInt();
-            }
-            zone.persistAndFlush();
-            uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), zone.id);
-        });
-
-        // Questions
-        _course.getAsJsonArray("questions").forEach(gr -> {
-            Question question = new Question();
-            if (gr.getAsJsonObject().get("numero") != null) {
-                question.numero = gr.getAsJsonObject().get("numero").getAsInt();
-            }
-            if (gr.getAsJsonObject().get("quarterpoint") != null) {
-                question.quarterpoint = gr.getAsJsonObject().get("quarterpoint").getAsInt();
-            }
-            if (gr.getAsJsonObject().get("step") != null) {
-                question.step = gr.getAsJsonObject().get("step").getAsInt();
-            }
-            if (gr.getAsJsonObject().get("validExpression") != null) {
-                question.validExpression = gr.getAsJsonObject().get("validExpression").getAsString();
-            }
-            if (gr.getAsJsonObject().get("gradeType") != null) {
-                question.gradeType = GradeType.valueOf(gr.getAsJsonObject().get("gradeType").getAsString());
-            }
-            if (gr.getAsJsonObject().get("type") != null) {
-                question.type = QuestionType.findQuestionTypebyAlgoName(gr.getAsJsonObject().get("type").getAsString())
-                        .firstResult();
-            }
-            question.persistAndFlush();
-            uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), question.id);
-        });
-
-        // TextComments
-        _course.getAsJsonArray("textcomments").forEach(gr -> {
-            TextComment textComment = new TextComment();
-            if (gr.getAsJsonObject().get("text") != null) {
-                textComment.text = gr.getAsJsonObject().get("text").getAsString();
-            }
-            if (gr.getAsJsonObject().get("description") != null) {
-                textComment.description = gr.getAsJsonObject().get("description").getAsString();
-            }
-            if (gr.getAsJsonObject().get("zonegeneratedid") != null) {
-                textComment.zonegeneratedid = gr.getAsJsonObject().get("zonegeneratedid").getAsString();
-            }
-            textComment.persistAndFlush();
-            uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), textComment.id);
-        });
-
         // GradedComments
-        _course.getAsJsonArray("gradedcomments").forEach(gr -> {
-            GradedComment gradedComment = new GradedComment();
-            if (gr.getAsJsonObject().get("text") != null) {
-                gradedComment.text = gr.getAsJsonObject().get("text").getAsString();
-            }
-            if (gr.getAsJsonObject().get("description") != null) {
-                gradedComment.description = gr.getAsJsonObject().get("description").getAsString();
-            }
-            if (gr.getAsJsonObject().get("zonegeneratedid") != null) {
-                gradedComment.zonegeneratedid = gr.getAsJsonObject().get("zonegeneratedid").getAsString();
-            }
-            if (gr.getAsJsonObject().get("gradequarter") != null) {
-                gradedComment.gradequarter = gr.getAsJsonObject().get("gradequarter").getAsInt();
-            }
-            gradedComment.persistAndFlush();
-            uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), gradedComment.id);
-        });
+        if (_course.getAsJsonArray("gradedcomments") != null) {
+
+            _course.getAsJsonArray("gradedcomments").forEach(gr -> {
+                GradedComment gradedComment = new GradedComment();
+                if (gr.getAsJsonObject().get("text") != null) {
+                    gradedComment.text = gr.getAsJsonObject().get("text").getAsString();
+                }
+                if (gr.getAsJsonObject().get("description") != null) {
+                    gradedComment.description = gr.getAsJsonObject().get("description").getAsString();
+                }
+                if (gr.getAsJsonObject().get("zonegeneratedid") != null) {
+                    gradedComment.zonegeneratedid = gr.getAsJsonObject().get("zonegeneratedid").getAsString();
+                }
+                if (gr.getAsJsonObject().get("gradequarter") != null) {
+                    gradedComment.gradequarter = gr.getAsJsonObject().get("gradequarter").getAsInt();
+                }
+                gradedComment.persistAndFlush();
+                uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), gradedComment.id);
+            });
+        }
+        log.error("pass par la1");
 
         if (includeStudentData) {
 
             // ExamSheets
-            _course.getAsJsonArray("examSheets").forEach(gr -> {
-                ExamSheet examSheet = new ExamSheet();
-                if (gr.getAsJsonObject().get("name") != null) {
-                    examSheet.name = gr.getAsJsonObject().get("name").getAsString();
-                }
-                if (gr.getAsJsonObject().get("pagemax") != null) {
-                    examSheet.pagemax = gr.getAsJsonObject().get("pagemax").getAsInt();
-                }
-                if (gr.getAsJsonObject().get("pagemin") != null) {
-                    examSheet.pagemin = gr.getAsJsonObject().get("pagemin").getAsInt();
-                }
-                examSheet.persistAndFlush();
-                uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), examSheet.id);
-            });
+            if (_course.getAsJsonArray("examSheets") != null) {
+
+                _course.getAsJsonArray("examSheets").forEach(gr -> {
+                    ExamSheet examSheet = new ExamSheet();
+                    if (gr.getAsJsonObject().get("name") != null) {
+                        examSheet.name = gr.getAsJsonObject().get("name").getAsString();
+                    }
+                    if (gr.getAsJsonObject().get("pagemax") != null) {
+                        examSheet.pagemax = gr.getAsJsonObject().get("pagemax").getAsInt();
+                    }
+                    if (gr.getAsJsonObject().get("pagemin") != null) {
+                        examSheet.pagemin = gr.getAsJsonObject().get("pagemin").getAsInt();
+                    }
+                    examSheet.persistAndFlush();
+                    uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), examSheet.id);
+                });
+            }
 
             // StudentResponse
 
-            _course.getAsJsonArray("studentResponses").forEach(gr -> {
-                StudentResponse studentResponse = new StudentResponse();
-                if (gr.getAsJsonObject().get("star") != null) {
-                    studentResponse.star = gr.getAsJsonObject().get("star").getAsBoolean();
-                }
-                if (gr.getAsJsonObject().get("worststar") != null) {
-                    studentResponse.worststar = gr.getAsJsonObject().get("worststar").getAsBoolean();
-                }
-                if (gr.getAsJsonObject().get("quarternote") != null) {
-                    studentResponse.quarternote = gr.getAsJsonObject().get("quarternote").getAsInt();
-                }
-                studentResponse.persistAndFlush();
-                uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), studentResponse.id);
-            });
+            if (_course.getAsJsonArray("studentResponses") != null) {
 
-            // FinalResult
-            _course.getAsJsonArray("finalResults").forEach(gr -> {
-                FinalResult finalResult = new FinalResult();
-                if (gr.getAsJsonObject().get("note") != null) {
-                    finalResult.note = gr.getAsJsonObject().get("note").getAsInt();
-                }
-                finalResult.persistAndFlush();
-                uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), finalResult.id);
-            });
+                _course.getAsJsonArray("studentResponses").forEach(gr -> {
+                    StudentResponse studentResponse = new StudentResponse();
+                    if (gr.getAsJsonObject().get("star") != null) {
+                        studentResponse.star = gr.getAsJsonObject().get("star").getAsBoolean();
+                    }
+                    if (gr.getAsJsonObject().get("worststar") != null) {
+                        studentResponse.worststar = gr.getAsJsonObject().get("worststar").getAsBoolean();
+                    }
+                    if (gr.getAsJsonObject().get("quarternote") != null) {
+                        studentResponse.quarternote = gr.getAsJsonObject().get("quarternote").getAsInt();
+                    }
+                    studentResponse.persistAndFlush();
+                    uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), studentResponse.id);
+                });
+            }
+            if (_course.getAsJsonArray("finalResults") != null) {
 
-            // Comment
-            _course.getAsJsonArray("comments").forEach(gr -> {
-                Comments comment = new Comments();
-                comment.jsonData = gr.getAsJsonObject().get("jsonData").getAsString();
-                comment.zonegeneratedid = gr.getAsJsonObject().get("zonegeneratedid").getAsString();
-                // TODO
-                StringTokenizer t = new StringTokenizer(comment.zonegeneratedid, "_");
-                if (t.countTokens() > 1) {
-                    String examId = t.nextToken();
-                    String studentId = t.nextToken();
-                    String questiono = t.nextToken();
-                    String index = t.nextToken();
-                    /*
-                     * '' + this.exam!.id + '_' + this.selectionStudents![0].id + '_' +
-                     * this.questionno + '_' + index
-                     *
-                     */
-                    comment.zonegeneratedid = "" + uuidId.get(importexamsUID.get(Long.parseLong(examId))) + "_" +
-                            uuidId.get(importstudentsUID.get(Long.parseLong(studentId))) + "_" + questiono + "_"
-                            + index;
-                }
+                // FinalResult
+                _course.getAsJsonArray("finalResults").forEach(gr -> {
+                    FinalResult finalResult = new FinalResult();
+                    if (gr.getAsJsonObject().get("note") != null) {
+                        finalResult.note = gr.getAsJsonObject().get("note").getAsInt();
+                    }
+                    finalResult.persistAndFlush();
+                    uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), finalResult.id);
+                });
+            }
 
-                comment.persistAndFlush();
-                uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), comment.id);
-            });
+            if (_course.getAsJsonArray("comments") != null) {
 
-            _course.getAsJsonArray("coursegroupsR").forEach(gr -> {
+                // Comment
+                _course.getAsJsonArray("comments").forEach(gr -> {
+                    Comments comment = new Comments();
+                    comment.jsonData = gr.getAsJsonObject().get("jsonData").getAsString();
+                    comment.zonegeneratedid = gr.getAsJsonObject().get("zonegeneratedid").getAsString();
+                    // TODO
+                    StringTokenizer t = new StringTokenizer(comment.zonegeneratedid, "_");
+                    if (t.countTokens() > 1) {
+                        String examId = t.nextToken();
+                        String studentId = t.nextToken();
+                        String questiono = t.nextToken();
+                        String index = t.nextToken();
+                        /*
+                         * '' + this.exam!.id + '_' + this.selectionStudents![0].id + '_' +
+                         * this.questionno + '_' + index
+                         *
+                         */
+                        comment.zonegeneratedid = "" + uuidId.get(importexamsUID.get(Long.parseLong(examId))) + "_" +
+                                uuidId.get(importstudentsUID.get(Long.parseLong(studentId))) + "_" + questiono + "_"
+                                + index;
+                    }
+
+                    comment.persistAndFlush();
+                    uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), comment.id);
+                });
+            }
+
+            if (_course.getAsJsonArray("coursegroupsR") != null) {
+
+                _course.getAsJsonArray("coursegroupsR").forEach(gr -> {
+                    // String left = gr.getAsJsonObject().get("left").getAsString();
+                    String right = gr.getAsJsonObject().get("right").getAsString();
+                    Course c = Course.findById(course.id);
+                    CourseGroup cg = CourseGroup.findById(uuidId.get(right));
+                    cg.course = c;
+                    c.groups.add(cg);
+                });
+            }
+
+            if (_course.getAsJsonArray("groupsstudentR") != null) {
+
+                _course.getAsJsonArray("groupsstudentR").forEach(gr -> {
+                    String left = gr.getAsJsonObject().get("left").getAsString();
+                    String right = gr.getAsJsonObject().get("right").getAsString();
+                    CourseGroup cg = CourseGroup.findById(uuidId.get(left));
+                    Student st = Student.findById(uuidId.get(right));
+                    cg.students.add(st);
+                    st.groups.add(cg);
+                });
+            }
+        }
+
+        if (_course.getAsJsonArray("courseExamR") != null) {
+
+            _course.getAsJsonArray("courseExamR").forEach(gr -> {
                 // String left = gr.getAsJsonObject().get("left").getAsString();
                 String right = gr.getAsJsonObject().get("right").getAsString();
                 Course c = Course.findById(course.id);
-                CourseGroup cg = CourseGroup.findById(uuidId.get(right));
-                cg.course = c;
-                c.groups.add(cg);
-            });
-
-            _course.getAsJsonArray("groupsstudentR").forEach(gr -> {
-                String left = gr.getAsJsonObject().get("left").getAsString();
-                String right = gr.getAsJsonObject().get("right").getAsString();
-                CourseGroup cg = CourseGroup.findById(uuidId.get(left));
-                Student st = Student.findById(uuidId.get(right));
-                cg.students.add(st);
-                st.groups.add(cg);
+                Exam ex = Exam.findById(uuidId.get(right));
+                c.exams.add(ex);
+                ex.course = c;
             });
         }
+        if (_course.getAsJsonArray("examstemplatesR") != null) {
 
-        _course.getAsJsonArray("courseExamR").forEach(gr -> {
-            // String left = gr.getAsJsonObject().get("left").getAsString();
-            String right = gr.getAsJsonObject().get("right").getAsString();
-            Course c = Course.findById(course.id);
-            Exam ex = Exam.findById(uuidId.get(right));
-            c.exams.add(ex);
-            ex.course = c;
-        });
-
-        _course.getAsJsonArray("examstemplatesR").forEach(gr -> {
-            String left = gr.getAsJsonObject().get("left").getAsString();
-            String right = gr.getAsJsonObject().get("right").getAsString();
-            Exam ex = Exam.findById(uuidId.get(left));
-            Template st = Template.findById(uuidId.get(right));
-            ex.template = st;
-            // st.exam = ex;
-        });
-
-        _course.getAsJsonArray("examsidzoneR").forEach(gr -> {
-            String left = gr.getAsJsonObject().get("left").getAsString();
-            String right = gr.getAsJsonObject().get("right").getAsString();
-            Exam ex = Exam.findById(uuidId.get(left));
-            Zone st = Zone.findById(uuidId.get(right));
-            ex.idzone = st;
-        });
-
-        _course.getAsJsonArray("examsnamezoneR").forEach(gr -> {
-            String left = gr.getAsJsonObject().get("left").getAsString();
-            String right = gr.getAsJsonObject().get("right").getAsString();
-            Exam ex = Exam.findById(uuidId.get(left));
-            Zone st = Zone.findById(uuidId.get(right));
-            ex.namezone = st;
-        });
-
-        _course.getAsJsonArray("examsfirstnamezoneR").forEach(gr -> {
-            String left = gr.getAsJsonObject().get("left").getAsString();
-            String right = gr.getAsJsonObject().get("right").getAsString();
-            Exam ex = Exam.findById(uuidId.get(left));
-            Zone st = Zone.findById(uuidId.get(right));
-            ex.firstnamezone = st;
-        });
-
-        _course.getAsJsonArray("examsnotezoneR").forEach(gr -> {
-            String left = gr.getAsJsonObject().get("left").getAsString();
-            String right = gr.getAsJsonObject().get("right").getAsString();
-            Exam ex = Exam.findById(uuidId.get(left));
-            Zone st = Zone.findById(uuidId.get(right));
-            ex.notezone = st;
-        });
-
-        _course.getAsJsonArray("examsquestionsR").forEach(gr -> {
-            String left = gr.getAsJsonObject().get("left").getAsString();
-            String right = gr.getAsJsonObject().get("right").getAsString();
-            Exam ex = Exam.findById(uuidId.get(left));
-            Question st = Question.findById(uuidId.get(right));
-            ex.questions.add(st);
-            st.exam = ex;
-        });
-
-        if (includeStudentData) {
-
-            _course.getAsJsonArray("examsscanfileR").forEach(gr -> {
+            _course.getAsJsonArray("examstemplatesR").forEach(gr -> {
                 String left = gr.getAsJsonObject().get("left").getAsString();
                 String right = gr.getAsJsonObject().get("right").getAsString();
                 Exam ex = Exam.findById(uuidId.get(left));
-                Scan st = Scan.findById(uuidId.get(right));
-                ex.scanfile = st;
-
-            });
-
-            _course.getAsJsonArray("finalResultStudentR").forEach(gr -> {
-                String left = gr.getAsJsonObject().get("left").getAsString();
-                String right = gr.getAsJsonObject().get("right").getAsString();
-                FinalResult ex = FinalResult.findById(uuidId.get(left));
-                Student st = Student.findById(uuidId.get(right));
-                ex.student = st;
-            });
-
-            _course.getAsJsonArray("finalResultExamR").forEach(gr -> {
-                String left = gr.getAsJsonObject().get("left").getAsString();
-                String right = gr.getAsJsonObject().get("right").getAsString();
-                FinalResult ex = FinalResult.findById(uuidId.get(left));
-                Exam st = Exam.findById(uuidId.get(right));
-                ex.exam = st;
-            });
-
-            _course.getAsJsonArray("studentResponsesQuestionR").forEach(gr -> {
-                String left = gr.getAsJsonObject().get("left").getAsString();
-                String right = gr.getAsJsonObject().get("right").getAsString();
-                StudentResponse ex = StudentResponse.findById(uuidId.get(left));
-                Question st = Question.findById(uuidId.get(right));
-                ex.question = st;
-            });
-
-            _course.getAsJsonArray("studentResponsesExamSheetR").forEach(gr -> {
-                String left = gr.getAsJsonObject().get("left").getAsString();
-                String right = gr.getAsJsonObject().get("right").getAsString();
-                StudentResponse ex = StudentResponse.findById(uuidId.get(left));
-                ExamSheet st = ExamSheet.findById(uuidId.get(right));
-                ex.sheet = st;
-            });
-
-            _course.getAsJsonArray("studentResponsesCommentsR").forEach(gr -> {
-                String left = gr.getAsJsonObject().get("left").getAsString();
-                String right = gr.getAsJsonObject().get("right").getAsString();
-                StudentResponse ex = StudentResponse.findById(uuidId.get(left));
-                Comments st = Comments.findById(uuidId.get(right));
-                ex.comments.add(st);
-                st.studentResponse = ex;
-            });
-
-            _course.getAsJsonArray("scanExamSheetsR").forEach(gr -> {
-                String left = gr.getAsJsonObject().get("left").getAsString();
-                String right = gr.getAsJsonObject().get("right").getAsString();
-
-                Scan ex = Scan.findById(uuidId.get(left));
-                ExamSheet st = ExamSheet.findById(uuidId.get(right));
-                ex.sheets.add(st);
-                st.scan = ex;
+                Template st = Template.findById(uuidId.get(right));
+                ex.template = st;
+                // st.exam = ex;
             });
         }
 
-        _course.getAsJsonArray("questionTextCommentsR").forEach(gr -> {
-            String left = gr.getAsJsonObject().get("left").getAsString();
-            String right = gr.getAsJsonObject().get("right").getAsString();
-            Question ex = Question.findById(uuidId.get(left));
-            TextComment st = TextComment.findById(uuidId.get(right));
-            ex.textcomments.add(st);
-            st.question = ex;
-        });
+        if (_course.getAsJsonArray("examsidzoneR") != null) {
 
-        _course.getAsJsonArray("questionGradedCommentsR").forEach(gr -> {
-            String left = gr.getAsJsonObject().get("left").getAsString();
-            String right = gr.getAsJsonObject().get("right").getAsString();
-            Question ex = Question.findById(uuidId.get(left));
-            GradedComment st = GradedComment.findById(uuidId.get(right));
-            ex.gradedcomments.add(st);
-            st.question = ex;
-        });
+            _course.getAsJsonArray("examsidzoneR").forEach(gr -> {
+                String left = gr.getAsJsonObject().get("left").getAsString();
+                String right = gr.getAsJsonObject().get("right").getAsString();
+                Exam ex = Exam.findById(uuidId.get(left));
+                Zone st = Zone.findById(uuidId.get(right));
+                ex.idzone = st;
+            });
+        }
+        if (_course.getAsJsonArray("examsnamezoneR") != null) {
+
+            _course.getAsJsonArray("examsnamezoneR").forEach(gr -> {
+                String left = gr.getAsJsonObject().get("left").getAsString();
+                String right = gr.getAsJsonObject().get("right").getAsString();
+                Exam ex = Exam.findById(uuidId.get(left));
+                Zone st = Zone.findById(uuidId.get(right));
+                ex.namezone = st;
+            });
+        }
+        if (_course.getAsJsonArray("examsfirstnamezoneR") != null) {
+
+            _course.getAsJsonArray("examsfirstnamezoneR").forEach(gr -> {
+                String left = gr.getAsJsonObject().get("left").getAsString();
+                String right = gr.getAsJsonObject().get("right").getAsString();
+                Exam ex = Exam.findById(uuidId.get(left));
+                Zone st = Zone.findById(uuidId.get(right));
+                ex.firstnamezone = st;
+            });
+        }
+
+        if (_course.getAsJsonArray("examsnotezoneR") != null) {
+
+            _course.getAsJsonArray("examsnotezoneR").forEach(gr -> {
+                String left = gr.getAsJsonObject().get("left").getAsString();
+                String right = gr.getAsJsonObject().get("right").getAsString();
+                Exam ex = Exam.findById(uuidId.get(left));
+                Zone st = Zone.findById(uuidId.get(right));
+                ex.notezone = st;
+            });
+        }
+
+        if (_course.getAsJsonArray("examsquestionsR") != null) {
+
+            _course.getAsJsonArray("examsquestionsR").forEach(gr -> {
+                String left = gr.getAsJsonObject().get("left").getAsString();
+                String right = gr.getAsJsonObject().get("right").getAsString();
+                Exam ex = Exam.findById(uuidId.get(left));
+                Question st = Question.findById(uuidId.get(right));
+                ex.questions.add(st);
+                st.exam = ex;
+            });
+        }
 
         if (includeStudentData) {
 
-            _course.getAsJsonArray("studentResponseTextCommentsR").forEach(gr -> {
+            if (_course.getAsJsonArray("examsscanfileR") != null) {
+
+                _course.getAsJsonArray("examsscanfileR").forEach(gr -> {
+                    String left = gr.getAsJsonObject().get("left").getAsString();
+                    String right = gr.getAsJsonObject().get("right").getAsString();
+                    Exam ex = Exam.findById(uuidId.get(left));
+                    Scan st = Scan.findById(uuidId.get(right));
+                    ex.scanfile = st;
+
+                });
+            }
+
+            if (_course.getAsJsonArray("finalResultStudentR") != null) {
+
+                _course.getAsJsonArray("finalResultStudentR").forEach(gr -> {
+                    String left = gr.getAsJsonObject().get("left").getAsString();
+                    String right = gr.getAsJsonObject().get("right").getAsString();
+                    FinalResult ex = FinalResult.findById(uuidId.get(left));
+                    Student st = Student.findById(uuidId.get(right));
+                    ex.student = st;
+                });
+            }
+
+            if (_course.getAsJsonArray("finalResultExamR") != null) {
+
+                _course.getAsJsonArray("finalResultExamR").forEach(gr -> {
+                    String left = gr.getAsJsonObject().get("left").getAsString();
+                    String right = gr.getAsJsonObject().get("right").getAsString();
+                    FinalResult ex = FinalResult.findById(uuidId.get(left));
+                    Exam st = Exam.findById(uuidId.get(right));
+                    ex.exam = st;
+                });
+            }
+
+            if (_course.getAsJsonArray("studentResponsesQuestionR") != null) {
+
+                _course.getAsJsonArray("studentResponsesQuestionR").forEach(gr -> {
+                    String left = gr.getAsJsonObject().get("left").getAsString();
+                    String right = gr.getAsJsonObject().get("right").getAsString();
+                    StudentResponse ex = StudentResponse.findById(uuidId.get(left));
+                    Question st = Question.findById(uuidId.get(right));
+                    ex.question = st;
+                });
+            }
+
+            if (_course.getAsJsonArray("studentResponsesExamSheetR") != null) {
+
+                _course.getAsJsonArray("studentResponsesExamSheetR").forEach(gr -> {
+                    String left = gr.getAsJsonObject().get("left").getAsString();
+                    String right = gr.getAsJsonObject().get("right").getAsString();
+                    StudentResponse ex = StudentResponse.findById(uuidId.get(left));
+                    ExamSheet st = ExamSheet.findById(uuidId.get(right));
+                    ex.sheet = st;
+                });
+            }
+
+            if (_course.getAsJsonArray("studentResponsesCommentsR") != null) {
+
+                _course.getAsJsonArray("studentResponsesCommentsR").forEach(gr -> {
+                    String left = gr.getAsJsonObject().get("left").getAsString();
+                    String right = gr.getAsJsonObject().get("right").getAsString();
+                    StudentResponse ex = StudentResponse.findById(uuidId.get(left));
+                    Comments st = Comments.findById(uuidId.get(right));
+                    ex.comments.add(st);
+                    st.studentResponse = ex;
+                });
+            }
+            if (_course.getAsJsonArray("scanExamSheetsR") != null) {
+
+                _course.getAsJsonArray("scanExamSheetsR").forEach(gr -> {
+                    String left = gr.getAsJsonObject().get("left").getAsString();
+                    String right = gr.getAsJsonObject().get("right").getAsString();
+
+                    Scan ex = Scan.findById(uuidId.get(left));
+                    ExamSheet st = ExamSheet.findById(uuidId.get(right));
+                    ex.sheets.add(st);
+                    st.scan = ex;
+                });
+            }
+        }
+
+        if (_course.getAsJsonArray("questionTextCommentsR") != null) {
+
+            _course.getAsJsonArray("questionTextCommentsR").forEach(gr -> {
                 String left = gr.getAsJsonObject().get("left").getAsString();
                 String right = gr.getAsJsonObject().get("right").getAsString();
-                StudentResponse ex = StudentResponse.findById(uuidId.get(left));
+                Question ex = Question.findById(uuidId.get(left));
                 TextComment st = TextComment.findById(uuidId.get(right));
                 ex.textcomments.add(st);
-                st.studentResponses.add(ex);
-            });
-
-            _course.getAsJsonArray("studentResponseGradedCommentsR").forEach(gr -> {
-                String left = gr.getAsJsonObject().get("left").getAsString();
-                String right = gr.getAsJsonObject().get("right").getAsString();
-                StudentResponse ex = StudentResponse.findById(uuidId.get(left));
-                GradedComment st = GradedComment.findById(uuidId.get(right));
-                ex.gradedcomments.add(st);
-                st.studentResponses.add(ex);
-            });
-
-            _course.getAsJsonArray("studentExamSheetR").forEach(gr -> {
-                String left = gr.getAsJsonObject().get("left").getAsString();
-                String right = gr.getAsJsonObject().get("right").getAsString();
-                Student ex = Student.findById(uuidId.get(left));
-                ExamSheet st = ExamSheet.findById(uuidId.get(right));
-                ex.examSheets.add(st);
+                st.question = ex;
             });
         }
-        _course.getAsJsonArray("questionZoneR").forEach(gr -> {
-            String left = gr.getAsJsonObject().get("left").getAsString();
-            String right = gr.getAsJsonObject().get("right").getAsString();
-            Question ex = Question.findById(uuidId.get(left));
-            Zone st = Zone.findById(uuidId.get(right));
-            ex.zone = st;
-        });
+
+        if (_course.getAsJsonArray("questionGradedCommentsR") != null) {
+
+            _course.getAsJsonArray("questionGradedCommentsR").forEach(gr -> {
+                String left = gr.getAsJsonObject().get("left").getAsString();
+                String right = gr.getAsJsonObject().get("right").getAsString();
+                Question ex = Question.findById(uuidId.get(left));
+                GradedComment st = GradedComment.findById(uuidId.get(right));
+                ex.gradedcomments.add(st);
+                st.question = ex;
+            });
+        }
+
+        if (includeStudentData) {
+
+            if (_course.getAsJsonArray("studentResponseTextCommentsR") != null) {
+
+                _course.getAsJsonArray("studentResponseTextCommentsR").forEach(gr -> {
+                    String left = gr.getAsJsonObject().get("left").getAsString();
+                    String right = gr.getAsJsonObject().get("right").getAsString();
+                    StudentResponse ex = StudentResponse.findById(uuidId.get(left));
+                    TextComment st = TextComment.findById(uuidId.get(right));
+                    ex.textcomments.add(st);
+                    st.studentResponses.add(ex);
+                });
+            }
+            if (_course.getAsJsonArray("studentResponseGradedCommentsR") != null) {
+
+                _course.getAsJsonArray("studentResponseGradedCommentsR").forEach(gr -> {
+                    String left = gr.getAsJsonObject().get("left").getAsString();
+                    String right = gr.getAsJsonObject().get("right").getAsString();
+                    StudentResponse ex = StudentResponse.findById(uuidId.get(left));
+                    GradedComment st = GradedComment.findById(uuidId.get(right));
+                    ex.gradedcomments.add(st);
+                    st.studentResponses.add(ex);
+                });
+            }
+            if (_course.getAsJsonArray("studentExamSheetR") != null) {
+
+                _course.getAsJsonArray("studentExamSheetR").forEach(gr -> {
+                    String left = gr.getAsJsonObject().get("left").getAsString();
+                    String right = gr.getAsJsonObject().get("right").getAsString();
+                    Student ex = Student.findById(uuidId.get(left));
+                    ExamSheet st = ExamSheet.findById(uuidId.get(right));
+                    ex.examSheets.add(st);
+                });
+            }
+        }
+        if (_course.getAsJsonArray("questionZoneR") != null) {
+
+            _course.getAsJsonArray("questionZoneR").forEach(gr -> {
+                String left = gr.getAsJsonObject().get("left").getAsString();
+                String right = gr.getAsJsonObject().get("right").getAsString();
+                Question ex = Question.findById(uuidId.get(left));
+                Zone st = Zone.findById(uuidId.get(right));
+                ex.zone = st;
+            });
+        }
 
         return course;
 
@@ -1226,7 +1351,7 @@ public class ImportExportService {
                 inputStream = inputPart.getBody(InputStream.class, null);
                 JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
                 JsonElement jelement = JsonParser.parseReader(reader);
-                Course c = this.importCourse(jelement.getAsJsonObject(), user,includeStudentData);
+                Course c = this.importCourse(jelement.getAsJsonObject(), user, includeStudentData);
 
                 return courseMapper.toDto(c);
             } catch (IOException e) {

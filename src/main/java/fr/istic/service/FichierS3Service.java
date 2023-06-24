@@ -95,6 +95,7 @@ public class FichierS3Service {
                             .contentType(contenttype)
                             .build());
         } catch (MinioException e) {
+            e.printStackTrace();
             throw new IllegalStateException(e);
         }
     }
