@@ -145,13 +145,11 @@ public class ExtendedAPI {
     @Inject
     ExamMapper examMapper;
 
-
     @Inject
     ImportExportService importExportService;
 
     @Inject
     ExamService examService;
-
 
     @Inject
     ExamSheetService examSheetService;
@@ -1044,107 +1042,110 @@ public class ExtendedAPI {
         return response.build();
     }
 
+
+    @Transactional
+    void deleteOphanExamSheet(long examId){
+    List<ExamSheet> list = ExamSheet.getAllOrphan4ExamId(examId).list();
+        if (list.size() > 0) {
+            for (ExamSheet examSheet : list) {
+                if (StudentResponse.findStudentResponsesbysheetId(examSheet.id).count() == 0) {
+                    if (ExamSheet.getAllDouble4Same(examSheet.id).count() > 0) {
+                        examSheetService.delete(examSheet.id);
+                    }
+                    if (examSheet.pagemin == -1 && examSheet.pagemax == -1) {
+                        if (examSheet.students.size() > 0) {
+                            List<Student> students = new ArrayList<Student>(examSheet.students);
+                            for (Student student : students) {
+                                student.examSheets.remove(examSheet);
+                                examSheet.students.remove(student);
+                                studentService.persistOrUpdate(student);
+                            }
+                        }
+                        examSheetService.delete(examSheet.id);
+                    }
+                }
+                ;
+            }
+
+        }
+}
+
     @DELETE()
     @Path("/cleanExamSheet/{examId}")
-    @Transactional
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response cleanAllFalseSheet(@PathParam("examId") long examId,@Context UriInfo uriInfo,@Context SecurityContext ctx) {
+    public Response cleanAllFalseSheet(@PathParam("examId") long examId, @Context UriInfo uriInfo,
+            @Context SecurityContext ctx) {
         log.debug("REST request to clean all Questions and zone : {}");
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
+        this.deleteOphanExamSheet(examId);
 
-        List<ExamSheet> list = ExamSheet.getAllOrphan4ExamId(examId).list();
-        if (list.size() > 0) {
-            for (ExamSheet examSheet : list) {
-                if (StudentResponse.findStudentResponsesbysheetId(examSheet.id).count()==0){
-                if (ExamSheet.getAllDouble4Same(examSheet.id).count() >0){
-                    examSheetService.delete(examSheet.id);
-                }
-                if (examSheet.pagemin ==-1 && examSheet.pagemax ==-1){
-                    if (examSheet.students.size() >0) {
-                        List<Student> students = new ArrayList<Student>(examSheet.students);
-                        for (Student student: students){
-                            student.examSheets.remove(examSheet);
-                            examSheet.students.remove(student);
-                            studentService.persistOrUpdate(student);
-
-                        }
-                    }
-                    examSheetService.delete(examSheet.id);
-                }
-                };
-            }
-
-        }
         ExamSheet.getEntityManager().clear();
-              var response = Response.noContent();
-                    HeaderUtil.createEntityDeletionAlert(applicationName, true, "exam", "-1")
-                            .forEach(response::header);
-                    return response.build();
+        var response = Response.noContent();
+        HeaderUtil.createEntityDeletionAlert(applicationName, true, "exam", "-1")
+                .forEach(response::header);
+        return response.build();
     }
 
     @DELETE()
     @Path("/cleanExam/{examId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response cleanAllQuestionZone4Exam(@PathParam("examId") long examId,@Context UriInfo uriInfo,@Context SecurityContext ctx) {
+    public Response cleanAllQuestionZone4Exam(@PathParam("examId") long examId, @Context UriInfo uriInfo,
+            @Context SecurityContext ctx) {
         log.debug("REST request to clean all Questions and zone : {}");
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
 
+        Optional<Exam> optEx = Exam.findByIdOptional(examId);
 
+        if (optEx.isPresent()) {
+            examService.deleteQuestionCommentAndZone(examId);
+            /*
+             * List<Zone> zones = Zone.getQuestionZone4ExamId(examId).list();
+             * zones.forEach(z -> {
+             * this.zoneService.delete(z.id);
+             * });
+             *
+             * Exam ex = optEx.get();
+             * if (ex.idzone != null){
+             * this.zoneService.delete(ex.idzone.id);
+             * }
+             * if (ex.namezone != null){
+             *
+             * this.zoneService.delete(ex.namezone.id);
+             * }
+             * if (ex.firstnamezone != null){
+             * this.zoneService.delete(ex.firstnamezone.id);
+             * }
+             * if (ex.notezone != null){
+             * this.zoneService.delete(ex.notezone.id);
+             * }
+             */
+            ExamDTO result = this.examMapper.toDto(optEx.get());
 
-            Optional<Exam> optEx = Exam.findByIdOptional(examId);
+            var response = Response.created(fromPath(uriInfo.getPath()).path(result.id.toString()).build())
+                    .entity(result);
+            HeaderUtil.createEntityCreationAlert(applicationName, true, "exam", result.id.toString())
+                    .forEach(response::header);
+            return response.build();
 
-            if (optEx.isPresent()) {
-                examService.deleteQuestionCommentAndZone(examId);
-/*                List<Zone> zones = Zone.getQuestionZone4ExamId(examId).list();
-                zones.forEach(z -> {
-                    this.zoneService.delete(z.id);
-                });
-
-                Exam ex = optEx.get();
-                if (ex.idzone != null){
-                    this.zoneService.delete(ex.idzone.id);
-                }
-                if (ex.namezone != null){
-
-                    this.zoneService.delete(ex.namezone.id);
-                }
-                if (ex.firstnamezone != null){
-                    this.zoneService.delete(ex.firstnamezone.id);
-                }
-                if (ex.notezone != null){
-                        this.zoneService.delete(ex.notezone.id);
-                }
-                 */
-                ExamDTO result = this.examMapper.toDto(optEx.get());
-
-
-                 var response = Response.created(fromPath(uriInfo.getPath()).path(result.id.toString()).build()).entity(result);
-                 HeaderUtil.createEntityCreationAlert(applicationName, true, "exam", result.id.toString())
-                         .forEach(response::header);
-                 return response.build();
-
-            }
-            else {
-                    var response = Response.noContent();
-                    HeaderUtil.createEntityDeletionAlert(applicationName, true, "exam", "-1")
-                            .forEach(response::header);
-                    return response.build();
-                }
-
-
+        } else {
+            var response = Response.noContent();
+            HeaderUtil.createEntityDeletionAlert(applicationName, true, "exam", "-1")
+                    .forEach(response::header);
+            return response.build();
+        }
 
     }
-
 
     @DELETE
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Path("/deleteAnswerAndUnsetComment/{studentResponseId}")
     @Transactional
-    public Response deleteAnswerAndUnsetComment(@PathParam("studentResponseId") long studentResponseId, @Context UriInfo uriInfo,
+    public Response deleteAnswerAndUnsetComment(@PathParam("studentResponseId") long studentResponseId,
+            @Context UriInfo uriInfo,
             @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, studentResponseId, StudentResponse.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -1631,8 +1632,6 @@ public class ExtendedAPI {
             answers.add(answerdto);
         }
 
-
-
         dto.setAnswers(answers);
         dto.setTextComments(new ArrayList(textcomments.values()));
         dto.setGradedComments(new ArrayList(gradedcomments.values()));
@@ -1657,20 +1656,20 @@ public class ExtendedAPI {
         Map<Long, TextCommentDTO> textcomments = new HashMap<>();
         Map<Long, GradedCommentDTO> gradedcomments = new HashMap<>();
 
-            int numero = question.numero;
-            dto.setNumero(numero);
-            List<Question> questions = Question.findQuestionbyExamIdandnumero(examId, numero).list();
-            if (questions.size() > 0) {
-                dto.setZones(zoneMapper.toDto(questions.stream().map(q -> q.zone).collect(Collectors.toList())));
-                dto.setGradeType(questions.get(0).gradeType);
-                dto.setPoint(Integer.valueOf(questions.get(0).quarterpoint).doubleValue() / 4);
-                dto.setStep(questions.get(0).step);
-                dto.setValidExpression(questions.get(0).validExpression);
-                dto.setAlgoName(questions.get(0).type.algoName);
+        int numero = question.numero;
+        dto.setNumero(numero);
+        List<Question> questions = Question.findQuestionbyExamIdandnumero(examId, numero).list();
+        if (questions.size() > 0) {
+            dto.setZones(zoneMapper.toDto(questions.stream().map(q -> q.zone).collect(Collectors.toList())));
+            dto.setGradeType(questions.get(0).gradeType);
+            dto.setPoint(Integer.valueOf(questions.get(0).quarterpoint).doubleValue() / 4);
+            dto.setStep(questions.get(0).step);
+            dto.setValidExpression(questions.get(0).validExpression);
+            dto.setAlgoName(questions.get(0).type.algoName);
 
-            } else {
-                return Response.noContent().build();
-            }
+        } else {
+            return Response.noContent().build();
+        }
         List<ExamSheet> sheets = ExamSheet.getAll4ExamId(examId).list();
 
         for (ExamSheet sheet : sheets) {
@@ -1691,36 +1690,37 @@ public class ExtendedAPI {
             }
             answerdto.setStudentName(studentName);
 
-            List<StudentResponse> r = StudentResponse.getAllStudentResponseWithExamIdNumeroAndSheetId(examId, numero, sheet.id)
-            .list();
+            List<StudentResponse> r = StudentResponse
+                    .getAllStudentResponseWithExamIdNumeroAndSheetId(examId, numero, sheet.id)
+                    .list();
             if (r.size() > 0) {
                 StudentResponse studentResponse = r.get(0);
-            if (studentResponse.star != null) {
-                answerdto.setStar(studentResponse.star);
-            } else {
-                answerdto.setStar(false);
-            }
-            if (studentResponse.worststar != null) {
-                answerdto.setWorststar(studentResponse.worststar);
-            } else {
-                answerdto.setWorststar(false);
-            }
-            answerdto.setNote(Integer.valueOf(studentResponse.quarternote).doubleValue() / 4);
-            answerdto.setComments(commentsMapper.toDto(new ArrayList<>(studentResponse.comments)));
-            answerdto.setTextComments(
-                    studentResponse.textcomments.stream().map(gc -> gc.id).collect(Collectors.toList()));
-            for (TextComment gc : studentResponse.textcomments) {
-                if (!textcomments.containsKey(gc.id)) {
-                    textcomments.put(gc.id, textCommentMapper.toDto(gc));
+                if (studentResponse.star != null) {
+                    answerdto.setStar(studentResponse.star);
+                } else {
+                    answerdto.setStar(false);
                 }
-            }
-            for (GradedComment gc : studentResponse.gradedcomments) {
-                if (!gradedcomments.containsKey(gc.id)) {
-                    gradedcomments.put(gc.id, gradedCommentMapper.toDto(gc));
+                if (studentResponse.worststar != null) {
+                    answerdto.setWorststar(studentResponse.worststar);
+                } else {
+                    answerdto.setWorststar(false);
                 }
-            }
+                answerdto.setNote(Integer.valueOf(studentResponse.quarternote).doubleValue() / 4);
+                answerdto.setComments(commentsMapper.toDto(new ArrayList<>(studentResponse.comments)));
+                answerdto.setTextComments(
+                        studentResponse.textcomments.stream().map(gc -> gc.id).collect(Collectors.toList()));
+                for (TextComment gc : studentResponse.textcomments) {
+                    if (!textcomments.containsKey(gc.id)) {
+                        textcomments.put(gc.id, textCommentMapper.toDto(gc));
+                    }
+                }
+                for (GradedComment gc : studentResponse.gradedcomments) {
+                    if (!gradedcomments.containsKey(gc.id)) {
+                        gradedcomments.put(gc.id, gradedCommentMapper.toDto(gc));
+                    }
+                }
 
-        }
+            }
 
             answers.add(answerdto);
         }
@@ -1731,6 +1731,5 @@ public class ExtendedAPI {
         return Response.ok().entity(dto).build();
 
     }
-
 
 }
