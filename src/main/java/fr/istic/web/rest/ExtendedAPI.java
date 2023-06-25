@@ -19,6 +19,7 @@ import fr.istic.service.CacheUploadService;
 import fr.istic.service.CourseGroupService;
 import fr.istic.service.CourseService;
 import fr.istic.service.ExamService;
+import fr.istic.service.ExamSheetService;
 import fr.istic.service.ImportExportService;
 import fr.istic.service.MailService;
 import fr.istic.service.QuestionService;
@@ -149,6 +150,10 @@ public class ExtendedAPI {
 
     @Inject
     ExamService examService;
+
+
+    @Inject
+    ExamSheetService examSheetService;
 
     private final class ComparatorImplementation implements Comparator<StudentResponse> {
 
@@ -1036,6 +1041,46 @@ public class ExtendedAPI {
         HeaderUtil.createEntityCreationAlert(applicationName, true, "question", result.id.toString())
                 .forEach(response::header);
         return response.build();
+    }
+
+    @DELETE()
+    @Path("/cleanExamSheet/{examId}")
+    @Transactional
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response cleanAllFalseSheet(@PathParam("examId") long examId,@Context UriInfo uriInfo,@Context SecurityContext ctx) {
+        log.debug("REST request to clean all Questions and zone : {}");
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+
+        List<ExamSheet> list = ExamSheet.getAllOrphan4ExamId(examId).list();
+        if (list.size() > 0) {
+            for (ExamSheet examSheet : list) {
+                if (StudentResponse.findStudentResponsesbysheetId(examSheet.id).count()==0){
+                if (ExamSheet.getAllDouble4Same(examSheet.id).count() >0){
+                    examSheetService.delete(examSheet.id);
+                }
+                if (examSheet.pagemin ==-1 && examSheet.pagemax ==-1){
+                    if (examSheet.students.size() >0) {
+                        List<Student> students = new ArrayList<Student>(examSheet.students);
+                        for (Student student: students){
+                            student.examSheets.remove(examSheet);
+                            examSheet.students.remove(student);
+                            studentService.persistOrUpdate(student);
+
+                        }
+                    }
+                    examSheetService.delete(examSheet.id);
+                }
+                };
+            }
+
+        }
+
+              var response = Response.noContent();
+                    HeaderUtil.createEntityDeletionAlert(applicationName, true, "exam", "-1")
+                            .forEach(response::header);
+                    return response.build();
     }
 
     @DELETE()
