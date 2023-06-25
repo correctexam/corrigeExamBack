@@ -55,6 +55,7 @@ import fr.istic.service.mapper.QuestionMapper;
 import fr.istic.service.mapper.TextCommentMapper;
 import fr.istic.service.mapper.ZoneMapper;
 import fr.istic.web.util.HeaderUtil;
+import io.quarkus.cache.CacheInvalidateAll;
 
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
@@ -1076,7 +1077,7 @@ public class ExtendedAPI {
             }
 
         }
-
+        ExamSheet.getEntityManager().clear();
               var response = Response.noContent();
                     HeaderUtil.createEntityDeletionAlert(applicationName, true, "exam", "-1")
                             .forEach(response::header);
