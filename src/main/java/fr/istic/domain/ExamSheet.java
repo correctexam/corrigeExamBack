@@ -147,6 +147,5 @@ public class ExamSheet extends PanacheEntityBase implements Serializable {
             e.examSheets.remove(this);
             e.update();
         });
-
     }
 }
