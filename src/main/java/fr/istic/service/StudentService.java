@@ -31,6 +31,13 @@ public class StudentService {
         return studentMapper.toDto(student);
     }
 
+       @Transactional
+    public Student persistOrUpdate(Student student) {
+        student = Student.persistOrUpdate(student);
+        return student;
+    }
+
+
     /**
      * Delete the Student by id.
      *
