@@ -103,15 +103,15 @@ public class Comments extends PanacheEntityBase implements Serializable {
     }
 
     public static PanacheQuery<Comments> canAccess(long commentId, List<String> examIdList) {
-        return find("select c from Comments c where c.id =?1 and SUBSTRING(c.zonegeneratedid, 1, LOCATE('_', c.zonegeneratedid) -1) in ?2", commentId, examIdList);
+        return find("select c from Comments c where c.id =?1 and SUBSTRING(c.zonegeneratedid, 1, LOCATE(c.zonegeneratedid,'_') -1) in ?2", commentId, examIdList);
     }
 
     public static long deleteCommentByExamId( String examId) {
-        return delete("delete from Comments as c where SUBSTRING(c.zonegeneratedid, 1, LOCATE('_', c.zonegeneratedid) -1) =?1",examId);
+        return delete("delete from Comments as c where SUBSTRING(c.zonegeneratedid, 1, LOCATE(c.zonegeneratedid,'_') -1) =?1",examId);
     }
 
     public static PanacheQuery<Comments>  findCommentByExamId( String examId) {
-        return find("select c from Comments as c where SUBSTRING(c.zonegeneratedid, 1, LOCATE('_', c.zonegeneratedid) -1) =?1",examId);
+        return find("select c from Comments as c where SUBSTRING(c.zonegeneratedid, 1, LOCATE(c.zonegeneratedid,'_') -1 ) =?1",examId);
     }
 
 }

@@ -1,8 +1,15 @@
 package fr.istic.service;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
@@ -37,6 +44,9 @@ public class FichierS3Service {
     @ConfigProperty(name = "correctexam.bucketname")
     String bucketName;
 
+    @ConfigProperty(name = "correctexam.saveasfile", defaultValue = "false")
+    boolean saveasfile = false;
+
     private final Logger log = LoggerFactory.getLogger(FichierS3Service.class);
 
     private void createBucketifNotExist() {
@@ -54,56 +64,98 @@ public class FichierS3Service {
     }
 
     public boolean isObjectExist(String name) {
-        try {
-            this.createBucketifNotExist();
-            minioClient.statObject(StatObjectArgs.builder()
-                    .bucket(bucketName)
-                    .object(name).build());
-            return true;
-        } catch (ErrorResponseException e) {
-            // e.printStackTrace();
-            return false;
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
+        if (saveasfile) {
+            Path path = Paths.get(name);
+            return Files.exists(path);
+
+        } else {
+
+            try {
+                this.createBucketifNotExist();
+                minioClient.statObject(StatObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(name).build());
+                return true;
+            } catch (ErrorResponseException e) {
+                // e.printStackTrace();
+                return false;
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e.getMessage());
+            }
         }
     }
 
     public InputStream getObject(String name)
             throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException {
-        try {
-            return minioClient.getObject(
-                    GetObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(name)
-                            .build());
-        } catch (MinioException e) {
-            throw new IllegalStateException(e);
+        if (saveasfile) {
+            Path path = Paths.get(name);
+            return Files.newInputStream(path);
+        } else {
+
+            try {
+                return minioClient.getObject(
+                        GetObjectArgs.builder()
+                                .bucket(bucketName)
+                                .object(name)
+                                .build());
+            } catch (MinioException e) {
+                throw new IllegalStateException(e);
+            }
         }
     }
 
     public void putObject(String name, byte[] bytes, String contenttype)
             throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException {
-        try {
-            this.createBucketifNotExist();
-            long size = bytes.length;
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(name).stream(
-                                    new ByteArrayInputStream(bytes), size, -1)
-                            .contentType(contenttype)
-                            .build());
-        } catch (MinioException e) {
-            e.printStackTrace();
-            throw new IllegalStateException(e);
+        if (saveasfile) {
+            Path patht = Paths.get("template");
+            if (!Files.exists(patht)){
+                Files.createDirectory(patht);
+            }
+            Path paths = Paths.get("scan");
+            if (!Files.exists(paths)){
+                Files.createDirectory(paths);
+            }
+             Path pathc = Paths.get("cache");
+            if (!Files.exists(pathc)){
+                Files.createDirectory(pathc);
+            }
+
+
+            Path path = Paths.get(name);
+            OutputStream outputStream = Files.newOutputStream(path);
+            outputStream.write(bytes);
+            outputStream.close();
+
+        } else {
+
+            try {
+
+                this.createBucketifNotExist();
+                long size = bytes.length;
+                minioClient.putObject(
+                        PutObjectArgs.builder()
+                                .bucket(bucketName)
+                                .object(name).stream(
+                                        new ByteArrayInputStream(bytes), size, -1)
+                                .contentType(contenttype)
+                                .build());
+            } catch (MinioException e) {
+                e.printStackTrace();
+                throw new IllegalStateException(e);
+            }
         }
     }
 
     public void deleteObject(String name) throws InvalidKeyException, ErrorResponseException, InsufficientDataException,
             InternalException, InvalidResponseException, NoSuchAlgorithmException, ServerException, XmlParserException,
             IllegalArgumentException, IOException {
-        this.minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketName).object(name).build());
+        if (saveasfile) {
+
+        } else {
+
+            this.minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketName).object(name).build());
+        }
 
     }
 }

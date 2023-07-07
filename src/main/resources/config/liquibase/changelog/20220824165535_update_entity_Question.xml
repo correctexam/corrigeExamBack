@@ -15,7 +15,6 @@
 
 	<addColumn tableName="question" >
 		<column name="valid_expression" type="varchar(255)"
-			    position="5"
             afterColumn="step"
             >
             <constraints nullable="true" />

@@ -45,6 +45,8 @@ public class TemplateService {
     @ConfigProperty(name = "correctexam.uses3", defaultValue = "false")
     boolean uses3;
 
+
+
     @Transactional
     public TemplateDTOContent persistOrUpdate(TemplateDTOContent templateDTO) {
         log.debug("Request to save Template : {}", templateDTO);
@@ -65,7 +67,8 @@ public class TemplateService {
             dto.content = bytes;
 
             return dto;
-        } else {
+        }
+        else {
             template = Template.persistOrUpdate(template);
             TemplateDTOContent dto = templateContentMapper.toDto(template);
             return dto;
