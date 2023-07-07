@@ -27,7 +27,11 @@ public class StudentResponseService {
     public StudentResponseDTO persistOrUpdate(StudentResponseDTO studentResponseDTO) {
         log.debug("Request to save StudentResponse : {}", studentResponseDTO);
         var studentResponse = studentResponseMapper.toEntity(studentResponseDTO);
-        long l = StudentResponse.findStudentResponsesbysheetIdAndquestionId(studentResponseDTO.sheetId,studentResponseDTO.questionId ).count();
+        long l = 0;
+        if (studentResponseDTO.sheetId != null && studentResponseDTO.questionId != null) {
+            l = StudentResponse.findStudentResponsesbysheetIdAndquestionId(studentResponseDTO.sheetId,studentResponseDTO.questionId ).count();
+
+        }
         if (l>0) {
             StudentResponse sr = StudentResponse.findStudentResponsesbysheetIdAndquestionId(studentResponseDTO.sheetId,studentResponseDTO.questionId ).firstResult();
             sr.quarternote = studentResponse.quarternote;

@@ -6,20 +6,26 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import fr.istic.TestUtil;
 import fr.istic.service.dto.CommentsDTO;
+import fr.istic.web.rest.vm.ManagedUserVM;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 import io.restassured.common.mapper.TypeRef;
 import liquibase.Liquibase;
 import io.quarkus.liquibase.LiquibaseFactory;
+import io.quarkus.mailer.Mail;
+import io.quarkus.mailer.MockMailbox;
+
 import org.junit.jupiter.api.*;
 
 import javax.inject.Inject;
 
 import java.util.List;
-    
+import java.util.regex.Pattern;
+
 @QuarkusTest
 public class CommentsResourceTest {
 
@@ -44,6 +50,8 @@ public class CommentsResourceTest {
     @Inject
     LiquibaseFactory liquibaseFactory;
 
+    @Inject
+    MockMailbox mailbox;
     @BeforeAll
     static void jsonMapper() {
         RestAssured.config =
@@ -52,6 +60,9 @@ public class CommentsResourceTest {
 
     @BeforeEach
     public void authenticateAdmin() {
+
+
+
         this.adminToken = TestUtil.getAdminToken();
     }
 
@@ -61,6 +72,9 @@ public class CommentsResourceTest {
             liquibase.dropAll();
             liquibase.validate();
             liquibase.update(liquibaseFactory.createContexts(), liquibaseFactory.createLabels());
+
+
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -431,7 +445,7 @@ public class CommentsResourceTest {
             .statusCode(OK.getStatusCode())
             .contentType(APPLICATION_JSON)
             .body("id", is(commentsDTO.id.intValue()))
-            
+
                 .body("zonegeneratedid", is(DEFAULT_ZONEGENERATEDID))
                 .body("jsonData", is(DEFAULT_JSON_DATA));
     }

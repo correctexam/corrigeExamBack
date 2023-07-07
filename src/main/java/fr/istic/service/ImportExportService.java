@@ -718,13 +718,11 @@ public class ImportExportService {
         Map<Long, String> importstudentsUID = new HashMap<>();
         Map<String, Long> uuidId = new HashMap<>();
 
-        log.error("pass par la9");
 
         _course.getAsJsonArray("examIdUidMappings").forEach(st -> {
             importexamsUID.put(st.getAsJsonObject().get("left").getAsLong(),
                     st.getAsJsonObject().get("right").getAsString());
         });
-        log.error("pass par la10");
 
         if (includeStudentData) {
             if (_course.getAsJsonArray("studentIdUidMappings") != null) {
@@ -737,7 +735,6 @@ public class ImportExportService {
 
         }
 
-        log.error("pass par la8");
 
         // Course
         Course course = new Course();
@@ -765,7 +762,6 @@ public class ImportExportService {
                 uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), exam.id);
             });
         }
-        log.error("pass par la7");
 
         if (includeStudentData) {
             if (_course.getAsJsonArray("students") != null) {
@@ -795,7 +791,6 @@ public class ImportExportService {
         }
 
         if (_course.getAsJsonArray("templates") != null) {
-                    log.error("pass par la77");
 
             _course.getAsJsonArray("templates").forEach(gr -> {
                 Template template = new Template();
@@ -813,12 +808,10 @@ public class ImportExportService {
                     template.mark = gr.getAsJsonObject().get("mark").getAsBoolean();
                 }
                 template.persistAndFlush();
-                                    log.error("pass par la78");
 
                 if (gr.getAsJsonObject().get("content") != null) {
 
                     byte[] bytes = gr.getAsJsonObject().get("content").getAsString().getBytes();
-                                        log.error("pass par la799");
 
 
                     Base64.Decoder decoder = Base64.getDecoder();
@@ -827,13 +820,10 @@ public class ImportExportService {
                     if (this.uses3) {
                         String fileName = "template/" + template.id + ".pdf";
                         try {
-                                                                    log.error("pass par la798");
-                                                                    log.error("pass par la798");
-                                                                    log.error("pass par la798");
+
 
                             this.putObject(fileName, b64bytes, template.contentContentType);
 
-                                                                    log.error("pass par la797");
                         } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException
                                 | IOException e) {
                                                 log.error(e.getMessage());
@@ -845,12 +835,10 @@ public class ImportExportService {
                         template.persistAndFlush();
                     }
                 }
-                    log.error("pass par la79");
 
                 uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), template.id);
             });
         }
-        log.error("pass par la6");
 
         if (includeStudentData) {
 
@@ -891,7 +879,6 @@ public class ImportExportService {
                 });
             }
         }
-        log.error("pass par la5");
 
         if (_course.getAsJsonArray("zones") != null) {
 
@@ -917,7 +904,6 @@ public class ImportExportService {
                 uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), zone.id);
             });
         }
-        log.error("pass par la3");
 
         // Questions
         if (_course.getAsJsonArray("questions") != null) {
@@ -947,7 +933,6 @@ public class ImportExportService {
                 question.persistAndFlush();
                 uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), question.id);
             });
-            log.error("pass par la2");
         }
 
         // TextComments
@@ -990,7 +975,6 @@ public class ImportExportService {
                 uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), gradedComment.id);
             });
         }
-        log.error("pass par la1");
 
         if (includeStudentData) {
 
