@@ -828,6 +828,8 @@ public class ImportExportService {
                         String fileName = "template/" + template.id + ".pdf";
                         try {
                                                                     log.error("pass par la798");
+                                                                    log.error("pass par la798");
+                                                                    log.error("pass par la798");
 
                             this.putObject(fileName, b64bytes, template.contentContentType);
 
