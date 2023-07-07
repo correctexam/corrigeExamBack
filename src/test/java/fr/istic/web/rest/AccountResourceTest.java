@@ -133,6 +133,7 @@ public class AccountResourceTest {
 
         registerUser(user);
         activateUser(user.email);
+
         var token = authenticateUser(user.login, user.password);
 
         given()

@@ -448,7 +448,10 @@ public class QuestionResourceTest {
             .statusCode(OK.getStatusCode())
             .contentType(APPLICATION_JSON)
             .body("id", hasItem(questionDTO.id.intValue()))
-            .body("numero", hasItem(DEFAULT_NUMERO.intValue()))            .body("point", hasItem(DEFAULT_POINT.intValue()))            .body("step", hasItem(DEFAULT_STEP.intValue()))            .body("gradeType", hasItem(DEFAULT_GRADE_TYPE.toString()));
+            .body("numero", hasItem(DEFAULT_NUMERO.intValue()))
+            .body("point", hasItem(DEFAULT_POINT.floatValue()))
+            .body("step", hasItem(DEFAULT_STEP.intValue()))
+            .body("gradeType", hasItem(DEFAULT_GRADE_TYPE.toString()));
     }
 
     @Test
@@ -494,7 +497,7 @@ public class QuestionResourceTest {
             .body("id", is(questionDTO.id.intValue()))
 
                 .body("numero", is(DEFAULT_NUMERO.intValue()))
-                .body("point", is(DEFAULT_POINT.intValue()))
+                .body("point", is(DEFAULT_POINT.floatValue()))
                 .body("step", is(DEFAULT_STEP.intValue()))
                 .body("gradeType", is(DEFAULT_GRADE_TYPE.toString()));
     }

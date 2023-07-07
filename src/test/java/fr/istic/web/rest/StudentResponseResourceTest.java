@@ -395,7 +395,7 @@ public class StudentResponseResourceTest {
             .statusCode(OK.getStatusCode())
             .contentType(APPLICATION_JSON)
             .body("id", hasItem(studentResponseDTO.id.intValue()))
-            .body("note", hasItem(DEFAULT_NOTE.intValue()))            .body("star", hasItem(DEFAULT_STAR.booleanValue()))            .body("worststar", hasItem(DEFAULT_WORSTSTAR.booleanValue()));
+            .body("note", hasItem(DEFAULT_NOTE.floatValue()))            .body("star", hasItem(DEFAULT_STAR.booleanValue()))            .body("worststar", hasItem(DEFAULT_WORSTSTAR.booleanValue()));
     }
 
     @Test
@@ -440,7 +440,7 @@ public class StudentResponseResourceTest {
             .contentType(APPLICATION_JSON)
             .body("id", is(studentResponseDTO.id.intValue()))
 
-                .body("note", is(DEFAULT_NOTE.intValue()))
+                .body("note", is(DEFAULT_NOTE.floatValue()))
                 .body("star", is(DEFAULT_STAR.booleanValue()))
                 .body("worststar", is(DEFAULT_WORSTSTAR.booleanValue()));
     }

@@ -394,7 +394,8 @@ public class GradedCommentResourceTest {
             .statusCode(OK.getStatusCode())
             .contentType(APPLICATION_JSON)
             .body("id", hasItem(gradedCommentDTO.id.intValue()))
-            .body("zonegeneratedid", hasItem(DEFAULT_ZONEGENERATEDID))            .body("text", hasItem(DEFAULT_TEXT))            .body("grade", hasItem(DEFAULT_GRADE.intValue()));
+                        .body("text", hasItem(DEFAULT_TEXT))
+                                    .body("grade", hasItem(DEFAULT_GRADE.floatValue()));
     }
 
     @Test
@@ -441,7 +442,7 @@ public class GradedCommentResourceTest {
 
                 .body("zonegeneratedid", is(DEFAULT_ZONEGENERATEDID))
                 .body("text", is(DEFAULT_TEXT))
-                .body("grade", is(DEFAULT_GRADE.intValue()));
+                .body("grade", is(DEFAULT_GRADE.floatValue()));
     }
 
     @Test
