@@ -71,7 +71,7 @@ jobs:
   build-native-image:
 #    needs: [build-jar-job]
     name: 'Build Native Image'
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}0
     strategy:
       matrix:
         os: [macos-latest,  ubuntu-latest]
@@ -85,6 +85,7 @@ jobs:
           components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
+
       - name: Example step
         run: |
           echo "GRAALVM_HOME: $GRAALVM_HOME"
@@ -98,8 +99,29 @@ jobs:
 #          native-image HelloWorld
 #          ./helloworld
 
-      - name: Upload binary
+      - name: Upload binary linux
         uses: actions/upload-artifact@v2
+        if: startsWith(matrix.os, 'ubuntu-latest')
         with:
-          name: correctexam-1.0.0-SNAPSHOT-runner
+          name: correctexam.linux
           path: target/correctexam-1.0.0-SNAPSHOT-runner*
+          retention-days: 1
+      - name: Release linnux
+        uses: softprops/action-gh-release@v1
+        if: startsWith(matrix.os, 'ubuntu')
+#        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: correctexam.linux
+      - name: Upload mac linux
+        uses: actions/upload-artifact@v2
+        if: startsWith(matrix.os, 'macos')
+        with:
+          name: correctexam.macos
+          path: target/correctexam-1.0.0-SNAPSHOT-runner*
+          retention-days: 1
+      - name: Release linnux
+        uses: softprops/action-gh-release@v1
+        if: startsWith(matrix.os, 'macos')
+#        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: correctexam.macos
