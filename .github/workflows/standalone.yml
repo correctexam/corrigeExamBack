@@ -6,6 +6,10 @@ name: Java CI with Maven
 on:
   push:
     branches: [ standalonetest ]
+# on:
+#   push:
+#     tags:
+#       - "v*.*.*"
 
 jobs:
   front:
@@ -68,9 +72,13 @@ jobs:
     needs: [front]
     name: 'Build Native Image'
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
+
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest]
+        experimental: [true]
         #windows-latest, macos-latest,  ubuntu-latest
     steps:
       - uses: actions/checkout@v3
