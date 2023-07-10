@@ -60,7 +60,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: front
-          path: target/static/
+          path: target/classes/static/
           retention-days: 1
 
 
