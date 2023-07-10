@@ -70,7 +70,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest,  ubuntu-latest]
+        os: [macos-latest,  ubuntu-latest, windows-latest]
         #windows-latest,
     steps:
       - uses: actions/checkout@v3
@@ -89,20 +89,37 @@ jobs:
 
       - name: Native build using maven  # https://graalvm.github.io/native-build-tools/latest/maven-plugin.html
         run: mvn --activate-profiles "native,alone" clean package
+      - name: rename mac
+        if: startsWith(matrix.os, 'macos')
+        run: ls -l target/* && mv target/correctexam-1.0.0-SNAPSHOT-runner* target/correctexam-runner
+      - name: renameLinux
+        if: startsWith(matrix.os, 'ubuntu')
+        run: ls -l target/* && mv target/correctexam-1.0.0-SNAPSHOT-runner* target/correctexam-runner
+      - name: renameWindows
+        if: startsWith(matrix.os, 'windows')
+        run: ls -l target/* && mv target/correctexam-1.0.0-SNAPSHOT-runner* target/correctexam-runner
+
 
       - name: Upload binary linux
         uses: actions/upload-artifact@v3
         if: startsWith(matrix.os, 'ubuntu-latest')
         with:
-          name: correctexam.linux
-          path: target/correctexam-1.0.0-SNAPSHOT-runner*
+          name: correctexam.standalone.linux
+          path: target/correctexam-runner
           retention-days: 1
       - name: Upload binary macos
         uses: actions/upload-artifact@v2
         if: startsWith(matrix.os, 'macos')
         with:
-          name: correctexam.macos
-          path: target/correctexam-1.0.0-SNAPSHOT-runner*
+          name: correctexam.standalone.macos
+          path: target/correctexam-runner
+          retention-days: 1
+      - name: Upload binary windows
+        uses: actions/upload-artifact@v2
+        if: startsWith(matrix.os, 'windows')
+        with:
+          name: correctexam.standalone.windows
+          path: target/correctexam-runner
           retention-days: 1
 
   publish-native-image:
@@ -111,42 +128,58 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest,  ubuntu-latest]
+        os: [macos-latest,  ubuntu-latest, windows-latest]
         #windows-latest,
     steps:
       - name: Download ubuntu binary
         uses: actions/download-artifact@v3
         if: startsWith(matrix.os, 'ubuntu')
         with:
-          name: correctexam.linux
-          path: correctexam.linux
+          name: correctexam.standalone.linux
+          path: correctexam.standalone.linux
       - name: Download macos binary
         uses: actions/download-artifact@v3
         if: startsWith(matrix.os, 'macos')
         with:
-          name: correctexam.macos
-          path: correctexam.macos
+          name: correctexam.standalone.macos
+          path: correctexam.standalone.macos
+      - name: Download windows binary
+        uses: actions/download-artifact@v3
+        if: startsWith(matrix.os, 'windows')
+        with:
+          name: correctexam.standalone.windows
+          path: correctexam.standalone.windows
       - name: Test
         run: pwd
       - name: Test1
         run: ls -l
       - name: Test2
         if: startsWith(matrix.os, 'macos')
-        run: ls -l correctexam.macos
+        run: ls -l correctexam.standalone.macos
       - name: Test3
         if: startsWith(matrix.os, 'ubuntu')
-        run: ls -l correctexam.linux
-      - name: Release linux
+        run: ls -l correctexam.standalone.linux
+      - name: Test4
+        if: startsWith(matrix.os, 'windows')
+        run: ls -l correctexam.standalone.windows
+      - name: Release standalone linux
         uses: softprops/action-gh-release@v1
         if: startsWith(matrix.os, 'ubuntu')
 #        if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: correctexam.macos/correctexam.macos
+          files: correctexam.standalone.linux/correctexam-runner
           tag_name: v1
-      - name: Release macos
+      - name: Release standalone macos
         uses: softprops/action-gh-release@v1
         if: startsWith(matrix.os, 'macos')
 #        if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: correctexam.macos/correctexam.macos
+          files: correctexam.standalone.macos/correctexam-runner
+          tag_name: v1
+      - name: Release standalone windows
+        uses: softprops/action-gh-release@v1
+        if: startsWith(matrix.os, 'windows')
+#        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: correctexam.standalone.windows/correctexam-runner
           tag_name: v1
