@@ -3,13 +3,13 @@
 
 name: Java CI with Maven
 
-on:
-  push:
-    branches: [ standalonetest ]
 # on:
 #   push:
-#     tags:
-#       - "v*.*.*"
+#     branches: [ standalonetest ]
+on:
+  push:
+    tags:
+      - "v*.*.*"
 
 jobs:
   front:
@@ -77,7 +77,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest]
+        os: [macos-latest,  ubuntu-latest]
         experimental: [true]
         #windows-latest, macos-latest,  ubuntu-latest
     steps:
@@ -151,7 +151,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [macos-latest, ubuntu-latest]
         #windows-latest,, macos-latest,  ubuntu-latest
     steps:
       - name: Download ubuntu binary
@@ -186,18 +186,18 @@ jobs:
           files:
             correctexam.standalone.linux/correctexam-linux-runner
             correctexam.standalone.sbom.back/sbom.json
-          tag_name: v1
+#          tag_name: v1
       - name: Release standalone macos
         uses: softprops/action-gh-release@v1
         if: startsWith(matrix.os, 'macos')
 #        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: correctexam.standalone.macos/correctexam-macos-runner
-          tag_name: v1
+#          tag_name: v1
       - name: Release standalone windows
         uses: softprops/action-gh-release@v1
         if: startsWith(matrix.os, 'windows')
 #        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: correctexam.standalone.windows/distwindows.zip
-          tag_name: v1
+#          tag_name: v1
