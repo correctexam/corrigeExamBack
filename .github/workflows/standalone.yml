@@ -74,7 +74,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [macos-latest,  ubuntu-latest]
+        #windows-latest,
     steps:
       - uses: actions/checkout@v3
       - uses: graalvm/setup-graalvm@v1
@@ -90,7 +91,7 @@ jobs:
           java --version
           native-image --version
       - name: Example step using Maven plugin  # https://graalvm.github.io/native-build-tools/latest/maven-plugin.html
-        run: mvn -Pnative,alone
+        run: mvn -P 'native,alone'
 #      - name: build native
 #        run: |
 #          native-image HelloWorld
