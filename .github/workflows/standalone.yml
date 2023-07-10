@@ -97,6 +97,33 @@ jobs:
           name: correctexam.linux
           path: target/correctexam-1.0.0-SNAPSHOT-runner*
           retention-days: 1
+      - name: Upload binary
+        uses: actions/upload-artifact@v2
+        if: startsWith(matrix.os, 'macos')
+        with:
+          name: correctexam.macos
+          path: target/correctexam-1.0.0-SNAPSHOT-runner*
+          retention-days: 1
+
+  publish-native-image:
+    needs: [build-native-image]
+    name: 'Publish Native Image'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest,  ubuntu-latest]
+        #windows-latest,
+    steps:
+      - name: Download ubuntu binary
+        uses: actions/download-artifact@v3
+        if: startsWith(matrix.os, 'ubuntu')
+        with:
+          name: correctexam.linux
+      - name: Download macos binary
+        uses: actions/download-artifact@v3
+        if: startsWith(matrix.os, 'macos')
+        with:
+          name: correctexam.macos
       - name: Release linux
         uses: softprops/action-gh-release@v1
         if: startsWith(matrix.os, 'ubuntu')
@@ -104,13 +131,6 @@ jobs:
         with:
           files: correctexam.linux
           tag_name: v1
-      - name: Upload mac linux
-        uses: actions/upload-artifact@v2
-        if: startsWith(matrix.os, 'macos')
-        with:
-          name: correctexam.macos
-          path: target/correctexam-1.0.0-SNAPSHOT-runner*
-          retention-days: 1
       - name: Release macos
         uses: softprops/action-gh-release@v1
         if: startsWith(matrix.os, 'macos')
