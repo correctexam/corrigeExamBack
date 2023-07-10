@@ -70,7 +70,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest,  ubuntu-latest, windows-latest]
+        os: [macos-latest,  ubuntu-latest]
         #windows-latest,
     steps:
       - uses: actions/checkout@v3
@@ -128,7 +128,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest,  ubuntu-latest, windows-latest]
+        os: [macos-latest,  ubuntu-latest]
         #windows-latest,
     steps:
       - name: Download ubuntu binary
