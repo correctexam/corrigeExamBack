@@ -8,105 +8,105 @@ on:
     branches: [ standalonetest ]
 
 jobs:
-  front:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x]
+  # front:
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       node-version: [18.x]
 
-    steps:
-      - name: Checkout tools repo
-        uses: actions/checkout@v3
-        with:
-          repository: correctexam/corrigeExamFront
+  #   steps:
+  #     - name: Checkout tools repo
+  #       uses: actions/checkout@v3
+  #       with:
+  #         repository: correctexam/corrigeExamFront
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
+  #     - name: Use Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v1
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
 
-      - name: Cache node modules
-        id: cache-nodemodules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          # caching node_modules
-          path: node_modules
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-      - name: Install all system dependencies
-        run: sudo apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
-      - name: Install Dependencies
-        if: steps.cache-nodemodules.outputs.cache-hit != 'true'
-        run: |
-          npm ci
-      - name: Build
-        run: |
-          npm run webapp:build:prodlocal
-      - name: Lint
-        run: |
-          npm run lint
-      - name: Test
-        run: |
-          npm run test
-      - name: Copy 404
-        run: |
-          npm run copy:404
-      - name: Upload front
-        uses: actions/upload-artifact@v3
-        with:
-          name: front
-          path: target/classes/static/
-          retention-days: 1
+  #     - name: Cache node modules
+  #       id: cache-nodemodules
+  #       uses: actions/cache@v2
+  #       env:
+  #         cache-name: cache-node-modules
+  #       with:
+  #         # caching node_modules
+  #         path: node_modules
+  #         key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-build-${{ env.cache-name }}-
+  #           ${{ runner.os }}-build-
+  #           ${{ runner.os }}-
+  #     - name: Install all system dependencies
+  #       run: sudo apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+  #     - name: Install Dependencies
+  #       if: steps.cache-nodemodules.outputs.cache-hit != 'true'
+  #       run: |
+  #         npm ci
+  #     - name: Build
+  #       run: |
+  #         npm run webapp:build:prodlocal
+  #     - name: Lint
+  #       run: |
+  #         npm run lint
+  #     - name: Test
+  #       run: |
+  #         npm run test
+  #     - name: Copy 404
+  #       run: |
+  #         npm run copy:404
+  #     - name: Upload front
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: front
+  #         path: target/classes/static/
+  #         retention-days: 1
 
 
-  build-native-image:
-    needs: [front]
-    name: 'Build Native Image'
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest,  ubuntu-latest]
-        #windows-latest,
-    steps:
-      - uses: actions/checkout@v3
-      - uses: graalvm/setup-graalvm@v1
-        with:
-          java-version: '17'
-          version: '22.3.2'
-          components: 'native-image'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          native-image-job-reports: 'true'
-      - name: Download front
-        uses: actions/download-artifact@v3
-        with:
-          name: front
-          path: src/main/resources/META-INF/resources/
+  # build-native-image:
+  #   needs: [front]
+  #   name: 'Build Native Image'
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     matrix:
+  #       os: [macos-latest,  ubuntu-latest]
+  #       #windows-latest,
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: graalvm/setup-graalvm@v1
+  #       with:
+  #         java-version: '17'
+  #         version: '22.3.2'
+  #         components: 'native-image'
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
+  #         native-image-job-reports: 'true'
+  #     - name: Download front
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: front
+  #         path: src/main/resources/META-INF/resources/
 
-      - name: NAtive build using maven  # https://graalvm.github.io/native-build-tools/latest/maven-plugin.html
-        run: mvn --activate-profiles "native,alone" clean package
+  #     - name: NAtive build using maven  # https://graalvm.github.io/native-build-tools/latest/maven-plugin.html
+  #       run: mvn --activate-profiles "native,alone" clean package
 
-      - name: Upload binary linux
-        uses: actions/upload-artifact@v3
-        if: startsWith(matrix.os, 'ubuntu-latest')
-        with:
-          name: correctexam.linux
-          path: target/correctexam-1.0.0-SNAPSHOT-runner*
-          retention-days: 1
-      - name: Upload binary macos
-        uses: actions/upload-artifact@v2
-        if: startsWith(matrix.os, 'macos')
-        with:
-          name: correctexam.macos
-          path: target/correctexam-1.0.0-SNAPSHOT-runner*
-          retention-days: 1
+  #     - name: Upload binary linux
+  #       uses: actions/upload-artifact@v3
+  #       if: startsWith(matrix.os, 'ubuntu-latest')
+  #       with:
+  #         name: correctexam.linux
+  #         path: target/correctexam-1.0.0-SNAPSHOT-runner*
+  #         retention-days: 1
+  #     - name: Upload binary macos
+  #       uses: actions/upload-artifact@v2
+  #       if: startsWith(matrix.os, 'macos')
+  #       with:
+  #         name: correctexam.macos
+  #         path: target/correctexam-1.0.0-SNAPSHOT-runner*
+  #         retention-days: 1
 
   publish-native-image:
-    needs: [build-native-image]
+#    needs: [build-native-image]
     name: 'Publish Native Image'
     runs-on: ${{ matrix.os }}
     strategy:
@@ -131,12 +131,12 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu')
 #        if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: correctexam.linux
+          files: corrigeExamBack/correctexam.linux
           tag_name: v1
       - name: Release macos
         uses: softprops/action-gh-release@v1
         if: startsWith(matrix.os, 'macos')
 #        if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: correctexam.macos
+          files: corrigeExamBack/correctexam.macos
           tag_name: v1
