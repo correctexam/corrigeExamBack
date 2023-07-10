@@ -87,7 +87,7 @@ jobs:
           name: front
           path: src/main/resources/META-INF/resources/
 
-      - name: Example step using Maven plugin  # https://graalvm.github.io/native-build-tools/latest/maven-plugin.html
+      - name: NAtive build using maven  # https://graalvm.github.io/native-build-tools/latest/maven-plugin.html
         run: mvn --activate-profiles "native,alone" clean package
 
       - name: Upload binary linux
@@ -97,7 +97,7 @@ jobs:
           name: correctexam.linux
           path: target/correctexam-1.0.0-SNAPSHOT-runner*
           retention-days: 1
-      - name: Upload binary
+      - name: Upload binary macos
         uses: actions/upload-artifact@v2
         if: startsWith(matrix.os, 'macos')
         with:
@@ -119,11 +119,13 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu')
         with:
           name: correctexam.linux
+          path: correctexam.linux
       - name: Download macos binary
         uses: actions/download-artifact@v3
         if: startsWith(matrix.os, 'macos')
         with:
           name: correctexam.macos
+          path: correctexam.macos
       - name: Release linux
         uses: softprops/action-gh-release@v1
         if: startsWith(matrix.os, 'ubuntu')
