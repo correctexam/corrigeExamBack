@@ -91,7 +91,7 @@ jobs:
           java --version
           native-image --version
       - name: Example step using Maven plugin  # https://graalvm.github.io/native-build-tools/latest/maven-plugin.html
-        run: mvn -P 'native,alone'
+        run: mvn --activate-profiles "native,alone" clean package
 #      - name: build native
 #        run: |
 #          native-image HelloWorld
