@@ -101,7 +101,8 @@ jobs:
         run: ls -l target/* && mv target/correctexam-1.0.0-SNAPSHOT-runner* target/correctexam-linux-runner
       - name: prepare Windows Folder
         if: startsWith(matrix.os, 'windows')
-        run: ls -l * && cp target/correctexam-1.0.0-SNAPSHOT-runner* distwindows/correctexam-windows-runner.exe
+#        run: cp target/correctexam-1.0.0-SNAPSHOT-runner* distwindows/correctexam-windows-runner.exe
+        run: copy target\correctexam-1.0.0-SNAPSHOT-runner* distwindows\correctexam-windows-runner.exe
       - name: creatZip4Windows
         if: startsWith(matrix.os, 'windows')
         uses: montudor/action-zip@v1
@@ -151,6 +152,12 @@ jobs:
         with:
           name: correctexam.standalone.linux
           path: correctexam.standalone.linux
+      - name: Download sbom
+        uses: actions/download-artifact@v3
+        if: startsWith(matrix.os, 'ubuntu')
+        with:
+          name: correctexam.standalone.sbom.back
+          path: correctexam.standalone.sbom.back
       - name: Download macos binary
         uses: actions/download-artifact@v3
         if: startsWith(matrix.os, 'macos')
