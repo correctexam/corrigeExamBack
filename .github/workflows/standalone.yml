@@ -87,7 +87,7 @@ jobs:
           name: front
           path: src/main/resources/META-INF/resources/
 
-      - name: NAtive build using maven  # https://graalvm.github.io/native-build-tools/latest/maven-plugin.html
+      - name: Native build using maven  # https://graalvm.github.io/native-build-tools/latest/maven-plugin.html
         run: mvn --activate-profiles "native,alone" clean package
 
       - name: Upload binary linux
@@ -131,8 +131,10 @@ jobs:
       - name: Test1
         run: ls -l
       - name: Test2
+        if: startsWith(matrix.os, 'macos')
         run: ls -l correctexam.macos
-      - name: Test2
+      - name: Test3
+        if: startsWith(matrix.os, 'ubuntu')
         run: ls -l correctexam.linux
       - name: Release linux
         uses: softprops/action-gh-release@v1
