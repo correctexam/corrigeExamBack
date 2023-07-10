@@ -111,6 +111,7 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-liquibase</artifactId>
+      <scope>${liquibase.scope}</scope>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -475,6 +476,7 @@
       </activation>
       <properties>
         <quarkus.profile>dev</quarkus.profile>
+        <liquibase.scope>compile</liquibase.scope>
       </properties>
       <dependencies>
         <dependency>
@@ -562,6 +564,7 @@
       </build>
       <properties>
         <quarkus.profile>prod</quarkus.profile>
+        <liquibase.scope>compile</liquibase.scope>
       </properties>
     </profile>
     <profile>
@@ -572,11 +575,99 @@
           <artifactId>quarkus-jdbc-h2</artifactId>
         </dependency>
       </dependencies>
+            <build>
+        <plugins>
+          <plugin>
+            <groupId>org.cyclonedx</groupId>
+            <artifactId>cyclonedx-maven-plugin</artifactId>
+            <configuration>
+              <projectType>library</projectType>
+              <schemaVersion>1.4</schemaVersion>
+              <includeBomSerialNumber>true</includeBomSerialNumber>
+              <includeCompileScope>true</includeCompileScope>
+              <includeProvidedScope>true</includeProvidedScope>
+              <includeRuntimeScope>true</includeRuntimeScope>
+              <includeSystemScope>true</includeSystemScope>
+              <includeTestScope>false</includeTestScope>
+              <includeLicenseText>false</includeLicenseText>
+              <outputReactorProjects>true</outputReactorProjects>
+              <outputFormat>all</outputFormat>
+              <outputName>bom</outputName>
+              <outputDirectory>${project.build.directory}</outputDirectory>
+              <verbose>false</verbose>
+            </configuration>
+          </plugin>
+          <plugin>
+            <artifactId>maven-clean-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>JHipster Quarkus remove static</id>
+                <phase>process-resources</phase>
+                <goals>
+                  <goal>clean</goal>
+                </goals>
+                <configuration>
+                  <excludeDefaultDirectories>true</excludeDefaultDirectories>
+                  <filesets>
+                    <fileset>
+                      <directory>${basedir}/target/classes/static</directory>
+                    </fileset>
+                  </filesets>
+                </configuration>
+              </execution>
+            </executions>
+            <configuration>
+              <filesets>
+                <fileset>
+                  <directory>target/classes/META-INF/resources/</directory>
+                </fileset>
+              </filesets>
+            </configuration>
+          </plugin>
+          <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>JHipster Quarkus copy static to META-INF/resources</id>
+                <phase>process-resources</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${basedir}/target/classes/META-INF/resources/</outputDirectory>
+                  <resources>
+                    <resource>
+                      <directory>${basedir}/target/classes/static/</directory>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>pl.project13.maven</groupId>
+            <artifactId>git-commit-id-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
       <properties>
         <quarkus.profile>alone</quarkus.profile>
+        <liquibase.scope>compile</liquibase.scope>
       </properties>
-           </profile>
-
+    </profile>
+ <profile>
+      <id>alonewindows</id>
+       <dependencies>
+        <dependency>
+          <groupId>io.quarkus</groupId>
+          <artifactId>quarkus-jdbc-h2</artifactId>
+        </dependency>
+      </dependencies>
+      <properties>
+        <quarkus.profile>alone</quarkus.profile>
+        <liquibase.scope>test</liquibase.scope>
+      </properties>
+    </profile>
       <profile>
       <id>native</id>
        <dependencies>

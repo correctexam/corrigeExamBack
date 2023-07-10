@@ -88,7 +88,11 @@ jobs:
           path: src/main/resources/META-INF/resources/
 
       - name: Native build using maven  # https://graalvm.github.io/native-build-tools/latest/maven-plugin.html
+        if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'ubuntu')
         run: mvn --activate-profiles "native,alone" clean package
+      - name: Native build using maven  # https://graalvm.github.io/native-build-tools/latest/maven-plugin.html
+        if: startsWith(matrix.os, 'windows')
+        run: mvn --activate-profiles "native,alonewindows" clean package
       - name: rename mac
         if: startsWith(matrix.os, 'macos')
         run: ls -l target/* && mv target/correctexam-1.0.0-SNAPSHOT-runner* target/correctexam-macos-runner
@@ -98,8 +102,14 @@ jobs:
       - name: renameWindows
         if: startsWith(matrix.os, 'windows')
         run: ls -l target/* && mv target/correctexam-1.0.0-SNAPSHOT-runner* target/correctexam-windows-runner.exe
-
-
+      - name: prepareWindowsFloder
+        if: startsWith(matrix.os, 'windows')
+        run: cp target/correctexam-windows-runner.exe distwindows/
+      - name: creatZip4Windows
+        if: startsWith(matrix.os, 'windows')
+        uses: montudor/action-zip@v1
+        with:
+          args: zip -qq -r distwindows.zip distwindows
       - name: Upload binary linux
         uses: actions/upload-artifact@v3
         if: startsWith(matrix.os, 'ubuntu-latest')
@@ -119,7 +129,7 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         with:
           name: correctexam.standalone.windows
-          path: target/correctexam-windows-runner.exe
+          path: distwindows.zip
           retention-days: 1
 
   publish-native-image:
@@ -168,5 +178,5 @@ jobs:
         if: startsWith(matrix.os, 'windows')
 #        if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: correctexam.standalone.windows/correctexam-windows-runner.exe
+          files: correctexam.standalone.windows/distwindows.zip
           tag_name: v1
