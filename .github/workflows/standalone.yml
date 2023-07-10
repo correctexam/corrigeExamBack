@@ -90,21 +90,18 @@ jobs:
       - name: Native build using maven  # https://graalvm.github.io/native-build-tools/latest/maven-plugin.html
         if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'ubuntu')
         run: mvn --activate-profiles "native,alone" clean package
-      - name: Native build using maven  # https://graalvm.github.io/native-build-tools/latest/maven-plugin.html
+      - name: Native build using maven for windows  # https://graalvm.github.io/native-build-tools/latest/maven-plugin.html
         if: startsWith(matrix.os, 'windows')
-        run: mvn --activate-profiles "native,alonewindows" clean package
+        run: mvn --activate-profiles "native,alonewindows" clean package -DskipTests
       - name: rename mac
         if: startsWith(matrix.os, 'macos')
         run: ls -l target/* && mv target/correctexam-1.0.0-SNAPSHOT-runner* target/correctexam-macos-runner
-      - name: renameLinux
+      - name: rename linux
         if: startsWith(matrix.os, 'ubuntu')
         run: ls -l target/* && mv target/correctexam-1.0.0-SNAPSHOT-runner* target/correctexam-linux-runner
-      - name: renameWindows
+      - name: prepare Windows Folder
         if: startsWith(matrix.os, 'windows')
-        run: ls -l target/* && mv target/correctexam-1.0.0-SNAPSHOT-runner* target/correctexam-windows-runner.exe
-      - name: prepareWindowsFloder
-        if: startsWith(matrix.os, 'windows')
-        run: cp target/correctexam-windows-runner.exe distwindows/
+        run: ls -l * && cp target/correctexam-1.0.0-SNAPSHOT-runner* distwindows/correctexam-windows-runner.exe
       - name: creatZip4Windows
         if: startsWith(matrix.os, 'windows')
         uses: montudor/action-zip@v1
@@ -117,6 +114,13 @@ jobs:
           name: correctexam.standalone.linux
           path: target/correctexam-linux-runner
           retention-days: 1
+      - name: Upload sbom
+        uses: actions/upload-artifact@v3
+        if: startsWith(matrix.os, 'ubuntu-latest')
+        with:
+          name: correctexam.standalone.sbom.back
+          path: sbom.json
+          retention-days:
       - name: Upload binary macos
         uses: actions/upload-artifact@v2
         if: startsWith(matrix.os, 'macos')
@@ -138,8 +142,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest,  ubuntu-latest]
-        #windows-latest,
+        os: [windows-latest]
+        #windows-latest,, macos-latest,  ubuntu-latest
     steps:
       - name: Download ubuntu binary
         uses: actions/download-artifact@v3
@@ -164,7 +168,9 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu')
 #        if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: correctexam.standalone.linux/correctexam-linux-runner
+          files:
+            correctexam.standalone.linux/correctexam-linux-runner
+            correctexam.standalone.sbom.back/sbom.json
           tag_name: v1
       - name: Release standalone macos
         uses: softprops/action-gh-release@v1
