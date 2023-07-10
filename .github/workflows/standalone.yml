@@ -82,6 +82,7 @@ jobs:
         with:
           java-version: '17'
           version: '22.3.2'
+          components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
       - name: Example step
