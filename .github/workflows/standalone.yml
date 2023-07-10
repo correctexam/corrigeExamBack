@@ -71,7 +71,7 @@ jobs:
   build-native-image:
 #    needs: [build-jar-job]
     name: 'Build Native Image'
-    runs-on: ${{ matrix.os }}0
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [macos-latest,  ubuntu-latest]
