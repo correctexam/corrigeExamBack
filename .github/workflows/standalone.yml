@@ -149,9 +149,12 @@ jobs:
     needs: [build-native-image]
     name: 'Publish Native Image'
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
+        experimental: [true]
         #windows-latest,, macos-latest,  ubuntu-latest
     steps:
       - name: Download ubuntu binary
