@@ -77,7 +77,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest,  ubuntu-latest]
+        os: [windows-latest, macos-latest,  ubuntu-latest]
         experimental: [true]
         #windows-latest, macos-latest,  ubuntu-latest
     steps:
@@ -148,7 +148,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest]
+        os: [windows-latest, macos-latest, ubuntu-latest]
         experimental: [true]
         #windows-latest,, macos-latest,  ubuntu-latest
     steps:
