@@ -128,7 +128,7 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu-latest')
         with:
           name: correctexam.standalone.sbom.back
-          path: sbom.json
+          path: target/sbom.json
           retention-days:
       - name: Upload binary macos
         uses: actions/upload-artifact@v2
