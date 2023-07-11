@@ -197,5 +197,8 @@ jobs:
         if: startsWith(matrix.os, 'windows')
 #        if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: correctexam.standalone.windows/distwindows.zip
+          files: |
+            correctexam.standalone.windows/distwindows/correctexam-windows-runner.exe
+            correctexam.standalone.windows/distwindows/mydb.mv.db
+            correctexam.standalone.windows/distwindows/mydb.trace.db
 #          tag_name: v1
