@@ -1,7 +1,6 @@
 package fr.istic.web.rest;
 
 import fr.istic.config.JHipsterProperties;
-import fr.istic.domain.Comments;
 import fr.istic.domain.Course;
 import fr.istic.domain.CourseGroup;
 import fr.istic.domain.Exam;
@@ -13,7 +12,6 @@ import fr.istic.domain.Student;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.TextComment;
 import fr.istic.domain.User;
-import fr.istic.domain.Zone;
 import fr.istic.domain.enumeration.GradeType;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.CacheUploadService;
@@ -45,7 +43,6 @@ import fr.istic.service.customdto.ZoneSameCommentDTO;
 import fr.istic.service.customdto.correctexamstate.MarkingExamStateDTO;
 import fr.istic.service.customdto.correctexamstate.QuestionStateDTO;
 import fr.istic.service.customdto.correctexamstate.SheetStateDTO;
-import fr.istic.service.dto.CommentsDTO;
 import fr.istic.service.dto.CourseDTO;
 import fr.istic.service.dto.ExamDTO;
 import fr.istic.service.dto.GradedCommentDTO;
@@ -58,7 +55,6 @@ import fr.istic.service.mapper.QuestionMapper;
 import fr.istic.service.mapper.TextCommentMapper;
 import fr.istic.service.mapper.ZoneMapper;
 import fr.istic.web.util.HeaderUtil;
-import io.quarkus.cache.CacheInvalidateAll;
 
 import javax.annotation.security.RolesAllowed;
 import javax.enterprise.context.ApplicationScoped;
@@ -1622,6 +1618,9 @@ public class ExtendedAPI {
             answerdto.setComments(commentsMapper.toDto(new ArrayList<>(studentResponse.comments)));
             answerdto.setTextComments(
                     studentResponse.textcomments.stream().map(gc -> gc.id).collect(Collectors.toList()));
+                                    answerdto.setGradedComments(
+                        studentResponse.gradedcomments.stream().map(gc -> gc.id).collect(Collectors.toList()));
+
             for (TextComment gc : studentResponse.textcomments) {
                 if (!textcomments.containsKey(gc.id)) {
                     textcomments.put(gc.id, textCommentMapper.toDto(gc));
