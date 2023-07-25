@@ -1,7 +1,9 @@
 package fr.istic.service.customdto;
 
 import java.util.List;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
+@RegisterForReflection
 public class ClusterDTO {
     private int templat;
     private List<Integer> copies;
