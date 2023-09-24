@@ -185,8 +185,6 @@ public class ExtendedAPI {
         }
     }
 
-
-
     // private final Logger log = LoggerFactory.getLogger(ExtendedAPI.class);
 
     @ConfigProperty(name = "application.name")
@@ -195,16 +193,18 @@ public class ExtendedAPI {
     @GET
     @Path("exportpdf/{examId}")
     @Transactional
-    public Response getExportPdfRoute(@PathParam("examId")long examId) {
-        ExportPDFDto exportPDFDto = this.getExportPdf(examId,null);
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getExportPdfRoute(@PathParam("examId") long examId) {
+        ExportPDFDto exportPDFDto = this.getExportPdf(examId, null);
         return Response.ok().entity(exportPDFDto).build();
     }
 
     @GET
     @Path("exportpdf4sheet/{examId}/{sheetuuid}")
     @Transactional
-    public Response getExportPdfRoute4sheet(@PathParam("examId")long examId, @PathParam("sheetuuid")String sheetname) {
-        ExportPDFDto exportPDFDto = this.getExportPdf(examId,sheetname);
+    public Response getExportPdfRoute4sheet(@PathParam("examId") long examId,
+            @PathParam("sheetuuid") String sheetname) {
+        ExportPDFDto exportPDFDto = this.getExportPdf(examId, sheetname);
         return Response.ok().entity(exportPDFDto).build();
     }
 
@@ -229,33 +229,28 @@ public class ExtendedAPI {
         exportPDFDto.setScanfileID(ex.scanfile.id);
         exportPDFDto.setName(ex.name);
 
-
-
         List<ExamSheet> sheets = null;
         List<StudentResponse> studentResp = null;
-        if (sheetname !=null){
-           sheets = ExamSheet.findExamSheetByName(sheetname).list();
-            studentResp = StudentResponse.getAllStudentResponseWithexamIdAndSheetName(examId,sheetname).list();
+        if (sheetname != null) {
+            sheets = ExamSheet.findExamSheetByName(sheetname).list();
+            studentResp = StudentResponse.getAllStudentResponseWithexamIdAndSheetName(examId, sheetname).list();
         } else {
             sheets = ExamSheet.getAll4ExamId(examId).list();
             studentResp = StudentResponse.getAllStudentResponseWithexamId(examId).list();
 
         }
 
-
-
         Map<ExamSheet, List<StudentResponse>> mapstudentResp = new HashMap<>();
         sheets.forEach((sh) -> mapstudentResp.put(sh, new ArrayList<>()));
 
-
         Map<ExamSheet, List<StudentResponse>> mapstudentResp1 = studentResp.stream()
                 .collect(Collectors.groupingBy(StudentResponse::getCSheet));
-        mapstudentResp1.forEach((sheet,responses)-> {
+        mapstudentResp1.forEach((sheet, responses) -> {
             mapstudentResp.get(sheet).addAll(responses);
         });
-                List<Sheetspdf> sheetPdfs = new ArrayList<Sheetspdf>();
-                exportPDFDto.setSheetspdf(sheetPdfs);
-        mapstudentResp.forEach((sheet,responses)-> {
+        List<Sheetspdf> sheetPdfs = new ArrayList<Sheetspdf>();
+        exportPDFDto.setSheetspdf(sheetPdfs);
+        mapstudentResp.forEach((sheet, responses) -> {
             Sheetspdf sheetpdf = new Sheetspdf();
             sheetPdfs.add(sheetpdf);
             sheetpdf.setName(sheet.name);
@@ -265,7 +260,7 @@ public class ExtendedAPI {
             sheetpdf.setPagemax(sheet.pagemax);
             sheetpdf.setStudentpdf(new ArrayList<>());
             sheet.students.forEach((st) -> {
-            Studentpdf stpdf = new Studentpdf();
+                Studentpdf stpdf = new Studentpdf();
                 stpdf.setFirstname(st.firstname);
                 stpdf.setName(st.name);
                 stpdf.setID(st.id);
@@ -275,18 +270,18 @@ public class ExtendedAPI {
             });
             sheetpdf.setStudentResponsepdf(new ArrayList<>());
             responses.forEach((resp) -> {
-            StudentResponsepdf stpdf = new StudentResponsepdf();
+                StudentResponsepdf stpdf = new StudentResponsepdf();
 
                 stpdf.setID(resp.id);
-                stpdf.setNote(resp.quarternote* 1 / 4);
+                stpdf.setNote(resp.quarternote * 1 / 4);
                 stpdf.setQuestionID(resp.question.id);
-                stpdf.setQuestionNumero(""+resp.question.numero);
-                if (resp.star != null ){
+                stpdf.setQuestionNumero("" + resp.question.numero);
+                if (resp.star != null) {
                     stpdf.setStar(resp.star);
                 } else {
                     stpdf.setStar(false);
                 }
-                if (resp.worststar != null ){
+                if (resp.worststar != null) {
                     stpdf.setWorststar(resp.worststar);
                 } else {
                     stpdf.setWorststar(false);
@@ -298,7 +293,7 @@ public class ExtendedAPI {
                     gcpdf.setDescription(gc.description);
                     gcpdf.setText(gc.text);
                     gcpdf.setZonegeneratedid(gc.zonegeneratedid);
-                    gcpdf.setGrade(gc.gradequarter* 1.0 / 4);
+                    gcpdf.setGrade(gc.gradequarter * 1.0 / 4);
                     stpdf.getGradedcommentspdf().add(gcpdf);
                 });
                 stpdf.setTextcommentspdf(new ArrayList<>());
@@ -312,11 +307,11 @@ public class ExtendedAPI {
         });
         exportPDFDto.setQuestionspdf(new ArrayList<>());
         ex.questions.forEach(q -> {
-            Questionspdf qpdf= new Questionspdf();
+            Questionspdf qpdf = new Questionspdf();
             qpdf.setGradeType(q.gradeType.name());
             qpdf.setID(q.id);
             qpdf.setNumero(q.numero);
-            qpdf.setPoint(q.quarterpoint*1.0/4);
+            qpdf.setPoint(q.quarterpoint * 1.0 / 4);
             qpdf.setStep(q.step);
             qpdf.setTypeAlgoName(q.type.algoName);
             qpdf.setTypeID(q.type.id);
@@ -331,9 +326,6 @@ public class ExtendedAPI {
         });
         return exportPDFDto;
     }
-
-
-
 
     private Exam computeFinalNote(long examId) {
         List<StudentResponse> studentResp = StudentResponse.getAllStudentResponseWithexamId(examId).list();
@@ -499,10 +491,10 @@ public class ExtendedAPI {
     @GET
     @Path("getComments/{examId}")
     @Transactional
-//    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    // @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getComments(@PathParam("examId") long examId, @Context SecurityContext ctx) {
 
-        return Response.ok().entity(Comments.findCommentByExamId(""+examId).list()).build();
+        return Response.ok().entity(Comments.findCommentByExamId("" + examId).list()).build();
 
     }
 
@@ -1205,10 +1197,9 @@ public class ExtendedAPI {
         return response.build();
     }
 
-
     @Transactional
-    void deleteOphanExamSheet(long examId){
-    List<ExamSheet> list = ExamSheet.getAllOrphan4ExamId(examId).list();
+    void deleteOphanExamSheet(long examId) {
+        List<ExamSheet> list = ExamSheet.getAllOrphan4ExamId(examId).list();
         if (list.size() > 0) {
             for (ExamSheet examSheet : list) {
                 if (StudentResponse.findStudentResponsesbysheetId(examSheet.id).count() == 0) {
@@ -1231,7 +1222,7 @@ public class ExtendedAPI {
             }
 
         }
-}
+    }
 
     @DELETE()
     @Path("/cleanExamSheet/{examId}")
@@ -1782,8 +1773,8 @@ public class ExtendedAPI {
             answerdto.setComments(commentsMapper.toDto(new ArrayList<>(studentResponse.comments)));
             answerdto.setTextComments(
                     studentResponse.textcomments.stream().map(gc -> gc.id).collect(Collectors.toList()));
-                                    answerdto.setGradedComments(
-                        studentResponse.gradedcomments.stream().map(gc -> gc.id).collect(Collectors.toList()));
+            answerdto.setGradedComments(
+                    studentResponse.gradedcomments.stream().map(gc -> gc.id).collect(Collectors.toList()));
 
             for (TextComment gc : studentResponse.textcomments) {
                 if (!textcomments.containsKey(gc.id)) {
@@ -1904,7 +1895,8 @@ public class ExtendedAPI {
     @Transactional()
     @Path("/updateStudentResponse4Cluster/{examId}/{qid}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response updateStudentResponse4Cluster(ClusterDTO clusterDto, @PathParam("examId") final long examId, @PathParam("qid") final long qid,
+    public Response updateStudentResponse4Cluster(ClusterDTO clusterDto, @PathParam("examId") final long examId,
+            @PathParam("qid") final long qid,
             @Context final UriInfo uriInfo,
             @Context final SecurityContext ctx) {
 
@@ -1913,7 +1905,7 @@ public class ExtendedAPI {
         }
 
         Question question = Question.findById(qid);
-//        ZoneSameCommentDTO dto = new ZoneSameCommentDTO();
+        // ZoneSameCommentDTO dto = new ZoneSameCommentDTO();
         List<SheetQuestion> answers = new ArrayList<>();
         Map<Long, TextComment> textcomments = new HashMap<>();
         Map<Long, GradedComment> gradedcomments = new HashMap<>();
@@ -1925,7 +1917,7 @@ public class ExtendedAPI {
         List<ExamSheet> sheets = ExamSheet.getAll4ExamId(examId).list();
 
         for (ExamSheet sheet : sheets) {
-             SheetQuestion answerdto = new SheetQuestion();
+            SheetQuestion answerdto = new SheetQuestion();
             answerdto.sheet = sheet;
             answerdto.question = question;
 
@@ -1937,7 +1929,7 @@ public class ExtendedAPI {
                 answerdto.studentResponse = studentResponse;
                 answerdto.studentResponseId = studentResponse.id;
                 if (studentResponse.star != null) {
-                    answerdto.star =(studentResponse.star);
+                    answerdto.star = (studentResponse.star);
                 } else {
                     answerdto.star = false;
                 }
@@ -1947,10 +1939,10 @@ public class ExtendedAPI {
                     answerdto.worststar = false;
                 }
                 answerdto.quarternote = studentResponse.quarternote;
-                answerdto.textComments =
-                        studentResponse.textcomments.stream().map(gc -> gc.id).collect(Collectors.toList());
-                answerdto.gradedComments =
-                        studentResponse.gradedcomments.stream().map(gc -> gc.id).collect(Collectors.toList());
+                answerdto.textComments = studentResponse.textcomments.stream().map(gc -> gc.id)
+                        .collect(Collectors.toList());
+                answerdto.gradedComments = studentResponse.gradedcomments.stream().map(gc -> gc.id)
+                        .collect(Collectors.toList());
                 for (TextComment gc : studentResponse.textcomments) {
                     if (!textcomments.containsKey(gc.id)) {
                         textcomments.put(gc.id, gc);
@@ -1966,52 +1958,57 @@ public class ExtendedAPI {
                 answerdto.star = false;
                 answerdto.worststar = false;
 
-
             }
 
             answers.add(answerdto);
         }
 
         SheetQuestion answerdtotempalate = answers.get(clusterDto.getTemplat());
-        if (answerdtotempalate.studentResponseId == -1){
+        if (answerdtotempalate.studentResponseId == -1) {
             return Response.noContent().build();
         }
-        for (int toUpdate : clusterDto.getCopies()){
+        for (int toUpdate : clusterDto.getCopies()) {
             SheetQuestion answerdtoUpdate = answers.get(toUpdate);
-            if (answerdtoUpdate.studentResponseId == -1){
+            if (answerdtoUpdate.studentResponseId == -1) {
                 StudentResponse stToUpdate = new StudentResponse();
                 stToUpdate.quarternote = answerdtotempalate.quarternote;
                 stToUpdate.star = answerdtotempalate.star;
                 stToUpdate.worststar = answerdtotempalate.worststar;
-                stToUpdate.question= answerdtoUpdate.question;
-                stToUpdate.sheet= answerdtoUpdate.sheet;
+                stToUpdate.question = answerdtoUpdate.question;
+                stToUpdate.sheet = answerdtoUpdate.sheet;
 
-
-                if (question.gradeType == GradeType.DIRECT){
-                    stToUpdate.textcomments.addAll(textcomments.values().stream().filter(gs2 -> answerdtotempalate.textComments.contains(gs2.id)).collect(Collectors.toList()));
-                }else {
-                    stToUpdate.gradedcomments.addAll(gradedcomments.values().stream().filter(gs2 -> answerdtotempalate.gradedComments.contains(gs2.id)).collect(Collectors.toList()));
+                if (question.gradeType == GradeType.DIRECT) {
+                    stToUpdate.textcomments.addAll(textcomments.values().stream()
+                            .filter(gs2 -> answerdtotempalate.textComments.contains(gs2.id))
+                            .collect(Collectors.toList()));
+                } else {
+                    stToUpdate.gradedcomments.addAll(gradedcomments.values().stream()
+                            .filter(gs2 -> answerdtotempalate.gradedComments.contains(gs2.id))
+                            .collect(Collectors.toList()));
                 }
 
                 StudentResponse.persist(stToUpdate);
 
-            }else {
+            } else {
                 StudentResponse stToUpdate = StudentResponse.cleanCommentAndGrade(answerdtoUpdate.studentResponse);
                 stToUpdate.quarternote = answerdtotempalate.quarternote;
                 stToUpdate.star = answerdtotempalate.star;
                 stToUpdate.worststar = answerdtotempalate.worststar;
-                if (stToUpdate.question.id != answerdtoUpdate.question.id){
+                if (stToUpdate.question.id != answerdtoUpdate.question.id) {
                     log.error("strange to update a StudentResponse that do not target the same question");
                 }
-                if (stToUpdate.sheet.id != answerdtoUpdate.sheet.id){
+                if (stToUpdate.sheet.id != answerdtoUpdate.sheet.id) {
                     log.error("strange to update a StudentResponse that do not target the same sheet");
                 }
 
-
-                if (question.gradeType == GradeType.DIRECT){
-                    stToUpdate.textcomments.addAll(textcomments.values().stream().filter(gs2 -> answerdtotempalate.textComments.contains(gs2.id)).collect(Collectors.toList()));
-                }else {
-                    stToUpdate.gradedcomments.addAll(gradedcomments.values().stream().filter(gs2 -> answerdtotempalate.gradedComments.contains(gs2.id)).collect(Collectors.toList()));
+                if (question.gradeType == GradeType.DIRECT) {
+                    stToUpdate.textcomments.addAll(textcomments.values().stream()
+                            .filter(gs2 -> answerdtotempalate.textComments.contains(gs2.id))
+                            .collect(Collectors.toList()));
+                } else {
+                    stToUpdate.gradedcomments.addAll(gradedcomments.values().stream()
+                            .filter(gs2 -> answerdtotempalate.gradedComments.contains(gs2.id))
+                            .collect(Collectors.toList()));
                 }
                 stToUpdate.persistOrUpdate();
 
@@ -2023,7 +2020,7 @@ public class ExtendedAPI {
 
     }
 
-    class SheetQuestion{
+    class SheetQuestion {
         ExamSheet sheet;
         Question question;
         long studentResponseId;
@@ -2034,8 +2031,6 @@ public class ExtendedAPI {
         List<Long> textComments = new ArrayList<>();
         List<Long> gradedComments = new ArrayList<>();
 
-
     }
-
 
 }
