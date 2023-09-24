@@ -194,7 +194,11 @@ public class ExtendedAPI {
     @Path("exportpdf/{examId}")
     @Transactional
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getExportPdfRoute(@PathParam("examId") long examId) {
+    public Response getExportPdfRoute(@PathParam("examId") long examId, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+
         ExportPDFDto exportPDFDto = this.getExportPdf(examId, null);
         return Response.ok().entity(exportPDFDto).build();
     }
