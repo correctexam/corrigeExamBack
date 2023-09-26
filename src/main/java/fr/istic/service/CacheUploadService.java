@@ -159,7 +159,7 @@ public class CacheUploadService {
             if (!customDir.exists()) {
                 customDir.mkdirs();
             }
-            String fileName = "cache/" + id + "indexdb.json";
+            String fileName = "cache" +File.separator  + id + "indexdb.json";
 
             fileName = customDir.getAbsolutePath() +
                     File.separator + fileName;
@@ -168,11 +168,11 @@ public class CacheUploadService {
             } else {
                 long k = 1;
                 fileName = customDir.getAbsolutePath() +
-                        File.separator + "cache/" + id + "_part_" + k + "_indexdb.json";
+                        File.separator + "cache"+ File.separator  + id + "_part_" + k + "_indexdb.json";
                 while (Paths.get(fileName).toFile().exists()) {
                     Paths.get(fileName).toFile().delete();
                     k = k + 1;
-                    fileName = "cache/" + id + "_part_" + k + "_indexdb.json";
+                    fileName = "cache" +File.separator  + id + "_part_" + k + "_indexdb.json";
                 }
 
             }
@@ -236,7 +236,12 @@ public class CacheUploadService {
             if (!customDir.exists()) {
                 customDir.mkdirs();
             }
-            fileName = customDir.getAbsolutePath() +
+            File customDir1 = new File(UPLOAD_DIR + File.separator + "cache" );
+            if (!customDir1.exists()) {
+                customDir1.mkdirs();
+            }
+
+            fileName = customDir1.getAbsolutePath() +
                     File.separator + fileName;
             if (!Paths.get(fileName).toFile().exists()) {
                 log.error("pas de fichier " + fileName);

@@ -278,6 +278,10 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1",examId);
     }
 
+    public static PanacheQuery<StudentResponse> getAllStudentResponseWithexamIdAndSheetName(long examId,String sheetname) {
+        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1 and sheet.name = ?2",examId,sheetname);
+    }
+
 
     public static  long deleteByQIds( Set<Long> qids) {
         return delete("delete from StudentResponse sr where sr.question.id in ?1", qids);
