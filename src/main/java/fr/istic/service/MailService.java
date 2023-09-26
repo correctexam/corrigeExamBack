@@ -71,6 +71,17 @@ public class MailService {
         );
     }
 
+    public CompletionStage<Void> sendEmailWithAttachement(String mail, String body, String subject, String filename, byte[] content,String contentType) {
+        Mail m = Mail.withText(mail,subject,body);
+        m.addAttachment(filename, content,contentType);
+        return reactiveMailer.send(m).subscribeAsCompletionStage().thenAccept(
+            it -> {
+                log.debug("Sent email to mail '{}'", mail);
+            }
+        );
+    }
+
+
     public CompletionStage<Void> sendActivationEmail(User user) {
         log.debug("Sending activation email to '{}'", user.email);
         return sendEmailFromTemplate(user, activationEmail, "CorrectExam account activation is required");

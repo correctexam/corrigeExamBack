@@ -15,6 +15,7 @@ import fr.istic.domain.TextComment;
 import fr.istic.domain.User;
 import fr.istic.domain.enumeration.GradeType;
 import fr.istic.security.AuthoritiesConstants;
+import fr.istic.service.CacheStudentPdfFService;
 import fr.istic.service.CacheUploadService;
 import fr.istic.service.CourseGroupService;
 import fr.istic.service.CourseService;
@@ -26,6 +27,7 @@ import fr.istic.service.QuestionService;
 import fr.istic.service.ScanService;
 import fr.istic.service.SecurityService;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
@@ -161,6 +163,9 @@ public class ExtendedAPI {
 
     @Inject
     ExamSheetService examSheetService;
+
+    @Inject
+    CacheStudentPdfFService cacheStudentPdfFService;
 
     private final class ComparatorImplementation implements Comparator<StudentResponse> {
 
@@ -478,14 +483,26 @@ public class ExtendedAPI {
                 body = body.replace("${lastname}", student.name);
                 final DecimalFormat df = new DecimalFormat("0.00");
                 body = body.replace("${note}", df.format(r.note / 100));
-                mailService.sendEmail(student.mail, body, dto.getSubject());
-                // TODO Send EMAIL
-                // mailService.sendEmailFromTemplate(user, template, subject)
+                if (dto.isMailpdf()){
+                    InputStream in;
+                    try {
+                        in = this.cacheStudentPdfFService.getFile(examId,sheet.name+".pdf");
+                    byte[] bytes = IOUtils.toByteArray(in);
+                    mailService.sendEmailWithAttachement(student.mail, body, dto.getSubject(), student.firstname+"_"+student.name+ ".pdf",bytes, "application/pdf"  );
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }else {
+                    mailService.sendEmail(student.mail, body, dto.getSubject());
+                }
 
             } else {
-                // TODO Send EMAIL
-
-                // Pas de copie pour cet étudiant
+                if (dto.isMailabi()){
+                    String body = dto.getBodyabi();
+                    body = body.replace("${firstname}", student.firstname);
+                    body = body.replace("${lastname}", student.name);
+                    mailService.sendEmail(student.mail, body, dto.getSubject());
+                }
             }
         });
 
@@ -855,6 +872,22 @@ public class ExtendedAPI {
 
         return Response.ok().entity(res.values()).build();
     }
+
+
+    @POST
+    @Path("/uploadExportFinalStudent/{examId}")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response fileUploadStudentPdf(@MultipartForm MultipartFormDataInput input, @PathParam("examId") long examId) {
+        try {
+            cacheStudentPdfFService.uploadFile(input,examId);
+        } catch (Exception e) {
+            return Response.serverError().build();
+
+        }
+        return Response.ok().build();
+    }
+
 
     @POST
     @Path("/uploadCache")
