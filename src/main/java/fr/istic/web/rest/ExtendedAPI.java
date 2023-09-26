@@ -336,7 +336,8 @@ public class ExtendedAPI {
         return exportPDFDto;
     }
 
-    private Exam computeFinalNote(long examId) {
+    @Transactional
+    public Exam computeFinalNote(long examId) {
         List<StudentResponse> studentResp = StudentResponse.getAllStudentResponseWithexamId(examId).list();
         Map<ExamSheet, List<StudentResponse>> mapstudentResp = studentResp.stream()
                 .collect(Collectors.groupingBy(StudentResponse::getCSheet));
@@ -461,7 +462,6 @@ public class ExtendedAPI {
 
     @POST
     @Path("sendResult/{examId}")
-    @Transactional
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response sendResultToStudent(MailResultDTO dto, @PathParam("examId") long examId,
             @Context SecurityContext ctx) {
@@ -489,8 +489,8 @@ public class ExtendedAPI {
                         in = this.cacheStudentPdfFService.getFile(examId,sheet.name+".pdf");
                     byte[] bytes = IOUtils.toByteArray(in);
                     mailService.sendEmailWithAttachement(student.mail, body, dto.getSubject(), student.firstname+"_"+student.name+ ".pdf",bytes, "application/pdf"  );
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                        } catch (Exception e) {
+                            e.printStackTrace();
                     }
                 }else {
                     mailService.sendEmail(student.mail, body, dto.getSubject());
