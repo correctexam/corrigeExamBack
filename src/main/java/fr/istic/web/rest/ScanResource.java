@@ -133,7 +133,7 @@ public class ScanResource {
         MultivaluedMap param = uriInfo.getQueryParameters();
         if (param.containsKey("name")) {
             List name = (List) param.get("name");
-            Paged<ScanDTOContent> result =  scanService.findbyName("" + name.get(0),page);
+            Paged<ScanDTO> result =  scanService.findbyName("" + name.get(0),page);
             var response = Response.ok().entity(result.content);
             response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
             return response.build();
@@ -160,10 +160,9 @@ public class ScanResource {
      */
     @GET
     @Path("/{id}")
-
     public Response getScan(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get Scan : {}", id);
-        Optional<ScanDTOContent> scanDTO = scanService.findOne(id);
+        Optional<ScanDTO> scanDTO = scanService.findOne(id);
         return ResponseUtil.wrapOrNotFound(scanDTO);
     }
 }
