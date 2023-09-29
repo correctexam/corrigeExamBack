@@ -48,7 +48,7 @@ public class TemplateService {
 
 
     @Transactional
-    public TemplateDTOContent persistOrUpdate(TemplateDTOContent templateDTO) {
+    public TemplateDTO persistOrUpdate(TemplateDTOContent templateDTO) {
         log.debug("Request to save Template : {}", templateDTO);
         var template = templateContentMapper.toEntity(templateDTO);
 
@@ -63,14 +63,14 @@ public class TemplateService {
                 e.printStackTrace();
             }
 
-            TemplateDTOContent dto = templateContentMapper.toDto(template);
-            dto.content = bytes;
+            TemplateDTO dto = templateMapper.toDto(template);
+//            dto.content = bytes;
 
             return dto;
         }
         else {
             template = Template.persistOrUpdate(template);
-            TemplateDTOContent dto = templateContentMapper.toDto(template);
+            TemplateDTO dto = templateMapper.toDto(template);
             return dto;
         }
     }
@@ -109,10 +109,10 @@ public class TemplateService {
      * @param id the id of the entity.
      * @return the entity.
      */
-    public Optional<TemplateDTOContent> findOne(Long id) {
+    public Optional<TemplateDTO> findOne(Long id) {
         log.debug("Request to get Template : {}", id);
         Optional<Template> templateop = Template.findByIdOptional(id);
-        if (this.uses3) {
+        /* if (this.uses3) {
             if (templateop.isPresent()) {
                 Template template = templateop.get();
                 if (this.fichierS3Service.isObjectExist("template/" + template.id + ".pdf")) {
@@ -138,9 +138,9 @@ public class TemplateService {
 
                 }
             }
-        }
+        }*/
         return templateop
-                .map(scan -> templateContentMapper.toDto((Template) scan));
+                .map(scan -> templateMapper.toDto((Template) scan));
     }
 
     /**

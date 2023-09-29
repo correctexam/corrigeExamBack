@@ -59,7 +59,7 @@ public class ScanService {
     boolean uses3;
 
     @Transactional
-    public ScanDTOContent persistOrUpdate(ScanDTOContent scanDTO) {
+    public ScanDTO persistOrUpdate(ScanDTOContent scanDTO) {
         log.debug("Request to save Scan : {}", scanDTO.id);
         var scan = scanContentMapper.toEntity(scanDTO);
         if (this.uses3) {
@@ -89,14 +89,14 @@ public class ScanService {
             } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
                 e.printStackTrace();
             }*/
-            ScanDTOContent dto = scanContentMapper.toDto(scan);
-            dto.content = null;
+            ScanDTO dto = scanMapper.toDto(scan);
+           // dto.content = null;
             return dto;
         } else {
             scan.content = null;
             scan = Scan.persistOrUpdate(scan);
-            ScanDTOContent dto = scanContentMapper.toDto(scan);
-            dto.content = null;
+            ScanDTO dto = scanMapper.toDto(scan);
+ //           dto.content = null;
             return dto;
 
         }
@@ -138,12 +138,12 @@ public class ScanService {
      * @param id the id of the entity.
      * @return the entity.
      */
-    public Optional<ScanDTOContent> findOne(Long id) {
+    public Optional<ScanDTO> findOne(Long id) {
         log.debug("Request to get Scan : {}", id);
         Optional<Scan> scanop = Scan.findByIdOptional(id);
-        Optional<ScanDTOContent> dto = scanop
-                .map(scan -> scanContentMapper.toDto((Scan) scan));
-        if (this.uses3) {
+        Optional<ScanDTO> dto = scanop
+                .map(scan -> scanMapper.toDto((Scan) scan));
+       /* if (this.uses3) {
             if (dto.isPresent()) {
                 ScanDTOContent scan = dto.get();
 
@@ -167,7 +167,7 @@ public class ScanService {
                     }
                 }
             }
-        }
+        } */
         return dto;
     }
 
@@ -189,11 +189,12 @@ public class ScanService {
      * @param page the pagination information.
      * @return the list of entities.
      */
-    public Paged<ScanDTOContent> findbyName(String name, Page page) {
+    public Paged<ScanDTO> findbyName(String name, Page page) {
         log.debug("Request to get all Scans by name");
         Paged<Scan> scans = new Paged<>(Scan.findByName(name).page(page));
-        Paged<ScanDTOContent> dtos = scans.map(scan -> scanContentMapper.toDto((Scan) scan));
+        Paged<ScanDTO> dtos = scans.map(scan -> scanMapper.toDto((Scan) scan));
 
+        /*
         if (this.uses3) {
 
             for (ScanDTOContent scan : dtos.content) {
@@ -219,7 +220,7 @@ public class ScanService {
 
                 }
             }
-        }
+        }*/
         return dtos;
     }
 

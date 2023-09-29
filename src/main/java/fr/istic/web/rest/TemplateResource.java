@@ -144,7 +144,7 @@ public class TemplateResource {
     @Path("/{id}")
     public Response getTemplate(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get Template : {}", id);
-        Optional<TemplateDTOContent> templateDTO = templateService.findOne(id);
+        Optional<TemplateDTO> templateDTO = templateService.findOne(id);
         return ResponseUtil.wrapOrNotFound(templateDTO);
     }
 }
