@@ -235,7 +235,7 @@ public class ScanService {
                                                 inputPart.getHeaders();
                 fileName = getFileName(header);
                 fileNames.add(fileName);
-
+                log.error(""+ fileName);
                 InputStream inputStream = inputPart.getBody(InputStream.class, null);
 
                 writeFile(inputStream,"application/pdf", examId);
@@ -264,18 +264,18 @@ public class ScanService {
             throws IOException {
         byte[] bytes = IOUtils.toByteArray(inputStream);
 
-        Base64.Decoder encoder = Base64.getDecoder();
-        byte[] b64bytes  = encoder.decode(bytes);
+       // Base64.Decoder encoder = Base64.getDecoder();
+       // byte[] b64bytes  = encoder.decode(bytes);
 
         if (this.uses3){
             String fileName = "scan/" +  scanId + ".pdf";
             try {
-                this.putObject(fileName, b64bytes,contenttype);
+                this.putObject(fileName, bytes,contenttype);
             } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
                 e.printStackTrace();
             }
         } else {
-               this.updateContent(scanId, b64bytes);
+               this.updateContent(scanId, bytes);
 
         }
     }

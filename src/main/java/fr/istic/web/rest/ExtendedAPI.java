@@ -9,8 +9,10 @@ import fr.istic.domain.ExamSheet;
 import fr.istic.domain.FinalResult;
 import fr.istic.domain.GradedComment;
 import fr.istic.domain.Question;
+import fr.istic.domain.Scan;
 import fr.istic.domain.Student;
 import fr.istic.domain.StudentResponse;
+import fr.istic.domain.Template;
 import fr.istic.domain.TextComment;
 import fr.istic.domain.User;
 import fr.istic.domain.enumeration.GradeType;
@@ -21,6 +23,7 @@ import fr.istic.service.CourseGroupService;
 import fr.istic.service.CourseService;
 import fr.istic.service.ExamService;
 import fr.istic.service.ExamSheetService;
+import fr.istic.service.FichierS3Service;
 import fr.istic.service.ImportExportService;
 import fr.istic.service.MailService;
 import fr.istic.service.QuestionService;
@@ -166,6 +169,9 @@ public class ExtendedAPI {
 
     @Inject
     CacheStudentPdfFService cacheStudentPdfFService;
+
+    @Inject
+    FichierS3Service fichierS3Service;
 
     private final class ComparatorImplementation implements Comparator<StudentResponse> {
 
@@ -483,21 +489,22 @@ public class ExtendedAPI {
                 body = body.replace("${lastname}", student.name);
                 final DecimalFormat df = new DecimalFormat("0.00");
                 body = body.replace("${note}", df.format(r.note / 100));
-                if (dto.isMailpdf()){
+                if (dto.isMailpdf()) {
                     InputStream in;
                     try {
-                        in = this.cacheStudentPdfFService.getFile(examId,sheet.name+".pdf");
-                    byte[] bytes = IOUtils.toByteArray(in);
-                    mailService.sendEmailWithAttachement(student.mail, body, dto.getSubject(), student.firstname+"_"+student.name+ ".pdf",bytes, "application/pdf"  );
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        in = this.cacheStudentPdfFService.getFile(examId, sheet.name + ".pdf");
+                        byte[] bytes = IOUtils.toByteArray(in);
+                        mailService.sendEmailWithAttachement(student.mail, body, dto.getSubject(),
+                                student.firstname + "_" + student.name + ".pdf", bytes, "application/pdf");
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
-                }else {
+                } else {
                     mailService.sendEmail(student.mail, body, dto.getSubject());
                 }
 
             } else {
-                if (dto.isMailabi()){
+                if (dto.isMailabi()) {
                     String body = dto.getBodyabi();
                     body = body.replace("${firstname}", student.firstname);
                     body = body.replace("${lastname}", student.name);
@@ -873,21 +880,20 @@ public class ExtendedAPI {
         return Response.ok().entity(res.values()).build();
     }
 
-
     @POST
     @Path("/uploadExportFinalStudent/{examId}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response fileUploadStudentPdf(@MultipartForm MultipartFormDataInput input, @PathParam("examId") long examId) {
+    public Response fileUploadStudentPdf(@MultipartForm MultipartFormDataInput input,
+            @PathParam("examId") long examId) {
         try {
-            cacheStudentPdfFService.uploadFile(input,examId);
+            cacheStudentPdfFService.uploadFile(input, examId);
         } catch (Exception e) {
             return Response.serverError().build();
 
         }
         return Response.ok().build();
     }
-
 
     @POST
     @Path("/uploadCache")
@@ -1031,7 +1037,6 @@ public class ExtendedAPI {
     @Path("/exportCourse/{courseId}")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-
     public Response exportCourse(@PathParam("courseId") long courseId, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseId, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -1065,6 +1070,98 @@ public class ExtendedAPI {
             return Response.noContent().build();
         }
     }
+
+    @GET
+    @Path("/getTemplatePdf/{templateId}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getTemplate(@PathParam("templateId") long templateId, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, templateId, Template.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        try {
+            if (this.fichierS3Service.isObjectExist("template/" + templateId + ".pdf")) {
+
+                return Response.ok(
+                        new StreamingOutput() {
+                            @Override
+                            public void write(OutputStream outputStream) throws IOException, WebApplicationException {
+                                InputStream source = null;
+                                try {
+
+                                    source = fichierS3Service.getObject("template/" + templateId + ".pdf");
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    return;
+                                }
+                                byte[] buf = new byte[8192];
+                                int length;
+                                while ((length = source.read(buf)) != -1) {
+                                    outputStream.write(buf, 0, length);
+                                }
+                            }
+                        }, MediaType.APPLICATION_OCTET_STREAM)
+                        .header("Content-Disposition", "attachment;filename=" + "template_" + templateId + ".pdf")
+                        .build();
+            } else {
+                return Response.noContent().build();
+
+            }
+        }
+
+        catch (Exception e) {
+
+            e.printStackTrace();
+            return Response.noContent().build();
+        }
+    }
+
+    @GET
+    @Path("/getScanPdf/{scanId}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getScan(@PathParam("scanId") long scanId, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, scanId, Scan.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        try {
+            if (this.fichierS3Service.isObjectExist("scan/" + scanId + ".pdf")) {
+
+                return Response.ok(
+                        new StreamingOutput() {
+                            @Override
+                            public void write(OutputStream outputStream) throws IOException, WebApplicationException {
+                                InputStream source = null;
+                                try {
+
+                                    source = fichierS3Service.getObject("scan/" + scanId + ".pdf");
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    return;
+                                }
+                                byte[] buf = new byte[8192];
+                                int length;
+                                while ((length = source.read(buf)) != -1) {
+                                    outputStream.write(buf, 0, length);
+                                }
+                            }
+                        }, MediaType.APPLICATION_OCTET_STREAM)
+                        .header("Content-Disposition", "attachment;filename=" + "scan_" + scanId + ".pdf")
+                        .build();
+            } else {
+                return Response.noContent().build();
+
+            }
+        }
+
+        catch (Exception e) {
+
+            e.printStackTrace();
+            return Response.noContent().build();
+        }
+    }
+
+
 
     @GET
     @Path("/exportCourseWithoutStudentData/{courseId}")
@@ -1416,7 +1513,7 @@ public class ExtendedAPI {
         final List<StudentResponse> stdResponses = StudentResponse.getAll4ExamId(examId).list();
         final List<Question> questionsExam = Question.findQuestionbyExamId(examId).list();
         final Map<Long, List<StudentResponse>> byQuestion = stdResponses.stream()
-                .collect(Collectors.groupingBy(StudentResponse::getQuestionId));
+                .collect(Collectors.groupingBy(StudentResponse::getQuestionNumero));
 
         result.setNameExam(exam.name);
 
@@ -1440,8 +1537,9 @@ public class ExtendedAPI {
             res.setFirstUnmarkedSheet(0);
             res.setId(quest.id);
             res.setNumero(quest.numero);
-
-            q.put(quest.id, res);
+            if (!q.containsKey(quest.numero.longValue())) {
+                q.put(quest.numero.longValue(), res);
+            }
             // result.getQuestions().add(res);
             // }
         }
@@ -1475,10 +1573,11 @@ public class ExtendedAPI {
         // Filling the questions part of the DTO
         for (Question quest : questionsExam) {
             // The responses for this question
-            final List<StudentResponse> responsesForQ = byQuestion.computeIfAbsent(quest.id, i -> new ArrayList<>());
+            final List<StudentResponse> responsesForQ = byQuestion.computeIfAbsent(quest.numero.longValue(),
+                    i -> new ArrayList<>());
             // Getting the ID of the sheets that have an answer for this question
             responsesForQ.sort(new ComparatorImplementation());
-            QuestionStateDTO qs = q.get(quest.id);
+            QuestionStateDTO qs = q.get(quest.numero.longValue());
             if (responsesForQ.size() > 0 && responsesForQ.get(0).sheet.pagemin == 0) {
                 if (responsesForQ.size() == 1) {
                     qs.setFirstUnmarkedSheet(Long.valueOf(responsesForQ.get(0).sheet.pagemax + 1));
@@ -1497,16 +1596,19 @@ public class ExtendedAPI {
             qs.setAnsweredSheets(responsesForQ.size());
         }
 
-        List<QuestionStateDTO> toRemove = q.values().stream().filter(q2 -> {
-            return q.values().stream()
-                    .anyMatch(q1 -> q1 != q2 && q1.getNumero() == q2.getNumero()
-                            && (q2.getAnsweredSheets() < q1.getAnsweredSheets()
-                                    || (q2.getAnsweredSheets() <= q1.getAnsweredSheets() && q2.getId() > q1.getId())));
-        }).collect(Collectors.toList());
-
-        for (QuestionStateDTO tor : toRemove) {
-            q.remove(tor.getId());
-        }
+        /*
+         * List<QuestionStateDTO> toRemove = q.values().stream().filter(q2 -> {
+         * return q.values().stream()
+         * .anyMatch(q1 -> q1 != q2 && q1.getNumero() == q2.getNumero()
+         * && (q2.getAnsweredSheets() < q1.getAnsweredSheets()
+         * || (q2.getAnsweredSheets() <= q1.getAnsweredSheets() && q2.getId() >
+         * q1.getId())));
+         * }).collect(Collectors.toList());
+         *
+         * for (QuestionStateDTO tor : toRemove) {
+         * q.remove(tor.getId());
+         * }
+         */
         result.getQuestions().addAll(q.values());
         /*   */
 

@@ -51,6 +51,11 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         return question.id;
     }
     @Transient
+    public long getQuestionNumero(){
+        return question.numero.longValue();
+    }
+
+    @Transient
     public List<Long> getStudentId(){
         return sheet.students.stream().map(s-> s.id).collect(Collectors.toList());
     }
@@ -212,8 +217,8 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     }
 
 
-    public static PanacheQuery<StudentResponse> findStudentResponsesbysheetIdAndquestionId( long sheetId, long questionId) {
-        return find("select sr from StudentResponse sr where sr.sheet.id =?1 and question.id=?2", sheetId, questionId);
+    public static PanacheQuery<StudentResponse> findStudentResponsesbysheetIdAndquestionId( long sheetId, List<Long> questionsId) {
+        return find("select sr from StudentResponse sr where sr.sheet.id =?1 and question.id in ?2", sheetId, questionsId);
     }
     public static PanacheQuery<StudentResponse> findStudentResponsesbysheetId( long sheetId) {
         return find("select sr from StudentResponse sr where sr.sheet.id =?1 ", sheetId );
