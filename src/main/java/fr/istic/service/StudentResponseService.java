@@ -12,6 +12,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -26,14 +28,14 @@ public class StudentResponseService {
     @Transactional
     public StudentResponseDTO persistOrUpdate(StudentResponseDTO studentResponseDTO) {
         log.debug("Request to save StudentResponse : {}", studentResponseDTO);
-        var studentResponse = studentResponseMapper.toEntity(studentResponseDTO);
         long l = 0;
         if (studentResponseDTO.sheetId != null && studentResponseDTO.questionId != null) {
-            l = StudentResponse.findStudentResponsesbysheetIdAndquestionId(studentResponseDTO.sheetId,studentResponseDTO.questionId ).count();
+            l = StudentResponse.findStudentResponsesbysheetIdAndquestionId(studentResponseDTO.sheetId,Collections.singletonList( studentResponseDTO.questionId) ).count();
 
         }
         if (l>0) {
-            StudentResponse sr = StudentResponse.findStudentResponsesbysheetIdAndquestionId(studentResponseDTO.sheetId,studentResponseDTO.questionId ).firstResult();
+            StudentResponse sr = StudentResponse.findStudentResponsesbysheetIdAndquestionId(studentResponseDTO.sheetId,Collections.singletonList(studentResponseDTO.questionId)).firstResult();
+            var studentResponse = studentResponseMapper.toEntity(studentResponseDTO);
             sr.quarternote = studentResponse.quarternote;
             sr.star = studentResponse.star;
             sr.worststar = studentResponse.worststar;
@@ -44,14 +46,16 @@ public class StudentResponseService {
             sr.textcomments.clear();
             sr.textcomments.addAll(studentResponse.textcomments);
             studentResponse = StudentResponse.persistOrUpdate(sr);
+            return studentResponseMapper.toDto(sr);
 
         } else{
+            var studentResponse = studentResponseMapper.toEntity(studentResponseDTO);
 
             studentResponse = StudentResponse.persistOrUpdate(studentResponse);
+            return studentResponseMapper.toDto(studentResponse);
 
         }
 
-        return studentResponseMapper.toDto(studentResponse);
     }
 
     /**
@@ -109,9 +113,9 @@ public class StudentResponseService {
      * @param page the pagination information.
      * @return the list of entities.
      */
-    public Paged<StudentResponseDTO> findStudentResponsesbysheetIdAndquestionId(Page page, Long sheetId, Long questionId) {
+    public Paged<StudentResponseDTO> findStudentResponsesbysheetIdAndquestionId(Page page, Long sheetId, List<Long> questionsId) {
         log.debug("Request to get all StudentResponses");
-        return new Paged<>(StudentResponse.findStudentResponsesbysheetIdAndquestionId(sheetId, questionId).page(page))
+        return new Paged<>(StudentResponse.findStudentResponsesbysheetIdAndquestionId(sheetId, questionsId).page(page))
             .map(studentResponse -> studentResponseMapper.toDto((StudentResponse) studentResponse));
     }
 

@@ -31,8 +31,10 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.StringTokenizer;
 
 /**
  * REST controller for managing {@link fr.istic.domain.StudentResponse}.
@@ -50,7 +52,6 @@ public class StudentResponseResource {
     @ConfigProperty(name = "application.name")
     String applicationName;
 
-
     @Inject
     StudentResponseService studentResponseService;
 
@@ -61,18 +62,22 @@ public class StudentResponseResource {
      * {@code POST  /student-responses} : Create a new studentResponse.
      *
      * @param studentResponseDTO the studentResponseDTO to create.
-     * @return the {@link Response} with status {@code 201 (Created)} and with body the new studentResponseDTO, or with status {@code 400 (Bad Request)} if the studentResponse has already an ID.
+     * @return the {@link Response} with status {@code 201 (Created)} and with body
+     *         the new studentResponseDTO, or with status {@code 400 (Bad Request)}
+     *         if the studentResponse has already an ID.
      */
     @POST
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response createStudentResponse(StudentResponseDTO studentResponseDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to save StudentResponse : {}", studentResponseDTO);
         if (studentResponseDTO.id != null) {
-            throw new BadRequestAlertException("A new studentResponse cannot already have an ID", ENTITY_NAME, "idexists");
+            throw new BadRequestAlertException("A new studentResponse cannot already have an ID", ENTITY_NAME,
+                    "idexists");
         }
         var result = studentResponseService.persistOrUpdate(studentResponseDTO);
         var response = Response.created(fromPath(uriInfo.getPath()).path(result.id.toString()).build()).entity(result);
-        HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.id.toString()).forEach(response::header);
+        HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.id.toString())
+                .forEach(response::header);
         return response.build();
     }
 
@@ -80,24 +85,28 @@ public class StudentResponseResource {
      * {@code PUT  /student-responses} : Updates an existing studentResponse.
      *
      * @param studentResponseDTO the studentResponseDTO to update.
-     * @return the {@link Response} with status {@code 200 (OK)} and with body the updated studentResponseDTO,
-     * or with status {@code 400 (Bad Request)} if the studentResponseDTO is not valid,
-     * or with status {@code 500 (Internal Server Error)} if the studentResponseDTO couldn't be updated.
+     * @return the {@link Response} with status {@code 200 (OK)} and with body the
+     *         updated studentResponseDTO,
+     *         or with status {@code 400 (Bad Request)} if the studentResponseDTO is
+     *         not valid,
+     *         or with status {@code 500 (Internal Server Error)} if the
+     *         studentResponseDTO couldn't be updated.
      */
     @PUT
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response updateStudentResponse(StudentResponseDTO studentResponseDTO, @Context SecurityContext ctx) {
         log.debug("REST request to update StudentResponse : {}", studentResponseDTO);
         if (studentResponseDTO.id == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        if (!securityService.canAccess(ctx, studentResponseDTO.id, StudentResponse.class  )){
+        if (!securityService.canAccess(ctx, studentResponseDTO.id, StudentResponse.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
 
         var result = studentResponseService.persistOrUpdate(studentResponseDTO);
         var response = Response.ok().entity(result);
-        HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, studentResponseDTO.id.toString()).forEach(response::header);
+        HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, studentResponseDTO.id.toString())
+                .forEach(response::header);
         return response.build();
     }
 
@@ -108,17 +117,18 @@ public class StudentResponseResource {
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
     @DELETE
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Path("/{id}")
     public Response deleteStudentResponse(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to delete StudentResponse : {}", id);
-        if (!securityService.canAccess(ctx, id, StudentResponse.class  )){
+        if (!securityService.canAccess(ctx, id, StudentResponse.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
 
         studentResponseService.delete(id);
         var response = Response.noContent();
-        HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()).forEach(response::header);
+        HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString())
+                .forEach(response::header);
         return response.build();
     }
 
@@ -126,60 +136,76 @@ public class StudentResponseResource {
      * {@code GET  /student-responses} : get all the studentResponses.
      *
      * @param pageRequest the pagination information.
-     * @return the {@link Response} with status {@code 200 (OK)} and the list of studentResponses in body.
+     * @return the {@link Response} with status {@code 200 (OK)} and the list of
+     *         studentResponses in body.
      */
     @GET
-    public Response getAllStudentResponses(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
+    public Response getAllStudentResponses(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest,
+            @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of StudentResponses");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
-        Paged<StudentResponseDTO> result = new Paged(0,0,0,0,new ArrayList<>());
+        Paged<StudentResponseDTO> result = new Paged(0, 0, 0, 0, new ArrayList<>());
         MultivaluedMap param = uriInfo.getQueryParameters();
-        if (param.containsKey("sheetId") && param.containsKey("questionId")) {
+        if (param.containsKey("sheetId") && param.containsKey("questionsId")) {
+            List sheetId = (List) param.get("sheetId");
+            List questionsId = (List) param.get("questionsId");
+            List<Long> qids = new ArrayList<>();
+            StringTokenizer token = new StringTokenizer("" + questionsId.get(0), ",");
+            while (token.hasMoreTokens()) {
+                qids.add(Long.parseLong("" + token.nextToken()));
+            }
+            result = studentResponseService.findStudentResponsesbysheetIdAndquestionId(page,
+                    Long.parseLong("" + sheetId.get(0)),
+                    qids);
+
+        }
+        else if (param.containsKey("sheetId") && param.containsKey("questionId")) {
             List sheetId = (List) param.get("sheetId");
             List questionId = (List) param.get("questionId");
-            result = studentResponseService.findStudentResponsesbysheetIdAndquestionId(page, Long.parseLong("" + sheetId.get(0)),
-            Long.parseLong("" + questionId.get(0))
-            );
-        } else{
-            if (ctx.getUserPrincipal().getName()!= null){
 
-            var userLogin = Optional
-            .ofNullable(ctx.getUserPrincipal().getName());
-        if (!userLogin.isPresent()){
-            throw new AccountResourceException("Current user login not found");
-        }
-        var user = User.findOneByLogin(userLogin.get());
-        if (!user.isPresent()) {
-            throw new AccountResourceException("User could not be found");
-        }
-            else if (user.get().authorities.size() >= 1 && user.get().authorities.stream().anyMatch(e1-> e1.equals(new Authority("ROLE_ADMIN")))){
-                result =studentResponseService.findAll(page);
+            result = studentResponseService.findStudentResponsesbysheetIdAndquestionId(page,
+                    Long.parseLong("" + sheetId.get(0)), Collections.singletonList(
+                            Long.parseLong("" + questionId.get(0))));
+        } else {
+            if (ctx.getUserPrincipal().getName() != null) {
 
-            } else {
-                return Response.status(403, "Current user cannot access to this ressource").build();
+                var userLogin = Optional
+                        .ofNullable(ctx.getUserPrincipal().getName());
+                if (!userLogin.isPresent()) {
+                    throw new AccountResourceException("Current user login not found");
+                }
+                var user = User.findOneByLogin(userLogin.get());
+                if (!user.isPresent()) {
+                    throw new AccountResourceException("User could not be found");
+                } else if (user.get().authorities.size() >= 1
+                        && user.get().authorities.stream().anyMatch(e1 -> e1.equals(new Authority("ROLE_ADMIN")))) {
+                    result = studentResponseService.findAll(page);
+
+                } else {
+                    return Response.status(403, "Current user cannot access to this ressource").build();
+                }
+
             }
-
         }
-    }
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
         return response.build();
     }
 
-
     /**
      * {@code GET  /student-responses/:id} : get the "id" studentResponse.
      *
      * @param id the id of the studentResponseDTO to retrieve.
-     * @return the {@link Response} with status {@code 200 (OK)} and with body the studentResponseDTO, or with status {@code 404 (Not Found)}.
+     * @return the {@link Response} with status {@code 200 (OK)} and with body the
+     *         studentResponseDTO, or with status {@code 404 (Not Found)}.
      */
     @GET
     @Path("/{id}")
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
 
     public Response getStudentResponse(@PathParam("id") Long id, @Context SecurityContext ctx) {
-        if (!securityService.canAccess(ctx, id, StudentResponse.class  )){
+        if (!securityService.canAccess(ctx, id, StudentResponse.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
 
@@ -190,20 +216,18 @@ public class StudentResponseResource {
 
     @PATCH
     @Path(value = "/{id}")
-    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response partialUpdateSR(
-        @PathParam(value = "id") final Long id,
-        StudentResponseNote srDTO, @Context SecurityContext ctx
-    ) {
+            @PathParam(value = "id") final Long id,
+            StudentResponseNote srDTO, @Context SecurityContext ctx) {
         log.debug("REST request to partial update StudentResponse partially : {}, {}", id, srDTO);
 
-        if (!securityService.canAccess(ctx, id, StudentResponse.class  )){
+        if (!securityService.canAccess(ctx, id, StudentResponse.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
         Optional<StudentResponseDTO> result = studentResponseService.partialeNoteUpdate(srDTO, id);
         return ResponseUtil.wrapOrNotFound(
-            result,
-            HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, id.toString())
-        );
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, id.toString()));
     }
 }
