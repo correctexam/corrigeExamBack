@@ -1537,6 +1537,7 @@ public class ExtendedAPI {
             res.setFirstUnmarkedSheet(0);
             res.setId(quest.id);
             res.setNumero(quest.numero);
+            res.setLibelle(quest.libelle);
             if (!q.containsKey(quest.numero.longValue())) {
                 q.put(quest.numero.longValue(), res);
             }

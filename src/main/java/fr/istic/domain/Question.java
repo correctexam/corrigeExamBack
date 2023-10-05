@@ -41,6 +41,9 @@ public class Question extends PanacheEntityBase implements Serializable {
     @Column(name = "valid_expression")
     public String validExpression;
 
+    @Column(name = "libelle")
+    public String libelle;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "grade_type")
     public GradeType gradeType;
@@ -93,6 +96,7 @@ public class Question extends PanacheEntityBase implements Serializable {
             ", point=" + quarterpoint +
             ", step=" + step +
             ", validExpression='" + validExpression + "'" +
+            ", libelle='" + libelle + "'" +
             ", gradeType='" + gradeType + "'" +
             "}";
     }
@@ -115,6 +119,7 @@ public class Question extends PanacheEntityBase implements Serializable {
             entity.quarterpoint = question.quarterpoint;
             entity.step = question.step;
             entity.validExpression = question.validExpression;
+            entity.libelle = question.libelle;
             entity.gradeType = question.gradeType;
             entity.zone = question.zone;
             entity.textcomments = question.textcomments;

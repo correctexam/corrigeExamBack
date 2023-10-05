@@ -24,6 +24,8 @@ public class QuestionDTO implements Serializable {
 
     public String validExpression;
 
+    public String libelle;
+
     public GradeType gradeType;
 
     public Long zoneId;

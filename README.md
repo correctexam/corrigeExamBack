@@ -106,3 +106,4 @@ To stop it and remove the container, run:
 update question set point = point * 4;
 
 update `student_response` set note = note * 4;
+ALTER TABLE `question` ADD `libelle` VARCHAR(255) NULL DEFAULT NULL AFTER `valid_expression`;

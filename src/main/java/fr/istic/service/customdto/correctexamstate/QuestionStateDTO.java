@@ -6,6 +6,9 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 public class QuestionStateDTO {
     private long id;
     private long numero;
+    private String libelle;
+
+
     private long answeredSheets;
     private long firstUnmarkedSheet;
 
@@ -19,6 +22,14 @@ public class QuestionStateDTO {
 
     public long getNumero() {
         return numero;
+    }
+
+    public String getLibelle() {
+        return this.libelle;
+    }
+
+    public void setLibelle(String libelle) {
+        this.libelle = libelle;
     }
 
     public void setNumero(long value) {
