@@ -312,6 +312,7 @@ CREATE TABLE `question` (
   `point` int DEFAULT NULL,
   `step` int DEFAULT NULL,
   `valid_expression` varchar(255) DEFAULT NULL,
+  `libelle` varchar(255) DEFAULT NULL,
   `grade_type` varchar(255) DEFAULT NULL,
   `zone_id` bigint DEFAULT NULL,
   `type_id` bigint DEFAULT NULL,
