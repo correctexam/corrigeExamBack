@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.istic.domain.Authority;
-import fr.istic.domain.Exam;
 import fr.istic.domain.Question;
 import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
