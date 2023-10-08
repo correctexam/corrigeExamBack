@@ -227,19 +227,22 @@ public class ExtendedAPI {
 
         ExportPDFDto exportPDFDto = new ExportPDFDto();
         Exam ex = Exam.findById(examId);
-        exportPDFDto.setFirstnamezonepdf(new Zonepdf());
-        exportPDFDto.getFirstnamezonepdf().setHeight(ex.firstnamezone.height);
-        exportPDFDto.getFirstnamezonepdf().setWidth(ex.firstnamezone.width);
-        exportPDFDto.getFirstnamezonepdf().setXInit(ex.firstnamezone.xInit);
-        exportPDFDto.getFirstnamezonepdf().setYInit(ex.firstnamezone.yInit);
-        exportPDFDto.getFirstnamezonepdf().setPageNumber(ex.firstnamezone.pageNumber);
-        exportPDFDto.setNamezonepdf(new Zonepdf());
-        exportPDFDto.getNamezonepdf().setHeight(ex.namezone.height);
-        exportPDFDto.getNamezonepdf().setWidth(ex.namezone.width);
-        exportPDFDto.getNamezonepdf().setXInit(ex.namezone.xInit);
-        exportPDFDto.getNamezonepdf().setYInit(ex.namezone.yInit);
-        exportPDFDto.getNamezonepdf().setPageNumber(ex.namezone.pageNumber);
-
+        if (ex.firstnamezone != null){
+            exportPDFDto.setFirstnamezonepdf(new Zonepdf());
+            exportPDFDto.getFirstnamezonepdf().setHeight(ex.firstnamezone.height);
+            exportPDFDto.getFirstnamezonepdf().setWidth(ex.firstnamezone.width);
+            exportPDFDto.getFirstnamezonepdf().setXInit(ex.firstnamezone.xInit);
+            exportPDFDto.getFirstnamezonepdf().setYInit(ex.firstnamezone.yInit);
+            exportPDFDto.getFirstnamezonepdf().setPageNumber(ex.firstnamezone.pageNumber);
+        }
+        if (ex.namezone != null){
+            exportPDFDto.setNamezonepdf(new Zonepdf());
+            exportPDFDto.getNamezonepdf().setHeight(ex.namezone.height);
+            exportPDFDto.getNamezonepdf().setWidth(ex.namezone.width);
+            exportPDFDto.getNamezonepdf().setXInit(ex.namezone.xInit);
+            exportPDFDto.getNamezonepdf().setYInit(ex.namezone.yInit);
+            exportPDFDto.getNamezonepdf().setPageNumber(ex.namezone.pageNumber);
+        }
         exportPDFDto.setID(ex.id);
         exportPDFDto.setScanfileID(ex.scanfile.id);
         exportPDFDto.setName(ex.name);
@@ -922,6 +925,23 @@ public class ExtendedAPI {
 
         }
         return Response.ok().build();
+    }
+
+    @GET
+    @Path("/getCachePageInTemplate/{examId}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getCachePageInTemplate(@PathParam("examId") long examId) {
+        try {
+            return Response
+                    .status(Response.Status.OK)
+                    .entity(cacheUploadService.getCachePageInTemplate(examId))
+                    .type(MediaType.TEXT_PLAIN)
+                    .build();
+
+        } catch (Exception e) {
+            return Response.serverError().build();
+
+        }
     }
 
     @GET

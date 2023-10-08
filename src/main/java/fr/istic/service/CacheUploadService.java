@@ -329,6 +329,198 @@ public class CacheUploadService {
         return "";
     }
 
+    public long getCachePageInTemplateSqlite(long id) throws IOException {
+        InputStream inputStream = null;
+        String dbpath = "";
+        if (pathsqlite.containsKey(id) && Paths.get(pathsqlite.get(id)).toFile().exists()) {
+            dbpath = pathsqlite.get(id);
+        } else {
+            if (this.uses3) {
+                String fileName = "cache/" + id + ".sqlite3";
+                try {
+                    if (this.fichierS3Service.isObjectExist(fileName)) {
+                        inputStream = this.getObject(fileName);
+                        dbpath = this.writeStreamToTempFile(inputStream, id + ".sqlite3").getAbsolutePath();
+                        pathsqlite.put(id, dbpath);
+                    }
+                } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
+                    e.printStackTrace();
+                    return 0;
+                }
+            } else {
+                String fileName = id + ".sqlite3";
+                File customDir = new File(UPLOAD_DIR);
+                fileName = customDir.getAbsolutePath() +
+                        File.separator + fileName;
+                if (Paths.get(fileName).toFile().exists()) {
+                    dbpath = Paths.get(fileName).toFile().getAbsolutePath();
+                    pathsqlite.put(id, dbpath);
+
+                }
+            }
+        }
+        if ("".equals(dbpath) || dbpath == null) {
+            return 0;
+        }
+
+        Connection conn = null;
+        try {
+            // db parameters
+            String url = "jdbc:sqlite:" + dbpath;
+
+            // create a connection to the database
+            conn = DriverManager.getConnection(url);
+            //TODO
+            String query = "select count(*) from template";
+            try (Statement stmt = conn.createStatement()) {
+                ResultSet rs = stmt.executeQuery(query);
+                boolean hasAline = rs.next();
+                if (hasAline) {
+                    Long page = rs.getLong(1);
+
+                    return page;
+                }
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+        } catch (SQLException e) {
+
+            System.out.println(e.getMessage());
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException ex) {
+                log.error(ex.getMessage());
+            }
+        }
+        return 0;
+    }
+
+
+
+
+    public long getCachePageInTemplate(long id) throws IOException {
+        InputStream inputStream = null;
+        long pageNumber = 0;
+        if (this.uses3) {
+            String fileName = "cache/" + id + "indexdb.json";
+
+            try {
+                if (this.fichierS3Service.isObjectExist(fileName)) {
+                    inputStream = this.getObject(fileName);
+                } else {
+                    fileName = "cache/" + id + "_exam_template_indexdb.json";
+
+                    if (this.fichierS3Service.isObjectExist(fileName)) {
+
+                        inputStream = this.getObject(fileName);
+
+                    }
+                }
+            } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
+                e.printStackTrace();
+                return 0;
+            }
+            if (inputStream == null) {
+                return this.getCachePageInTemplateSqlite(id);
+
+            }
+
+        } else {
+            String fileName = id + "indexdb.json";
+            File customDir = new File(UPLOAD_DIR);
+            fileName = customDir.getAbsolutePath() +
+                    File.separator + fileName;
+            if (Paths.get(fileName).toFile().exists()) {
+
+                inputStream = Files.newInputStream(Paths.get(fileName));
+
+            } else {
+                fileName = "cache/" + id +  "_exam_template_indexdb.json";
+                fileName = customDir.getAbsolutePath() +
+                        File.separator + fileName;
+                if (Paths.get(fileName).toFile().exists()) {
+                    inputStream = Files.newInputStream(Paths.get(fileName));
+
+                }
+
+            }
+            if (inputStream == null) {
+                return this.getCachePageInTemplateSqlite(id);
+
+            }
+
+        }
+
+        JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
+        reader.beginObject();
+        reader.nextName();
+        reader.skipValue();
+        reader.nextName();
+        reader.skipValue();
+        reader.nextName();
+        reader.beginObject();
+        reader.nextName();
+        reader.skipValue();
+        reader.nextName();
+        reader.skipValue();
+        reader.nextName();
+        reader.skipValue();
+        reader.nextName();
+        reader.beginArray();
+
+        // exams
+
+        reader.beginObject();
+        reader.nextName();
+        reader.nextString();
+        reader.nextName();
+        reader.skipValue();
+        reader.nextName();
+        reader.skipValue();
+        reader.endObject();
+
+        // templates
+
+        reader.beginObject();
+        reader.nextName();
+        reader.nextString();
+        reader.nextName();
+        reader.skipValue();
+        reader.nextName();
+        //reader.skipValue();
+        reader.beginArray();
+        while (reader.hasNext()){
+
+            reader.beginObject();
+            reader.nextName();
+            reader.nextString();
+            reader.nextName();
+            long l = reader.nextLong();
+            if (l > pageNumber){
+                pageNumber = l;
+            }
+            reader.nextName();
+            reader.skipValue();
+            reader.nextName();
+            reader.skipValue();
+
+            reader.endObject();
+        }
+
+        // reader.endObject();
+
+        reader.close();
+        inputStream.close();
+        return pageNumber;
+
+    }
+
+
     public String getAlignPage(long id, int pagefileter, boolean nonalign) throws IOException {
         InputStream inputStream = null;
         if (this.uses3) {
