@@ -136,9 +136,7 @@ public class CacheStudentPdfFService {
                     e.printStackTrace();
                 }
             }
-
         }
-
     }
 
     protected void writeFile(InputStream inputStream, String fileName, String contenttype, long examId)
