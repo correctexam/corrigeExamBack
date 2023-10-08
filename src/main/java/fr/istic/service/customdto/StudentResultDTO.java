@@ -13,6 +13,8 @@ public class StudentResultDTO extends StudentDTO{
     boolean abi;
     Map<Integer, String> notequestions =  new HashMap<>();
 
+
+
     public String getUuid() {
         return uuid;
     }

@@ -530,6 +530,27 @@ public class ExtendedAPI {
     }
 
     @GET
+    @Path("getLibelleQuestions/{examId}")
+    @Transactional
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getLibelleQuestions(@PathParam("examId") long examId, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        List<Question> qs = Question.findQuestionbyExamId(examId).list();
+        Map<Integer,String> res = new HashMap<>();
+        for (Question q : qs){
+            if (!res.containsKey(q.numero)){
+                if (q.libelle != null){
+                    res.put(q.numero, q.libelle);
+                }
+            }
+        }
+        return Response.ok().entity(res).build();
+
+    }
+
+    @GET
     @Path("showResult/{examId}")
     @Transactional
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
