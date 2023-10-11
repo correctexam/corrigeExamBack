@@ -224,6 +224,7 @@ public class ExtendedAPI {
     }
 
     public ExportPDFDto getExportPdf(long examId, String sheetname) {
+        this.computeFinalNote(examId);
 
         ExportPDFDto exportPDFDto = new ExportPDFDto();
         Exam ex = Exam.findById(examId);
@@ -272,7 +273,12 @@ public class ExtendedAPI {
             Sheetspdf sheetpdf = new Sheetspdf();
             sheetPdfs.add(sheetpdf);
             sheetpdf.setName(sheet.name);
-            sheetpdf.setFinalresult(0);
+            if (sheet.students.size()>0){
+                FinalResult fr = FinalResult.findFinalResultByStudentIdAndExamId(sheet.students.iterator().next().id, examId).firstResult();
+                sheetpdf.setFinalresult(fr.note);
+            } else {
+                sheetpdf.setFinalresult(0);
+            }
             sheetpdf.setName(sheet.name);
             sheetpdf.setPagemin(sheet.pagemin);
             sheetpdf.setPagemax(sheet.pagemax);
