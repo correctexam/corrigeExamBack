@@ -8,6 +8,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 public class ExportPDFDto {
     private Zonepdf firstnamezonepdf;
     private long id;
+
     private String name;
     private Zonepdf namezonepdf;
     private long scanfileID;
