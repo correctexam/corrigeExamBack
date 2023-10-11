@@ -71,6 +71,15 @@ public class MailService {
         );
     }
 
+    public CompletionStage<Void> sendEmail(String mail, String body, String subject, String replyto) {
+        return reactiveMailer.send(Mail.withText(mail,subject,body).addReplyTo(replyto)).subscribeAsCompletionStage().thenAccept(
+            it -> {
+                log.debug("Sent email to mail '{}'", mail);
+            }
+        );
+    }
+
+
     public CompletionStage<Void> sendEmailWithAttachement(String mail, String body, String subject, String filename, byte[] content,String contentType) {
         Mail m = Mail.withText(mail,subject,body);
         m.addAttachment(filename, content,contentType);
@@ -80,6 +89,19 @@ public class MailService {
             }
         );
     }
+
+
+       public CompletionStage<Void> sendEmailWithAttachement(String mail, String body, String subject, String filename, byte[] content,String contentType, String replyTo) {
+        Mail m = Mail.withText(mail,subject,body);
+        m.addReplyTo(replyTo);
+        m.addAttachment(filename, content,contentType);
+        return reactiveMailer.send(m).subscribeAsCompletionStage().thenAccept(
+            it -> {
+                log.debug("Sent email to mail '{}'", mail);
+            }
+        );
+    }
+
 
 
     public CompletionStage<Void> sendActivationEmail(User user) {
