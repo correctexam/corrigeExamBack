@@ -483,6 +483,21 @@ public class ExtendedAPI {
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
+
+        var userLogin = Optional
+        .ofNullable(ctx.getUserPrincipal().getName());
+        if (!userLogin.isPresent()){
+            throw new AccountResourceException("Current user login not found");
+        }
+        var user = User.findOneByLogin(userLogin.get());
+        if (!user.isPresent()) {
+            throw new AccountResourceException("User could not be found");
+        }
+        String _replyTo = user.get().email;
+        if (_replyTo == null || "".equals(_replyTo)){
+            _replyTo= "no-reply.correctexam@univ-rennes.fr";
+        }
+        final String replyTo = _replyTo;
         Exam ex = this.computeFinalNote(examId);
 
         List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
@@ -492,6 +507,7 @@ public class ExtendedAPI {
                 FinalResult r = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).firstResult();
                 ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id, student.id).firstResult();
                 String uuid = sheet.name;
+
                 String body = dto.getBody();
                 body = body.replace("${url}", this.jHipsterProperties.mail().baseUrl() + "/copie/" + uuid + "/1");
                 body = body.replace("${firstname}", student.firstname);
@@ -504,12 +520,12 @@ public class ExtendedAPI {
                         in = this.cacheStudentPdfFService.getFile(examId, sheet.name + ".pdf");
                         byte[] bytes = IOUtils.toByteArray(in);
                         mailService.sendEmailWithAttachement(student.mail, body, dto.getSubject(),
-                                student.firstname + "_" + student.name + ".pdf", bytes, "application/pdf");
+                                student.firstname + "_" + student.name + ".pdf", bytes, "application/pdf",replyTo);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 } else {
-                    mailService.sendEmail(student.mail, body, dto.getSubject());
+                    mailService.sendEmail(student.mail, body, dto.getSubject(),replyTo);
                 }
 
             } else {
@@ -517,7 +533,7 @@ public class ExtendedAPI {
                     String body = dto.getBodyabi();
                     body = body.replace("${firstname}", student.firstname);
                     body = body.replace("${lastname}", student.name);
-                    mailService.sendEmail(student.mail, body, dto.getSubject());
+                    mailService.sendEmail(student.mail, body, dto.getSubject(),replyTo);
                 }
             }
         });
