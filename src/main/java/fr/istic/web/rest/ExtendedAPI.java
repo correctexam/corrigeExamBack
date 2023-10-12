@@ -228,7 +228,7 @@ public class ExtendedAPI {
 
         ExportPDFDto exportPDFDto = new ExportPDFDto();
         Exam ex = Exam.findById(examId);
-        if (ex.firstnamezone != null){
+        if (ex.firstnamezone != null) {
             exportPDFDto.setFirstnamezonepdf(new Zonepdf());
             exportPDFDto.getFirstnamezonepdf().setHeight(ex.firstnamezone.height);
             exportPDFDto.getFirstnamezonepdf().setWidth(ex.firstnamezone.width);
@@ -236,7 +236,7 @@ public class ExtendedAPI {
             exportPDFDto.getFirstnamezonepdf().setYInit(ex.firstnamezone.yInit);
             exportPDFDto.getFirstnamezonepdf().setPageNumber(ex.firstnamezone.pageNumber);
         }
-        if (ex.namezone != null){
+        if (ex.namezone != null) {
             exportPDFDto.setNamezonepdf(new Zonepdf());
             exportPDFDto.getNamezonepdf().setHeight(ex.namezone.height);
             exportPDFDto.getNamezonepdf().setWidth(ex.namezone.width);
@@ -273,8 +273,9 @@ public class ExtendedAPI {
             Sheetspdf sheetpdf = new Sheetspdf();
             sheetPdfs.add(sheetpdf);
             sheetpdf.setName(sheet.name);
-            if (sheet.students.size()>0){
-                FinalResult fr = FinalResult.findFinalResultByStudentIdAndExamId(sheet.students.iterator().next().id, examId).firstResult();
+            if (sheet.students.size() > 0) {
+                FinalResult fr = FinalResult
+                        .findFinalResultByStudentIdAndExamId(sheet.students.iterator().next().id, examId).firstResult();
                 sheetpdf.setFinalresult(fr.note);
             } else {
                 sheetpdf.setFinalresult(0);
@@ -485,8 +486,8 @@ public class ExtendedAPI {
         }
 
         var userLogin = Optional
-        .ofNullable(ctx.getUserPrincipal().getName());
-        if (!userLogin.isPresent()){
+                .ofNullable(ctx.getUserPrincipal().getName());
+        if (!userLogin.isPresent()) {
             throw new AccountResourceException("Current user login not found");
         }
         var user = User.findOneByLogin(userLogin.get());
@@ -494,8 +495,8 @@ public class ExtendedAPI {
             throw new AccountResourceException("User could not be found");
         }
         String _replyTo = user.get().email;
-        if (_replyTo == null || "".equals(_replyTo)){
-            _replyTo= "no-reply.correctexam@univ-rennes.fr";
+        if (_replyTo == null || "".equals(_replyTo)) {
+            _replyTo = "no-reply.correctexam@univ-rennes.fr";
         }
         final String replyTo = _replyTo;
         Exam ex = this.computeFinalNote(examId);
@@ -507,34 +508,37 @@ public class ExtendedAPI {
                 FinalResult r = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).firstResult();
                 ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id, student.id).firstResult();
                 String uuid = sheet.name;
+                if (dto.getSheetuuid() == null || uuid.equals(dto.getSheetuuid())) {
 
-                String body = dto.getBody();
-                body = body.replace("${url}", this.jHipsterProperties.mail().baseUrl() + "/copie/" + uuid + "/1");
-                body = body.replace("${firstname}", student.firstname);
-                body = body.replace("${lastname}", student.name);
-                final DecimalFormat df = new DecimalFormat("0.00");
-                body = body.replace("${note}", df.format(r.note / 100));
-                if (dto.isMailpdf()) {
-                    InputStream in;
-                    try {
-                        in = this.cacheStudentPdfFService.getFile(examId, sheet.name + ".pdf");
-                        byte[] bytes = IOUtils.toByteArray(in);
-                        mailService.sendEmailWithAttachement(student.mail, body, dto.getSubject(),
-                                student.firstname + "_" + student.name + ".pdf", bytes, "application/pdf",replyTo);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    mailService.sendEmail(student.mail, body, dto.getSubject(),replyTo);
-                }
-
-            } else {
-                if (dto.isMailabi()) {
-                    String body = dto.getBodyabi();
+                    String body = dto.getBody();
+                    body = body.replace("${url}", this.jHipsterProperties.mail().baseUrl() + "/copie/" + uuid + "/1");
                     body = body.replace("${firstname}", student.firstname);
                     body = body.replace("${lastname}", student.name);
-                    mailService.sendEmail(student.mail, body, dto.getSubject(),replyTo);
+                    final DecimalFormat df = new DecimalFormat("0.00");
+                    body = body.replace("${note}", df.format(r.note / 100));
+                    if (dto.isMailpdf()) {
+                        InputStream in;
+                        try {
+                            in = this.cacheStudentPdfFService.getFile(examId, sheet.name + ".pdf");
+                            byte[] bytes = IOUtils.toByteArray(in);
+                            mailService.sendEmailWithAttachement(student.mail, body, dto.getSubject(),
+                                    student.firstname + "_" + student.name + ".pdf", bytes, "application/pdf", replyTo);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        mailService.sendEmail(student.mail, body, dto.getSubject(), replyTo);
+                    }
                 }
+
+                } else {
+                    if (dto.isMailabi() && dto.getSheetuuid() == null ) {
+                        String body = dto.getBodyabi();
+                        body = body.replace("${firstname}", student.firstname);
+                        body = body.replace("${lastname}", student.name);
+                        mailService.sendEmail(student.mail, body, dto.getSubject(), replyTo);
+                    }
+
             }
         });
 
@@ -560,10 +564,10 @@ public class ExtendedAPI {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
         List<Question> qs = Question.findQuestionbyExamId(examId).list();
-        Map<Integer,String> res = new HashMap<>();
-        for (Question q : qs){
-            if (!res.containsKey(q.numero)){
-                if (q.libelle != null){
+        Map<Integer, String> res = new HashMap<>();
+        for (Question q : qs) {
+            if (!res.containsKey(q.numero)) {
+                if (q.libelle != null) {
                     res.put(q.numero, q.libelle);
                 }
             }
@@ -1223,8 +1227,6 @@ public class ExtendedAPI {
             return Response.noContent().build();
         }
     }
-
-
 
     @GET
     @Path("/exportCourseWithoutStudentData/{courseId}")

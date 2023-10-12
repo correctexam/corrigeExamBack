@@ -9,6 +9,9 @@ public class MailResultDTO {
     private boolean mailabi;
     private boolean mailpdf;
     private String bodyabi;
+    private String sheetuuid;
+
+
 
     public String getBodyabi() {
         return this.bodyabi;
@@ -54,6 +57,14 @@ public class MailResultDTO {
     }
     public void setBody(String body) {
         this.body = body;
+    }
+
+    public String getSheetuuid() {
+        return this.sheetuuid;
+    }
+
+    public void setSheetuuid(String sheetuuid) {
+        this.sheetuuid = sheetuuid;
     }
     @Override
     public String toString() {
