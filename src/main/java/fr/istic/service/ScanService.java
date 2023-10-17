@@ -14,6 +14,11 @@ import io.minio.errors.ServerException;
 import io.minio.errors.XmlParserException;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.pdfbox.io.RandomAccessRead;
+import org.apache.pdfbox.io.RandomAccessReadBuffer;
+import org.apache.pdfbox.io.RandomAccessStreamCache.StreamCacheCreateFunction;
+import org.apache.pdfbox.multipdf.PDFMergerUtility;
+import org.apache.pdfbox.multipdf.PDFMergerUtility.DocumentMergeMode;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.slf4j.Logger;
@@ -23,6 +28,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -224,7 +230,7 @@ public class ScanService {
         return dtos;
     }
 
-    public void uploadFile(MultipartFormDataInput input, long examId) {
+    public void uploadFile(MultipartFormDataInput input, long examId, boolean merge) {
         Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
 
         List<String> fileNames = new ArrayList<>();
@@ -236,10 +242,12 @@ public class ScanService {
                                                 inputPart.getHeaders();
                 fileName = getFileName(header);
                 fileNames.add(fileName);
-                log.error(""+ fileName);
                 InputStream inputStream = inputPart.getBody(InputStream.class, null);
-
-                writeFile(inputStream,"application/pdf", examId);
+                if (this.hasScanFile(examId) && merge){
+                   mergeFile(inputStream,"application/pdf", examId);
+                } else {
+                    writeFile(inputStream,"application/pdf", examId);
+                }
                  } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -258,6 +266,53 @@ public class ScanService {
             }
         }
         return "";
+    }
+
+
+    protected boolean hasScanFile(long scanId){
+         String fileName = "scan/" +  scanId + ".pdf";
+        return this.fichierS3Service.isObjectExist(fileName);
+    }
+
+    protected InputStream getScanFile(long scanId) throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException{
+         String fileName = "scan/" +  scanId + ".pdf";
+        return this.fichierS3Service.getObject(fileName);
+    }
+
+    protected void mergeFile(InputStream inputStream, String contenttype, long scanId)
+            throws IOException {
+                try {
+                    PDFMergerUtility merger = new PDFMergerUtility();
+                    ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    merger.setDestinationStream(out);;
+                    merger.setDocumentMergeMode(DocumentMergeMode.OPTIMIZE_RESOURCES_MODE);
+                    RandomAccessRead r = new RandomAccessReadBuffer(inputStream);
+                    RandomAccessRead l = new RandomAccessReadBuffer(this.getScanFile(scanId));
+                    merger.addSource(l);
+                    merger.addSource(r);
+                    merger.mergeDocuments(null);
+                     byte[] bytes = out.toByteArray();
+        if (this.uses3){
+            String fileName = "scan/" +  scanId + ".pdf";
+            try {
+
+                this.putObject(fileName, bytes,contenttype);
+            } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
+                e.printStackTrace();
+            }
+        } else {
+               this.updateContent(scanId, bytes);
+
+        }
+
+                } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
+                    e.printStackTrace();
+                }
+
+
+       // Base64.Decoder encoder = Base64.getDecoder();
+       // byte[] b64bytes  = encoder.decode(bytes);
+
     }
 
 
