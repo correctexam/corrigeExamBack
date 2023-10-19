@@ -283,6 +283,12 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1  and  sheet.pagemin <> -1 and sheet.pagemax <> -1 and sheet.students IS NOT EMPTY",examId);
     }
 
+
+    public static PanacheQuery<StudentResponse> getAllStudentResponseWithexamIdWithOrphanId(long examId) {
+        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1",examId);
+    }
+
+
     public static PanacheQuery<StudentResponse> getAllStudentResponseWithexamIdAndSheetName(long examId,String sheetname) {
         return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1 and sheet.name = ?2  and  sheet.pagemin <> -1 and sheet.pagemax <> -1 and sheet.students IS NOT EMPTY",examId,sheetname);
     }
