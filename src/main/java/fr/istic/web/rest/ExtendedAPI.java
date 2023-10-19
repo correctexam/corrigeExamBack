@@ -964,9 +964,33 @@ public class ExtendedAPI {
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response scanUpload(@MultipartForm MultipartFormDataInput input, @PathParam("scanId") long scanId) {
+    public Response scanUpload(@MultipartForm MultipartFormDataInput input, @PathParam("scanId") long scanId,
+     @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, scanId, Scan.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+
         try {
-            scanService.uploadFile(input, scanId);
+            scanService.uploadFile(input, scanId, false);
+        } catch (Exception e) {
+            return Response.serverError().build();
+
+        }
+        return Response.ok().build();
+    }
+
+    @POST
+    @Path("/uploadAndMergeScan/{scanId}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response scanAndMergeUpload(@MultipartForm MultipartFormDataInput input, @PathParam("scanId") long scanId, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, scanId, Scan.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+
+        try {
+            scanService.uploadFile(input, scanId,true);
         } catch (Exception e) {
             return Response.serverError().build();
 
