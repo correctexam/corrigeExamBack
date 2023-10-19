@@ -354,7 +354,7 @@ public class ExtendedAPI {
 
     @Transactional
     public Exam computeFinalNote(long examId) {
-        List<StudentResponse> studentResp = StudentResponse.getAllStudentResponseWithexamId(examId).list();
+        List<StudentResponse> studentResp = StudentResponse.getAllStudentResponseWithexamIdWithOrphanId(examId).list();
         Map<ExamSheet, List<StudentResponse>> mapstudentResp = studentResp.stream()
                 .collect(Collectors.groupingBy(StudentResponse::getCSheet));
 
