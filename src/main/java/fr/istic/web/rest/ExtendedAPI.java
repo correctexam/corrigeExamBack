@@ -362,12 +362,20 @@ public class ExtendedAPI {
         // List<ExamSheet> sheets =
         // ExamSheet.findExamSheetByScan(ex.scanfile.id).list();
         // sheets.forEach(sh -> {
+
+
         mapstudentResp.forEach((sh, resps) -> {
             // Compute Note
             // List<StudentResponse> resps =
             // StudentResponse.findStudentResponsesbysheetId(sh.id).list();
+
+            boolean hasRealSheet  = true;
+
             var finalnote = 0;
             for (StudentResponse resp : resps) {
+                hasRealSheet = true;
+                if (sh != null && sh.pagemin != -1 && sh.pagemax != -1){
+
                 if (resp.question.gradeType == GradeType.DIRECT && !"QCM".equals(resp.question.type.algoName)) {
                     if (resp.question.step > 0) {
                         finalnote = finalnote + ((resp.quarternote * 100 / 4) / resp.question.step);
@@ -440,26 +448,40 @@ public class ExtendedAPI {
                     }
                     finalnote = finalnote + (currentNote * 100 / 4);
                 }
+            } else {
+                hasRealSheet = false;
             }
+        }
             final var finalnote1 = finalnote;
+            final var hasRealSheet1 = hasRealSheet;
 
             sh.students.forEach(student -> {
                 var q = FinalResult.findFinalResultByStudentIdAndExamId(student.id, examId);
+
                 long count = q.count();
                 if (count > 0) {
+                    if (hasRealSheet1){
+
                     FinalResult r = q.firstResult();
                     r.note = finalnote1;
                     FinalResult.update(r);
+                    }else {
+                        FinalResult.deleteById(q.firstResult().id);
+                    }
+
                 } else {
-                    FinalResult r = new FinalResult();
-                    r.student = student;
-                    r.exam = ex;
-                    r.note = finalnote1;
-                    FinalResult.persistOrUpdate(r);
+                    if (hasRealSheet1){
+                        FinalResult r = new FinalResult();
+                        r.student = student;
+                        r.exam = ex;
+                        r.note = finalnote1;
+                        FinalResult.persistOrUpdate(r);
+                    }
                 }
             });
         });
         return ex;
+
     }
 
     @POST
@@ -531,13 +553,13 @@ public class ExtendedAPI {
                     }
                 }
 
-                } else {
-                    if (dto.isMailabi() && dto.getSheetuuid() == null ) {
-                        String body = dto.getBodyabi();
-                        body = body.replace("${firstname}", student.firstname);
-                        body = body.replace("${lastname}", student.name);
-                        mailService.sendEmail(student.mail, body, dto.getSubject(), replyTo);
-                    }
+            } else {
+                if (dto.isMailabi() && dto.getSheetuuid() == null) {
+                    String body = dto.getBodyabi();
+                    body = body.replace("${firstname}", student.firstname);
+                    body = body.replace("${lastname}", student.name);
+                    mailService.sendEmail(student.mail, body, dto.getSubject(), replyTo);
+                }
 
             }
         });
@@ -965,7 +987,7 @@ public class ExtendedAPI {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
     public Response scanUpload(@MultipartForm MultipartFormDataInput input, @PathParam("scanId") long scanId,
-     @Context SecurityContext ctx) {
+            @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, scanId, Scan.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -984,16 +1006,16 @@ public class ExtendedAPI {
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response scanAndMergeUpload(@MultipartForm MultipartFormDataInput input, @PathParam("scanId") long scanId, @Context SecurityContext ctx) {
+    public Response scanAndMergeUpload(@MultipartForm MultipartFormDataInput input, @PathParam("scanId") long scanId,
+            @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, scanId, Scan.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
 
         try {
-            scanService.uploadFile(input, scanId,true);
+            scanService.uploadFile(input, scanId, true);
         } catch (Exception e) {
             return Response.serverError().build();
-
         }
         return Response.ok().build();
     }
@@ -1649,12 +1671,19 @@ public class ExtendedAPI {
         });
 
         for (ExamSheet sh : sheets) {
-            final var res = new SheetStateDTO();
-            res.setAnsweredSheets(0);
-            res.setFirstUnmarkedQuestion(1);
-            res.setId(sh.id);
-            s.put(sh.id, res);
-            result.getSheets().add(res);
+            if (sh.students != null && sh.students.size() > 0 && sh.pagemin != -1 && sh.pagemax != -1) {
+                final var res = new SheetStateDTO();
+                res.setAnsweredSheets(0);
+                res.setFirstUnmarkedQuestion(1);
+                res.setId(sh.id);
+                s.put(sh.id, res);
+                result.getSheets().add(res);
+            } else if (sh.pagemin == -1 || sh.pagemax == -1) {
+//                log.error("sheet not linked with a real pdf");
+            } else {
+ //               log.error("sheet without student");
+
+            }
         }
 
         // The ID of all the sheet. Used to find the first sheet that has a given
@@ -1663,8 +1692,9 @@ public class ExtendedAPI {
         // Filling the questions part of the DTO
         for (Question quest : questionsExam) {
             // The responses for this question
-            final List<StudentResponse> responsesForQ = byQuestion.computeIfAbsent(quest.numero.longValue(),
+            final List<StudentResponse> _responsesForQ = byQuestion.computeIfAbsent(quest.numero.longValue(),
                     i -> new ArrayList<>());
+            final List<StudentResponse> responsesForQ  = _responsesForQ.stream().filter(r-> r.sheet !=null && r.sheet.pagemin !=-1 &&  r.sheet.pagemax !=-1).collect(Collectors.toList());
             // Getting the ID of the sheets that have an answer for this question
             responsesForQ.sort(new ComparatorImplementation());
             QuestionStateDTO qs = q.get(quest.numero.longValue());
@@ -1743,28 +1773,29 @@ public class ExtendedAPI {
 
         for (Entry<Long, List<StudentResponse>> ent : byStudent.entrySet()) {
             final var res = s.get(ent.getKey());
+            if (res != null) {
+                List<StudentResponse> l = ent.getValue();
+                l.sort(new ComparatorImplementation2());
+                res.setAnsweredSheets(Long.valueOf(l.size()));
 
-            List<StudentResponse> l = ent.getValue();
-            l.sort(new ComparatorImplementation2());
-            res.setAnsweredSheets(Long.valueOf(l.size()));
+                if (l.size() == 0) {
+                    res.setFirstUnmarkedQuestion(Long.valueOf(1));
 
-            if (l.size() == 0) {
-                res.setFirstUnmarkedQuestion(Long.valueOf(1));
+                } else if (l.size() == 1 && l.get(0).question.numero == 1) {
+                    res.setFirstUnmarkedQuestion(Long.valueOf(2));
 
-            } else if (l.size() == 1 && l.get(0).question.numero == 1) {
-                res.setFirstUnmarkedQuestion(Long.valueOf(2));
-
-            } else if (l.size() > 0 && l.get(0).question.numero != 1) {
-                res.setFirstUnmarkedQuestion(Long.valueOf(1));
-            } else {
-                for (int i = 0; i < l.size() - 1; i++) {
-                    StudentResponse sl1 = l.get(i);
-                    StudentResponse sl2 = l.get(i + 1);
-                    if (sl1.question.numero + 1 < sl2.question.numero) {
-                        res.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero + 1));
-                        break;
-                    } else if (i == l.size() - 2) {
-                        res.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero + 2));
+                } else if (l.size() > 0 && l.get(0).question.numero != 1) {
+                    res.setFirstUnmarkedQuestion(Long.valueOf(1));
+                } else {
+                    for (int i = 0; i < l.size() - 1; i++) {
+                        StudentResponse sl1 = l.get(i);
+                        StudentResponse sl2 = l.get(i + 1);
+                        if (sl1.question.numero + 1 < sl2.question.numero) {
+                            res.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero + 1));
+                            break;
+                        } else if (i == l.size() - 2) {
+                            res.setFirstUnmarkedQuestion(Long.valueOf(sl1.question.numero + 2));
+                        }
                     }
                 }
             }

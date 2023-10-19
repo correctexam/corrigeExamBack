@@ -225,26 +225,26 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     }
 
     public static PanacheQuery<StudentResponse> getAll4ExamId( long examId) {
-        return find("select sr from StudentResponse sr where  sr.question.exam.id = ?1",examId);
+        return find("select sr from StudentResponse sr where  sr.question.exam.id = ?1  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1 and sr.sheet.students IS NOT EMPTY",examId);
     }
 
     public static PanacheQuery<ExamSheet> getBestAnswerforQuestionNoAndExamId( long examId, int questionNo) {
-        return find("select distinct sr.sheet from StudentResponse sr where sr.question.numero = ?2 and  sr.question.exam.id = ?1 and sr.star = true",examId,questionNo );
+        return find("select distinct sr.sheet from StudentResponse sr where sr.question.numero = ?2 and  sr.question.exam.id = ?1 and sr.star = true  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1 and sr.sheet.students IS NOT EMPTY",examId,questionNo );
     }
 
 
     public static PanacheQuery<StudentResponse> findAllByQuestionId( long questionId) {
-        return find("select distinct sr from StudentResponse sr where sr.question.id = ?1",questionId );
+        return find("select distinct sr from StudentResponse sr where sr.question.id = ?1  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1 and sr.sheet.students IS NOT EMPTY ",questionId );
     }
 
 
 
 
     public static PanacheQuery<StudentResponse> findAllByGradedCommentsIds( long gradedCommentid) {
-        return find("select distinct sr from StudentResponse sr join sr.gradedcomments gc where gc.id = ?1",gradedCommentid );
+        return find("select distinct sr from StudentResponse sr join sr.gradedcomments gc where gc.id = ?1  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1 and sr.sheet.students IS NOT EMPTY",gradedCommentid );
     }
     public static PanacheQuery<StudentResponse> findAllByTextCommentsIds( long textcommentsid) {
-        return find("select distinct sr from StudentResponse sr join sr.textcomments gc where gc.id = ?1",textcommentsid );
+        return find("select distinct sr from StudentResponse sr join sr.textcomments gc where gc.id = ?1  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1 and sr.sheet.students IS NOT EMPTY",textcommentsid );
     }
 
 
@@ -259,32 +259,32 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
 
 
     public static PanacheQuery<StudentResponse> getAllStudentResponse4examIdGradedCommentId(long examId, long gradedCommentid) {
-        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet join fetch sr.question as q join fetch q.zone join fetch sheet.students left join fetch sr.gradedcomments gc1 join sr.gradedcomments gc  where sr.question.exam.id = ?1 and gc.id = ?2",examId,gradedCommentid );
+        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet join fetch sr.question as q join fetch q.zone join fetch sheet.students left join fetch sr.gradedcomments gc1 join sr.gradedcomments gc  where sr.question.exam.id = ?1 and gc.id = ?2 and sheet.pagemin <> -1 and sheet.pagemax <> -1 and sheet.students IS NOT EMPTY",examId,gradedCommentid );
     }
 
 
     public static PanacheQuery<StudentResponse> getAllStudentResponse4examIdTextCommentId(long examId, long textCommentid) {
-        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone   join fetch sheet.students left join fetch sr.textcomments tc1 join sr.textcomments tc  where sr.question.exam.id = ?1 and tc.id = ?2",examId,textCommentid );
+        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone   join fetch sheet.students left join fetch sr.textcomments tc1 join sr.textcomments tc  where sr.question.exam.id = ?1 and tc.id = ?2  and  sheet.pagemin <> -1 and sheet.pagemax <> -1 and sheet.students IS NOT EMPTY",examId,textCommentid );
     }
 
     public static PanacheQuery<StudentResponse> getAllStudentResponseWithSameGrade4examIdRespId(long examId, long respId) {
         StudentResponse sr = findById(respId);
         var s = sr.quarternote;
         var qid = sr.question.id;
-        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1 and sr.quarternote = ?2 and q.id = ?3",examId,s,qid);
+        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1 and sr.quarternote = ?2 and q.id = ?3  and  sheet.pagemin <> -1 and sheet.pagemax <> -1 and sheet.students IS NOT EMPTY",examId,s,qid);
     }
 
     public static PanacheQuery<StudentResponse> getAllStudentResponseWithExamIdNumeroAndSheetId(long examId, int numero, long sheetid) {
-        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1 and sr.question.numero = ?2 and sheet.id = ?3",examId,numero,sheetid);
+        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1 and sr.question.numero = ?2 and sheet.id = ?3  and  sheet.pagemin <> -1 and sheet.pagemax <> -1 and sheet.students IS NOT EMPTY",examId,numero,sheetid);
     }
 
 
     public static PanacheQuery<StudentResponse> getAllStudentResponseWithexamId(long examId) {
-        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1",examId);
+        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1  and  sheet.pagemin <> -1 and sheet.pagemax <> -1 and sheet.students IS NOT EMPTY",examId);
     }
 
     public static PanacheQuery<StudentResponse> getAllStudentResponseWithexamIdAndSheetName(long examId,String sheetname) {
-        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1 and sheet.name = ?2",examId,sheetname);
+        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1 and sheet.name = ?2  and  sheet.pagemin <> -1 and sheet.pagemax <> -1 and sheet.students IS NOT EMPTY",examId,sheetname);
     }
 
 
