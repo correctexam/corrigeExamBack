@@ -537,7 +537,7 @@ public class ExtendedAPI {
                     body = body.replace("${firstname}", student.firstname);
                     body = body.replace("${lastname}", student.name);
                     final DecimalFormat df = new DecimalFormat("0.00");
-                    body = body.replace("${note}", df.format(r.note / 100));
+                    body = body.replace("${note}", df.format(r.note / 100.0));
                     if (dto.isMailpdf()) {
                         InputStream in;
                         try {
