@@ -250,11 +250,11 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
 
 
     public static PanacheQuery<StudentResponse> getAllBestAnswerforExamId( long examId) {
-        return find("select distinct sr from StudentResponse sr join fetch sr.question join fetch  sr.sheet where sr.question.exam.id = ?1 and sr.star = true",examId );
+        return find("select distinct sr from StudentResponse sr join fetch sr.question join fetch  sr.sheet where sr.question.exam.id = ?1 and sr.star = true and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1 and sr.sheet.students IS NOT EMPTY",examId );
     }
 
     public static PanacheQuery<StudentResponse> getAllWorstAnswerforExamId( long examId) {
-        return find("select distinct sr from StudentResponse sr join fetch sr.question  join fetch  sr.sheet where  sr.question.exam.id = ?1 and sr.worststar = true",examId );
+        return find("select distinct sr from StudentResponse sr join fetch sr.question  join fetch  sr.sheet where  sr.question.exam.id = ?1 and sr.worststar = true and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1 and sr.sheet.students IS NOT EMPTY",examId );
     }
 
 
