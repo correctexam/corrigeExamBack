@@ -26,7 +26,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -149,6 +148,23 @@ public class ZoneResource {
         Optional<ZoneDTO> zoneDTO = zoneService.findOne(id);
         return ResponseUtil.wrapOrNotFound(zoneDTO);
     }
+
+        /**
+     * {@code GET  /zones/:id} : get the "id" zone.
+     *
+     * @param id the id of the zoneDTO to retrieve.
+     * @return the {@link Response} with status {@code 200 (OK)} and with body the zoneDTO, or with status {@code 404 (Not Found)}.
+     */
+    @GET
+    @Path("/byExam/{examid}")
+    public Response getZoneByExam(@PathParam("examid") Long examid, @Context SecurityContext ctx) {
+        log.debug("REST request to get Zone : {}", examid);
+        // No scurity for voir copies
+        ZoneDTO[] zoneDTOs = zoneService.getZone4Exam(examid);
+        var response = Response.ok().entity(zoneDTOs);
+        return response.build();
+    }
+
 
     /**
      * {@code PATCH  /zones/:id} : Partial updates given fields of an existing zone, field will ignore if it is null

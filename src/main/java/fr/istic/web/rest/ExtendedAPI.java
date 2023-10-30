@@ -1232,11 +1232,11 @@ public class ExtendedAPI {
     @GET
     @Path("/getScanPdf/{scanId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+//    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getScan(@PathParam("scanId") long scanId, @Context SecurityContext ctx) {
-        if (!securityService.canAccess(ctx, scanId, Scan.class)) {
+ /*       if (!securityService.canAccess(ctx, scanId, Scan.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
-        }
+        }*/
         try {
             if (this.fichierS3Service.isObjectExist("scan/" + scanId + ".pdf")) {
 

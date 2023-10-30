@@ -166,4 +166,37 @@ public class ZoneService {
     }
 
 
+
+
+    public ZoneDTO[] getZone4Exam(Long examid) {
+        log.debug("Request to get Zone 4 Exam: {}", examid);
+        var resp = new ZoneDTO[3];
+        Optional<Exam> ex = Exam.findByIdOptional(examid) ;
+        if (ex.isPresent()){
+            if (ex.get().namezone != null){
+                 resp[0]=zoneMapper.toDto(ex.get().namezone);
+            } else {
+                 resp[0]=new ZoneDTO();
+            }
+            if (ex.get().firstnamezone != null){
+                 resp[1]=zoneMapper.toDto(ex.get().firstnamezone);
+            } else {
+                 resp[1]=new ZoneDTO();
+            }
+            if (ex.get().idzone != null){
+                 resp[2]=zoneMapper.toDto(ex.get().idzone);
+            } else {
+                 resp[2]=new ZoneDTO();
+            }
+
+        } else {
+                 resp[0]=new ZoneDTO();
+                 resp[0]=new ZoneDTO();
+                 resp[0]=new ZoneDTO();
+
+        }
+        return resp;
+    }
+
+
 }
