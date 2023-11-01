@@ -68,9 +68,9 @@ public class ExamService {
     public void delete(Long id) {
         log.debug("Request to delete Exam : {}", id);
         Exam.findByIdOptional(id).ifPresent(exam -> {
-            StudentResponse.getAll4ExamId(id).list().forEach(sr -> sr.clearComments());
-            ExamSheet.getAll4ExamId(id).list().forEach(sr -> sr.cleanBeforDelete());
-            StudentResponse.getAll4ExamId(id).list().forEach(sr -> sr.delete());
+            StudentResponse.getAll4ExamIdEvenOrphan(id).list().forEach(sr -> sr.clearComments());
+            ExamSheet.getAll4ExamIdEvenOrphan(id).list().forEach(sr -> sr.cleanBeforDelete());
+            StudentResponse.getAll4ExamIdEvenOrphan(id).list().forEach(sr -> sr.delete());
             FinalResult.getAll4ExamId(id).list().forEach(f -> f.delete());
             Exam e = Exam.findById(id);
             if (e.scanfile != null && this.fichierS3Service.isObjectExist("scan/" + e.scanfile.id + ".pdf")) {
@@ -100,7 +100,7 @@ public class ExamService {
 
     @Transactional
     protected void cleanStudentRssponse(long id){
-        List<StudentResponse> srs = StudentResponse.getAll4ExamId(id).list();
+        List<StudentResponse> srs = StudentResponse.getAll4ExamIdEvenOrphan(id).list();
         srs.forEach(sr -> {
             Set<TextComment> tcs = new HashSet<TextComment>(sr.textcomments);
             tcs.forEach(tc -> {
