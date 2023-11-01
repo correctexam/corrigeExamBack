@@ -130,6 +130,11 @@ public class ExamSheet extends PanacheEntityBase implements Serializable {
         return find("select distinct ex from Exam as e join  e.scanfile.sheets  as ex  where e.id = ?1 and  ex.pagemin <> -1 and ex.pagemax <> -1 and ex.students IS NOT EMPTY" ,examId);
     }
 
+    public static PanacheQuery<ExamSheet> getAll4ExamIdEvenOrphan( long examId) {
+        return find("select distinct ex from Exam as e join  e.scanfile.sheets  as ex  where e.id = ?1" ,examId);
+    }
+
+
     public static PanacheQuery<ExamSheet> getAllOrphan4ExamId( long examId) {
         return find("select distinct ex from Exam as e join  e.scanfile.sheets  as ex  where e.id = ?1 and ( ( ex.pagemin = -1 and ex.pagemax = -1) or ex.students IS EMPTY)",examId);
     }

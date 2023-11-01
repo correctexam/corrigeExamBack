@@ -228,6 +228,11 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         return find("select sr from StudentResponse sr where  sr.question.exam.id = ?1  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1 and sr.sheet.students IS NOT EMPTY",examId);
     }
 
+    public static PanacheQuery<StudentResponse> getAll4ExamIdEvenOrphan( long examId) {
+        return find("select sr from StudentResponse sr where  sr.question.exam.id = ?1",examId);
+    }
+
+
     public static PanacheQuery<ExamSheet> getBestAnswerforQuestionNoAndExamId( long examId, int questionNo) {
         return find("select distinct sr.sheet from StudentResponse sr where sr.question.numero = ?2 and  sr.question.exam.id = ?1 and sr.star = true  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1 and sr.sheet.students IS NOT EMPTY",examId,questionNo );
     }
