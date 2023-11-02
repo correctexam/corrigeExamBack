@@ -14,9 +14,7 @@ import io.minio.errors.ServerException;
 import io.minio.errors.XmlParserException;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.pdfbox.io.RandomAccessRead;
-import org.apache.pdfbox.io.RandomAccessReadBuffer;
-import org.apache.pdfbox.io.RandomAccessStreamCache.StreamCacheCreateFunction;
+import org.apache.pdfbox.io.MemoryUsageSetting;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.multipdf.PDFMergerUtility.DocumentMergeMode;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -29,6 +27,7 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -40,8 +39,8 @@ import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import javax.ws.rs.core.MultivaluedMap;
 
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -283,14 +282,14 @@ public class ScanService {
             throws IOException {
                 try {
                     PDFMergerUtility merger = new PDFMergerUtility();
+                    // FileOutputStream fo = new FileOutputStream(Files.createTempFile("id"+scanId,"pdf").toFile());
                     ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    merger.setDestinationStream(out);;
-                    merger.setDocumentMergeMode(DocumentMergeMode.OPTIMIZE_RESOURCES_MODE);
-                    RandomAccessRead r = new RandomAccessReadBuffer(inputStream);
-                    RandomAccessRead l = new RandomAccessReadBuffer(this.getScanFile(scanId));
-                    merger.addSource(l);
-                    merger.addSource(r);
-                    merger.mergeDocuments(null);
+                     merger.setDestinationStream(out);
+                    merger.setDocumentMergeMode(DocumentMergeMode.PDFBOX_LEGACY_MODE);
+                    merger.addSource(this.getScanFile(scanId));
+                    merger.addSource(inputStream);
+                    merger.mergeDocuments(MemoryUsageSetting.setupTempFileOnly());
+
                      byte[] bytes = out.toByteArray();
         if (this.uses3){
             String fileName = "scan/" +  scanId + ".pdf";
