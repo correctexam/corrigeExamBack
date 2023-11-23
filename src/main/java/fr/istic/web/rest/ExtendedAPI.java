@@ -1403,6 +1403,22 @@ public class ExtendedAPI {
         return response.build();
     }
 
+
+    /**
+     * {@code GET /users} : get all users.
+     *
+     * @param pagination the pagination information.
+     * @return the {@link Response} with status {@code 200 (OK)} and with body all
+     *         users.
+     */
+    @GET
+    @Path("/getAllEmailProfs4course/{courseId}")
+    public Response getAllEmailProfs4course(@PathParam("courseId") long courseId) {
+        var res = this.courseService.getAllProfMail(courseId);
+        Response.ResponseBuilder response = Response.ok().entity(res);
+        return response.build();
+    }
+
     /**
      * {@code POST
      *

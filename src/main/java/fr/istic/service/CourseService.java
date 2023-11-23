@@ -7,6 +7,7 @@ import fr.istic.domain.CourseGroup;
 import fr.istic.domain.Exam;
 import fr.istic.domain.Student;
 import fr.istic.domain.User;
+import fr.istic.service.customdto.ListEmailProf;
 import fr.istic.service.customdto.ListUserModelShare;
 import fr.istic.service.customdto.UserModelShare;
 import fr.istic.service.dto.CourseDTO;
@@ -134,6 +135,20 @@ public class CourseService {
         ListUserModelShare res = new ListUserModelShare();
         res.setShared(users.stream().map(u-> new UserModelShare(u.lastName, u.firstName, u.login)).collect(Collectors.toList()));
         res.setAvailables(users1.stream().map(u-> new UserModelShare(u.lastName, u.firstName, u.login)).collect(Collectors.toList()));
+        return res;
+    }
+
+
+            /**
+     * Get all the courseGroups.
+     * @param page the pagination information.
+     * @return the list of entities.
+     */
+    public ListEmailProf getAllProfMail(long courseid) {
+        log.debug("Request to get all getAllListUserModelShare");
+        List<User> users  =Course.findByProfIsCurrentUserFetchProf(courseid).list();
+        ListEmailProf res = new ListEmailProf();
+        res.setEmails(users.stream().map(u->  u.email).collect(Collectors.toList()));
         return res;
     }
 
