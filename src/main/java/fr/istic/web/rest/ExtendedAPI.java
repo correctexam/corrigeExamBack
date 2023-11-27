@@ -461,10 +461,9 @@ public class ExtendedAPI {
                 long count = q.count();
                 if (count > 0) {
                     if (hasRealSheet1){
-
-                    FinalResult r = q.firstResult();
-                    r.note = finalnote1;
-                    FinalResult.update(r);
+                        FinalResult r = q.firstResult();
+                        r.note = finalnote1;
+                        FinalResult.update(r);
                     }else {
                         FinalResult.deleteById(q.firstResult().id);
                     }

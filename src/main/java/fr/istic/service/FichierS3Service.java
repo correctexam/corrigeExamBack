@@ -133,6 +133,7 @@ public class FichierS3Service {
 
                 this.createBucketifNotExist();
                 long size = bytes.length;
+
                 minioClient.putObject(
                         PutObjectArgs.builder()
                                 .bucket(bucketName)

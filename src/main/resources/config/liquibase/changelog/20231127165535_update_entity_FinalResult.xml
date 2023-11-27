@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+                        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+        <property name="autoIncrement" value="true"/>
+
+    <!--
+        Added the constrait for final result unique tuple examId, studentId
+        ALTER TABLE `gradeScopeIstic`.`final_result` ADD UNIQUE `UniqueStudentIdAndExamId` (`student_id`, `exam_id`);
+
+    -->
+
+    <changeSet  author="Olivier Barais"  id="20231127165535-1">
+    <addUniqueConstraint catalogName="gradeScopeIstic"  tableName="final_result"
+            columnNames="student_id, exam_id"
+            constraintName="UniqueStudentIdAndExamId"
+            schemaName="public"
+            validate="true"/>
+</changeSet>
+
+</databaseChangeLog>
