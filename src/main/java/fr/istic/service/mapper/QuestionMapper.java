@@ -13,6 +13,7 @@ import org.mapstruct.*;
 public interface QuestionMapper extends EntityMapper<QuestionDTO, Question> {
 
     @Mapping(source = "zone.id", target = "zoneId")
+    @Mapping(source = "zone", target = "zoneDTO")
     @Mapping(source = "type.id", target = "typeId")
     @Mapping(source = "type.algoName", target = "typeAlgoName")
     @Mapping(source = "exam.id", target = "examId")
@@ -24,6 +25,7 @@ public interface QuestionMapper extends EntityMapper<QuestionDTO, Question> {
     @Mapping(source = "zoneId", target = "zone")
     @Mapping(target = "textcomments", ignore = true)
     @Mapping(target = "gradedcomments", ignore = true)
+  //  @Mapping(target = "zoneDTO", ignore = true)
     @Mapping(source = "typeId", target = "type")
     @Mapping(source = "examId", target = "exam")
     @Mapping(source = "point", target = "quarterpoint", qualifiedByName = "point2quarterpoint")

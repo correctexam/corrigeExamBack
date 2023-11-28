@@ -884,6 +884,9 @@ ALTER TABLE `text_comment`
   ADD CONSTRAINT `fk_text_comment_question_id` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`);
 COMMIT;
 
+ ALTER TABLE `final_result` ADD UNIQUE `UniqueStudentIdAndExamId` (`student_id`, `exam_id`);
+COMMIT;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
