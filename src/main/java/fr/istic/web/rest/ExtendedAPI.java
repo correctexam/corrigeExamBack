@@ -353,10 +353,11 @@ public class ExtendedAPI {
     }
 
     @Transactional
-    public Exam computeFinalNote(long examId, Map<Long,FinalResult> finalfinalResultsByStudentId,  Map<ExamSheet,Integer> finalNotes,  Map<ExamSheet, List<StudentResponse>> mapstudentResp1  ) {
-         List<StudentResponse> studentResp = StudentResponse.getAllStudentResponseWithexamIdWithOrphanId(examId).list();
+    public Exam computeFinalNote(long examId, Map<Long, FinalResult> finalfinalResultsByStudentId,
+            Map<ExamSheet, Integer> finalNotes, Map<ExamSheet, List<StudentResponse>> mapstudentResp1) {
+        List<StudentResponse> studentResp = StudentResponse.getAllStudentResponseWithexamIdWithOrphanId(examId).list();
 
-         Map<ExamSheet, List<StudentResponse>> mapstudentResp = studentResp.stream()
+        Map<ExamSheet, List<StudentResponse>> mapstudentResp = studentResp.stream()
                 .collect(Collectors.groupingBy(StudentResponse::getCSheet));
 
         Exam ex = Exam.findById(examId);
@@ -449,46 +450,46 @@ public class ExtendedAPI {
             }
             final var finalnote1 = finalnote;
             final var hasRealSheet1 = hasRealSheet;
-            if (!hasRealSheet1){
+            if (!hasRealSheet1) {
                 sh.students.forEach(student -> {
                     var q = FinalResult.findFinalResultByStudentIdAndExamId(student.id, examId);
                     long count = q.count();
                     if (count > 0) {
-                            FinalResult.deleteById(q.firstResult().id);
+                        FinalResult.deleteById(q.firstResult().id);
 
                     }
                 });
-            }
-            else {
+            } else {
                 finalNotes.put(sh, finalnote1);
             }
         });
-//        Map<Long,FinalResult> finalfinalResultsByStudentId = new HashMap<>();
+        // Map<Long,FinalResult> finalfinalResultsByStudentId = new HashMap<>();
         List<FinalResult> finalResults = FinalResult.getAll4ExamId(examId).list();
-           Map<Long,List<FinalResult>> finalResultsByStudentId = finalResults.stream().collect(Collectors.groupingBy(FinalResult::getStudentID));
-           for (Map.Entry<ExamSheet, Integer> finalNote : finalNotes.entrySet()) {
-                for (Student s : finalNote.getKey().students){
-                    if (finalResultsByStudentId.containsKey(s.id)){
-                        for ( FinalResult fr : finalResultsByStudentId.get(s.id)){
-                            if (fr.note != finalNote.getValue()){
-                                fr.note = finalNote.getValue();
-                                fr = FinalResult.update(fr);
-                                finalfinalResultsByStudentId.put(s.id,fr);
-                            } else {
-                                 finalfinalResultsByStudentId.put(s.id,fr);
+        Map<Long, List<FinalResult>> finalResultsByStudentId = finalResults.stream()
+                .collect(Collectors.groupingBy(FinalResult::getStudentID));
+        for (Map.Entry<ExamSheet, Integer> finalNote : finalNotes.entrySet()) {
+            for (Student s : finalNote.getKey().students) {
+                if (finalResultsByStudentId.containsKey(s.id)) {
+                    for (FinalResult fr : finalResultsByStudentId.get(s.id)) {
+                        if (fr.note != finalNote.getValue()) {
+                            fr.note = finalNote.getValue();
+                            fr = FinalResult.update(fr);
+                            finalfinalResultsByStudentId.put(s.id, fr);
+                        } else {
+                            finalfinalResultsByStudentId.put(s.id, fr);
 
-                            }
                         }
-                    } else {
-                         FinalResult r = new FinalResult();
-                        r.student = s;
-                        r.exam = ex;
-                        r.note = finalNote.getValue();
-                        r = FinalResult.persistOrUpdate(r);
-                        finalfinalResultsByStudentId.put(s.id,r);
                     }
+                } else {
+                    FinalResult r = new FinalResult();
+                    r.student = s;
+                    r.exam = ex;
+                    r.note = finalNote.getValue();
+                    r = FinalResult.persistOrUpdate(r);
+                    finalfinalResultsByStudentId.put(s.id, r);
                 }
             }
+        }
         return ex;
 
     }
@@ -503,7 +504,7 @@ public class ExtendedAPI {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
 
-        this.computeFinalNote(examId , new HashMap<>(), new HashMap<>(), new HashMap<>());
+        this.computeFinalNote(examId, new HashMap<>(), new HashMap<>(), new HashMap<>());
         return Response.ok().build();
     }
 
@@ -530,11 +531,11 @@ public class ExtendedAPI {
             _replyTo = "no-reply.correctexam@univ-rennes.fr";
         }
         final String replyTo = _replyTo;
-        Map<Long,FinalResult> finalfinalResultsByStudentId = new HashMap<>();
-        Map<ExamSheet,Integer> finalNotes = new HashMap<>();
+        Map<Long, FinalResult> finalfinalResultsByStudentId = new HashMap<>();
+        Map<ExamSheet, Integer> finalNotes = new HashMap<>();
         Map<ExamSheet, List<StudentResponse>> mapstudentResp = new HashMap<>();
 
-        Exam ex = this.computeFinalNote(examId,finalfinalResultsByStudentId, finalNotes, mapstudentResp);
+        Exam ex = this.computeFinalNote(examId, finalfinalResultsByStudentId, finalNotes, mapstudentResp);
 
         List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
         students.forEach(student -> {
@@ -620,31 +621,32 @@ public class ExtendedAPI {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
 
-        Map<Long,FinalResult> finalfinalResultsByStudentId = new HashMap<>();
-        Map<ExamSheet,Integer> finalNotes = new HashMap<>();
+        Map<Long, FinalResult> finalfinalResultsByStudentId = new HashMap<>();
+        Map<ExamSheet, Integer> finalNotes = new HashMap<>();
         Map<ExamSheet, List<StudentResponse>> mapstudentResp = new HashMap<>();
-        Exam ex = this.computeFinalNote(examId,finalfinalResultsByStudentId,finalNotes,mapstudentResp);
-
-
-
-
-
+        Exam ex = this.computeFinalNote(examId, finalfinalResultsByStudentId, finalNotes, mapstudentResp);
 
         List<StudentResultDTO> results = new ArrayList<>();
         List<Long> studentsId = new ArrayList<>();
+        List<Long> sheetsId = new ArrayList<>();
         // List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
         // students.forEach(student -> {
         // long count = FinalResult.findFinalResultByStudentIdAndExamId(student.id,
         // ex.id).count();
         // if (count > 0) {
-//        List<FinalResult> rs = FinalResult.getAll4ExamIdFetchSheet(examId).list();
-            for (Map.Entry<Long, FinalResult> finalResult1 : finalfinalResultsByStudentId.entrySet())  {
-                FinalResult r = finalResult1.getValue();
+        // List<FinalResult> rs = FinalResult.getAll4ExamIdFetchSheet(examId).list();
+        for (Map.Entry<Long, FinalResult> finalResult1 : finalfinalResultsByStudentId.entrySet()) {
+            FinalResult r = finalResult1.getValue();
             // FinalResult r = FinalResult.findFinalResultByStudentIdAndExamId(student.id,
             // ex.id).firstResult();
-/*             List<ExamSheet> sheets = r.exam.scanfile.sheets.stream().filter(sh -> sh.students.contains(r.student))
-                    .collect(Collectors.toList()); */
-                    List<ExamSheet> sheets = finalNotes.keySet().stream().filter(e -> e.students.stream().anyMatch(s-> s.id == finalResult1.getKey())).collect(Collectors.toList());
+            /*
+             * List<ExamSheet> sheets = r.exam.scanfile.sheets.stream().filter(sh ->
+             * sh.students.contains(r.student))
+             * .collect(Collectors.toList());
+             */
+            List<ExamSheet> sheets = finalNotes.keySet().stream()
+                    .filter(e -> e.students.stream().anyMatch(s -> s.id == finalResult1.getKey()))
+                    .collect(Collectors.toList());
             if (sheets.size() > 0) {
                 ExamSheet sheet = sheets.get(0);
                 // ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id,
@@ -653,6 +655,7 @@ public class ExtendedAPI {
                 int studentnumber = (sheet.pagemin / (sheet.pagemax - sheet.pagemin + 1)) + 1;
                 var res = new StudentResultDTO();
                 studentsId.add(r.student.id);
+                sheetsId.add(sheet.id);
                 res.setNom(r.student.name);
                 res.setPrenom(r.student.firstname);
                 res.setIne(r.student.ine);
@@ -680,7 +683,31 @@ public class ExtendedAPI {
                 });
                 results.add(res);
             }
-        };
+        }
+        ;
+        // Etudiant dont la correction n'a pas démarré.
+
+        List<ExamSheet> sheets1 = ExamSheet.getAll4ExamIdNotInStudentIdList(examId, sheetsId).list();
+        for (ExamSheet sheet : sheets1) {
+            for (Student student : sheet.students) {
+                String uuid = sheet.name;
+                int studentnumber = (sheet.pagemin / (sheet.pagemax - sheet.pagemin + 1)) + 1;
+                var res = new StudentResultDTO();
+                studentsId.add(student.id);
+                sheetsId.add(sheet.id);
+                res.setNom(student.name);
+                res.setPrenom(student.firstname);
+                res.setIne(student.ine);
+                res.setMail(student.mail);
+                final DecimalFormat df = new DecimalFormat("0.00");
+                res.setNote(df.format(0));
+                res.setUuid(uuid);
+                res.setStudentNumber("" + studentnumber);
+                res.setAbi(false);
+                res.setNotequestions(new HashMap<>());
+                results.add(res);
+            }
+        }
 
         Collections.sort(results, new Comparator<StudentResultDTO>() {
             @Override
