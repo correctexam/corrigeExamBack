@@ -684,9 +684,11 @@ public class ExtendedAPI {
                 results.add(res);
             }
         }
-        ;
+        // Si la correction n'a démarré pour aucun étudiant, initialise la liste avec un numéro  pour la requête
+        if (sheetsId.size()==0){
+            sheetsId.add(Long.valueOf(-1));
+        }
         // Etudiant dont la correction n'a pas démarré.
-
         List<ExamSheet> sheets1 = ExamSheet.getAll4ExamIdNotInStudentIdList(examId, sheetsId).list();
         for (ExamSheet sheet : sheets1) {
             for (Student student : sheet.students) {
