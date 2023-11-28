@@ -224,7 +224,7 @@ public class ExtendedAPI {
     }
 
     public ExportPDFDto getExportPdf(long examId, String sheetname) {
-        this.computeFinalNote(examId);
+        this.computeFinalNote(examId, new HashMap<>(), new HashMap<>(), new HashMap<>());
 
         ExportPDFDto exportPDFDto = new ExportPDFDto();
         Exam ex = Exam.findById(examId);
@@ -353,132 +353,142 @@ public class ExtendedAPI {
     }
 
     @Transactional
-    public Exam computeFinalNote(long examId) {
-        List<StudentResponse> studentResp = StudentResponse.getAllStudentResponseWithexamIdWithOrphanId(examId).list();
-        Map<ExamSheet, List<StudentResponse>> mapstudentResp = studentResp.stream()
+    public Exam computeFinalNote(long examId, Map<Long,FinalResult> finalfinalResultsByStudentId,  Map<ExamSheet,Integer> finalNotes,  Map<ExamSheet, List<StudentResponse>> mapstudentResp1  ) {
+         List<StudentResponse> studentResp = StudentResponse.getAllStudentResponseWithexamIdWithOrphanId(examId).list();
+
+         Map<ExamSheet, List<StudentResponse>> mapstudentResp = studentResp.stream()
                 .collect(Collectors.groupingBy(StudentResponse::getCSheet));
 
         Exam ex = Exam.findById(examId);
-        // List<ExamSheet> sheets =
-        // ExamSheet.findExamSheetByScan(ex.scanfile.id).list();
-        // sheets.forEach(sh -> {
-
 
         mapstudentResp.forEach((sh, resps) -> {
-            // Compute Note
-            // List<StudentResponse> resps =
-            // StudentResponse.findStudentResponsesbysheetId(sh.id).list();
+            mapstudentResp1.put(sh, studentResp);
 
-            boolean hasRealSheet  = true;
+            boolean hasRealSheet = true;
 
             var finalnote = 0;
             for (StudentResponse resp : resps) {
                 hasRealSheet = true;
-                if (sh != null && sh.pagemin != -1 && sh.pagemax != -1){
+                if (sh != null && sh.pagemin != -1 && sh.pagemax != -1) {
 
-                if (resp.question.gradeType == GradeType.DIRECT && !"QCM".equals(resp.question.type.algoName)) {
-                    if (resp.question.step > 0) {
-                        finalnote = finalnote + ((resp.quarternote * 100 / 4) / resp.question.step);
-                    }
-                } else if (resp.question.gradeType == GradeType.POSITIVE
-                        && !"QCM".equals(resp.question.type.algoName)) {
-                    int currentNote = 0;
-                    for (var g : resp.gradedcomments) {
-                        if (g.gradequarter != null) {
-                            currentNote = currentNote + g.gradequarter;
+                    if (resp.question.gradeType == GradeType.DIRECT && !"QCM".equals(resp.question.type.algoName)) {
+                        if (resp.question.step > 0) {
+                            finalnote = finalnote + ((resp.quarternote * 100 / 4) / resp.question.step);
                         }
-                    }
-
-                    if (currentNote > (resp.question.quarterpoint) * resp.question.step) {
-                        currentNote = (resp.question.quarterpoint) * resp.question.step;
-                    }
-                    if (currentNote != resp.quarternote) {
-                        resp.quarternote = currentNote;
-                        StudentResponse.update(resp);
-                    }
-                    if (resp.question.step > 0) {
-                        finalnote = finalnote + (currentNote * 100 / 4 / resp.question.step);
-                    }
-
-                } else if (resp.question.gradeType == GradeType.NEGATIVE
-                        && !"QCM".equals(resp.question.type.algoName)) {
-                    int currentNote = resp.question.quarterpoint * resp.question.step;
-                    for (var g : resp.gradedcomments) {
-                        if (g.gradequarter != null) {
-                            currentNote = currentNote - g.gradequarter;
+                    } else if (resp.question.gradeType == GradeType.POSITIVE
+                            && !"QCM".equals(resp.question.type.algoName)) {
+                        int currentNote = 0;
+                        for (var g : resp.gradedcomments) {
+                            if (g.gradequarter != null) {
+                                currentNote = currentNote + g.gradequarter;
+                            }
                         }
-                    }
-                    ;
-                    if (currentNote < 0) {
-                        currentNote = 0;
-                    }
-                    if (currentNote != resp.quarternote) {
-                        resp.quarternote = currentNote;
-                        StudentResponse.update(resp);
-                    }
-                    if (resp.question.step > 0) {
-                        finalnote = finalnote + (currentNote * 100 / 4 / resp.question.step);
-                    }
 
-                } else if ("QCM".equals(resp.question.type.algoName) && resp.question.step > 0) {
-                    int currentNote = 0;
-                    for (var g : resp.gradedcomments) {
-                        if (g.description.startsWith("correct")) {
-                            currentNote = currentNote + resp.question.quarterpoint * resp.question.step;
-                        } else if (g.description.startsWith("incorrect")) {
-                            currentNote = currentNote - resp.question.quarterpoint;
+                        if (currentNote > (resp.question.quarterpoint) * resp.question.step) {
+                            currentNote = (resp.question.quarterpoint) * resp.question.step;
                         }
                         if (currentNote != resp.quarternote) {
                             resp.quarternote = currentNote;
                             StudentResponse.update(resp);
                         }
-                        finalnote = finalnote + (currentNote * 100 / 4 / resp.question.step);
-
-                    }
-                } else if ("QCM".equals(resp.question.type.algoName) && resp.question.step <= 0) {
-                    int currentNote = 0;
-                    for (var g : resp.gradedcomments) {
-                        if (g.description.startsWith("correct")) {
-                            currentNote = currentNote + resp.question.quarterpoint;
+                        if (resp.question.step > 0) {
+                            finalnote = finalnote + (currentNote * 100 / 4 / resp.question.step);
                         }
+
+                    } else if (resp.question.gradeType == GradeType.NEGATIVE
+                            && !"QCM".equals(resp.question.type.algoName)) {
+                        int currentNote = resp.question.quarterpoint * resp.question.step;
+                        for (var g : resp.gradedcomments) {
+                            if (g.gradequarter != null) {
+                                currentNote = currentNote - g.gradequarter;
+                            }
+                        }
+                        ;
+                        if (currentNote < 0) {
+                            currentNote = 0;
+                        }
+                        if (currentNote != resp.quarternote) {
+                            resp.quarternote = currentNote;
+                            StudentResponse.update(resp);
+                        }
+                        if (resp.question.step > 0) {
+                            finalnote = finalnote + (currentNote * 100 / 4 / resp.question.step);
+                        }
+
+                    } else if ("QCM".equals(resp.question.type.algoName) && resp.question.step > 0) {
+                        int currentNote = 0;
+                        for (var g : resp.gradedcomments) {
+                            if (g.description.startsWith("correct")) {
+                                currentNote = currentNote + resp.question.quarterpoint * resp.question.step;
+                            } else if (g.description.startsWith("incorrect")) {
+                                currentNote = currentNote - resp.question.quarterpoint;
+                            }
+                            if (currentNote != resp.quarternote) {
+                                resp.quarternote = currentNote;
+                                StudentResponse.update(resp);
+                            }
+                            finalnote = finalnote + (currentNote * 100 / 4 / resp.question.step);
+
+                        }
+                    } else if ("QCM".equals(resp.question.type.algoName) && resp.question.step <= 0) {
+                        int currentNote = 0;
+                        for (var g : resp.gradedcomments) {
+                            if (g.description.startsWith("correct")) {
+                                currentNote = currentNote + resp.question.quarterpoint;
+                            }
+                        }
+                        if (currentNote != resp.quarternote) {
+                            resp.quarternote = currentNote;
+                            StudentResponse.update(resp);
+                        }
+                        finalnote = finalnote + (currentNote * 100 / 4);
                     }
-                    if (currentNote != resp.quarternote) {
-                        resp.quarternote = currentNote;
-                        StudentResponse.update(resp);
-                    }
-                    finalnote = finalnote + (currentNote * 100 / 4);
+                } else {
+                    hasRealSheet = false;
                 }
-            } else {
-                hasRealSheet = false;
             }
-        }
             final var finalnote1 = finalnote;
             final var hasRealSheet1 = hasRealSheet;
+            if (!hasRealSheet1){
+                sh.students.forEach(student -> {
+                    var q = FinalResult.findFinalResultByStudentIdAndExamId(student.id, examId);
+                    long count = q.count();
+                    if (count > 0) {
+                            FinalResult.deleteById(q.firstResult().id);
 
-            sh.students.forEach(student -> {
-                var q = FinalResult.findFinalResultByStudentIdAndExamId(student.id, examId);
-
-                long count = q.count();
-                if (count > 0) {
-                    if (hasRealSheet1){
-                        FinalResult r = q.firstResult();
-                        r.note = finalnote1;
-                        FinalResult.update(r);
-                    }else {
-                        FinalResult.deleteById(q.firstResult().id);
                     }
+                });
+            }
+            else {
+                finalNotes.put(sh, finalnote1);
+            }
+        });
+//        Map<Long,FinalResult> finalfinalResultsByStudentId = new HashMap<>();
+        List<FinalResult> finalResults = FinalResult.getAll4ExamId(examId).list();
+           Map<Long,List<FinalResult>> finalResultsByStudentId = finalResults.stream().collect(Collectors.groupingBy(FinalResult::getStudentID));
+           for (Map.Entry<ExamSheet, Integer> finalNote : finalNotes.entrySet()) {
+                for (Student s : finalNote.getKey().students){
+                    if (finalResultsByStudentId.containsKey(s.id)){
+                        for ( FinalResult fr : finalResultsByStudentId.get(s.id)){
+                            if (fr.note != finalNote.getValue()){
+                                fr.note = finalNote.getValue();
+                                fr = FinalResult.update(fr);
+                                finalfinalResultsByStudentId.put(s.id,fr);
+                            } else {
+                                 finalfinalResultsByStudentId.put(s.id,fr);
 
-                } else {
-                    if (hasRealSheet1){
-                        FinalResult r = new FinalResult();
-                        r.student = student;
+                            }
+                        }
+                    } else {
+                         FinalResult r = new FinalResult();
+                        r.student = s;
                         r.exam = ex;
-                        r.note = finalnote1;
-                        FinalResult.persistOrUpdate(r);
+                        r.note = finalNote.getValue();
+                        r = FinalResult.persistOrUpdate(r);
+                        finalfinalResultsByStudentId.put(s.id,r);
                     }
                 }
-            });
-        });
+            }
         return ex;
 
     }
@@ -493,7 +503,7 @@ public class ExtendedAPI {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
 
-        this.computeFinalNote(examId);
+        this.computeFinalNote(examId , new HashMap<>(), new HashMap<>(), new HashMap<>());
         return Response.ok().build();
     }
 
@@ -520,7 +530,11 @@ public class ExtendedAPI {
             _replyTo = "no-reply.correctexam@univ-rennes.fr";
         }
         final String replyTo = _replyTo;
-        Exam ex = this.computeFinalNote(examId);
+        Map<Long,FinalResult> finalfinalResultsByStudentId = new HashMap<>();
+        Map<ExamSheet,Integer> finalNotes = new HashMap<>();
+        Map<ExamSheet, List<StudentResponse>> mapstudentResp = new HashMap<>();
+
+        Exam ex = this.computeFinalNote(examId,finalfinalResultsByStudentId, finalNotes, mapstudentResp);
 
         List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
         students.forEach(student -> {
@@ -605,7 +619,17 @@ public class ExtendedAPI {
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
-        Exam ex = this.computeFinalNote(examId);
+
+        Map<Long,FinalResult> finalfinalResultsByStudentId = new HashMap<>();
+        Map<ExamSheet,Integer> finalNotes = new HashMap<>();
+        Map<ExamSheet, List<StudentResponse>> mapstudentResp = new HashMap<>();
+        Exam ex = this.computeFinalNote(examId,finalfinalResultsByStudentId,finalNotes,mapstudentResp);
+
+
+
+
+
+
         List<StudentResultDTO> results = new ArrayList<>();
         List<Long> studentsId = new ArrayList<>();
         // List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
@@ -613,12 +637,14 @@ public class ExtendedAPI {
         // long count = FinalResult.findFinalResultByStudentIdAndExamId(student.id,
         // ex.id).count();
         // if (count > 0) {
-        List<FinalResult> rs = FinalResult.getAll4ExamIdFetchSheet(examId).list();
-        rs.forEach(r -> {
+//        List<FinalResult> rs = FinalResult.getAll4ExamIdFetchSheet(examId).list();
+            for (Map.Entry<Long, FinalResult> finalResult1 : finalfinalResultsByStudentId.entrySet())  {
+                FinalResult r = finalResult1.getValue();
             // FinalResult r = FinalResult.findFinalResultByStudentIdAndExamId(student.id,
             // ex.id).firstResult();
-            List<ExamSheet> sheets = r.exam.scanfile.sheets.stream().filter(sh -> sh.students.contains(r.student))
-                    .collect(Collectors.toList());
+/*             List<ExamSheet> sheets = r.exam.scanfile.sheets.stream().filter(sh -> sh.students.contains(r.student))
+                    .collect(Collectors.toList()); */
+                    List<ExamSheet> sheets = finalNotes.keySet().stream().filter(e -> e.students.stream().anyMatch(s-> s.id == finalResult1.getKey())).collect(Collectors.toList());
             if (sheets.size() > 0) {
                 ExamSheet sheet = sheets.get(0);
                 // ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id,
@@ -637,7 +663,7 @@ public class ExtendedAPI {
                 res.setStudentNumber("" + studentnumber);
                 res.setAbi(false);
                 res.setNotequestions(new HashMap<>());
-                List<StudentResponse> resp = StudentResponse.findStudentResponsesbysheetId(sheet.id).list();
+                List<StudentResponse> resp = mapstudentResp.get(sheet);
                 resp.forEach(resp1 -> {
                     if ("QCM".equals(resp1.question.type.algoName) && resp1.question.step < 0) {
                         res.getNotequestions().put(resp1.question.numero,
@@ -654,18 +680,7 @@ public class ExtendedAPI {
                 });
                 results.add(res);
             }
-            /*
-             * } )/*else {
-             * var res = new StudentResultDTO();
-             * res.setNom(student.name);
-             * res.setPrenom(student.firstname);
-             * res.setIne(student.ine);
-             * res.setMail(student.mail);
-             * res.setAbi(true);
-             * results.add(res);
-             * }
-             */
-        });
+        };
 
         Collections.sort(results, new Comparator<StudentResultDTO>() {
             @Override
@@ -1231,11 +1246,14 @@ public class ExtendedAPI {
     @GET
     @Path("/getScanPdf/{scanId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-//    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    // @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getScan(@PathParam("scanId") long scanId, @Context SecurityContext ctx) {
- /*       if (!securityService.canAccess(ctx, scanId, Scan.class)) {
-            return Response.status(403, "Current user cannot access to this ressource").build();
-        }*/
+        /*
+         * if (!securityService.canAccess(ctx, scanId, Scan.class)) {
+         * return Response.status(403,
+         * "Current user cannot access to this ressource").build();
+         * }
+         */
         try {
             if (this.fichierS3Service.isObjectExist("scan/" + scanId + ".pdf")) {
 
@@ -1401,7 +1419,6 @@ public class ExtendedAPI {
         Response.ResponseBuilder response = Response.ok().entity(res);
         return response.build();
     }
-
 
     /**
      * {@code GET /users} : get all users.
@@ -1694,9 +1711,9 @@ public class ExtendedAPI {
                 s.put(sh.id, res);
                 result.getSheets().add(res);
             } else if (sh.pagemin == -1 || sh.pagemax == -1) {
-//                log.error("sheet not linked with a real pdf");
+                // log.error("sheet not linked with a real pdf");
             } else {
- //               log.error("sheet without student");
+                // log.error("sheet without student");
 
             }
         }
@@ -1709,7 +1726,9 @@ public class ExtendedAPI {
             // The responses for this question
             final List<StudentResponse> _responsesForQ = byQuestion.computeIfAbsent(quest.numero.longValue(),
                     i -> new ArrayList<>());
-            final List<StudentResponse> responsesForQ  = _responsesForQ.stream().filter(r-> r.sheet !=null && r.sheet.pagemin !=-1 &&  r.sheet.pagemax !=-1).collect(Collectors.toList());
+            final List<StudentResponse> responsesForQ = _responsesForQ.stream()
+                    .filter(r -> r.sheet != null && r.sheet.pagemin != -1 && r.sheet.pagemax != -1)
+                    .collect(Collectors.toList());
             // Getting the ID of the sheets that have an answer for this question
             responsesForQ.sort(new ComparatorImplementation());
             QuestionStateDTO qs = q.get(quest.numero.longValue());
