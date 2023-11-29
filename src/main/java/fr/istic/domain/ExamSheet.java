@@ -11,6 +11,7 @@ import javax.validation.constraints.*;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -141,6 +142,10 @@ public class ExamSheet extends PanacheEntityBase implements Serializable {
 
     public static PanacheQuery<ExamSheet> getAllDouble4Same( long examSheetId) {
         return find("select  ex from ExamSheet ex where ex.id = ?1 and EXISTS  (select 1 from ExamSheet ex1 WHERE ex1.id <> ex.id and ex1.pagemin = ex.pagemin and ex1.pagemax = ex.pagemax and ex1.scan.id = ex.scan.id)",examSheetId);
+    }
+
+    public static PanacheQuery<ExamSheet> getAll4ExamIdNotInStudentIdList( long examId, List<Long> sheetsid) {
+        return find("select distinct ex from Exam as e join  e.scanfile.sheets  as ex join fetch ex.students  where e.id = ?1 and  ex.pagemin <> -1 and ex.pagemax <> -1 and ex.students IS NOT EMPTY and ex.id not IN ?2" ,examId,sheetsid);
     }
 
 
