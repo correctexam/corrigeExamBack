@@ -363,7 +363,7 @@ public class ExtendedAPI {
         Exam ex = Exam.findById(examId);
 
         mapstudentResp.forEach((sh, resps) -> {
-            mapstudentResp1.put(sh, studentResp);
+            mapstudentResp1.put(sh, resps);
 
             boolean hasRealSheet = true;
 
@@ -667,7 +667,10 @@ public class ExtendedAPI {
                 res.setAbi(false);
                 res.setNotequestions(new HashMap<>());
                 List<StudentResponse> resp = mapstudentResp.get(sheet);
+
                 resp.forEach(resp1 -> {
+                    // log.error("resp1 " + resp1.id);
+
                     if ("QCM".equals(resp1.question.type.algoName) && resp1.question.step < 0) {
                         res.getNotequestions().put(resp1.question.numero,
                                 df.format(
