@@ -1,6 +1,7 @@
 package fr.istic.web.rest;
 
 import fr.istic.config.JHipsterProperties;
+import fr.istic.domain.Answer2HybridGradedComment;
 import fr.istic.domain.Comments;
 import fr.istic.domain.Course;
 import fr.istic.domain.CourseGroup;
@@ -8,6 +9,7 @@ import fr.istic.domain.Exam;
 import fr.istic.domain.ExamSheet;
 import fr.istic.domain.FinalResult;
 import fr.istic.domain.GradedComment;
+import fr.istic.domain.HybridGradedComment;
 import fr.istic.domain.Question;
 import fr.istic.domain.Scan;
 import fr.istic.domain.Student;
@@ -17,6 +19,7 @@ import fr.istic.domain.TextComment;
 import fr.istic.domain.User;
 import fr.istic.domain.enumeration.GradeType;
 import fr.istic.security.AuthoritiesConstants;
+import fr.istic.service.Answer2HybridGradedCommentService;
 import fr.istic.service.CacheStudentPdfFService;
 import fr.istic.service.CacheUploadService;
 import fr.istic.service.CourseGroupService;
@@ -24,6 +27,7 @@ import fr.istic.service.CourseService;
 import fr.istic.service.ExamService;
 import fr.istic.service.ExamSheetService;
 import fr.istic.service.FichierS3Service;
+import fr.istic.service.HybridGradedCommentService;
 import fr.istic.service.ImportExportService;
 import fr.istic.service.MailService;
 import fr.istic.service.QuestionService;
@@ -57,14 +61,17 @@ import fr.istic.service.customdto.exportpdf.StudentResponsepdf;
 import fr.istic.service.customdto.exportpdf.Studentpdf;
 import fr.istic.service.customdto.exportpdf.Textcommentspdf;
 import fr.istic.service.customdto.exportpdf.Zonepdf;
+import fr.istic.service.dto.Answer2HybridGradedCommentDTO;
 import fr.istic.service.dto.CourseDTO;
 import fr.istic.service.dto.ExamDTO;
 import fr.istic.service.dto.GradedCommentDTO;
+import fr.istic.service.dto.HybridGradedCommentDTO;
 import fr.istic.service.dto.QuestionDTO;
 import fr.istic.service.dto.TextCommentDTO;
 import fr.istic.service.mapper.CommentsMapper;
 import fr.istic.service.mapper.ExamMapper;
 import fr.istic.service.mapper.GradedCommentMapper;
+import fr.istic.service.mapper.HybridGradedCommentMapper;
 import fr.istic.service.mapper.QuestionMapper;
 import fr.istic.service.mapper.TextCommentMapper;
 import fr.istic.service.mapper.ZoneMapper;
@@ -88,6 +95,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -149,6 +157,8 @@ public class ExtendedAPI {
     CommentsMapper commentsMapper;
     @Inject
     GradedCommentMapper gradedCommentMapper;
+
+
     @Inject
     TextCommentMapper textCommentMapper;
 
@@ -169,6 +179,16 @@ public class ExtendedAPI {
 
     @Inject
     CacheStudentPdfFService cacheStudentPdfFService;
+
+    @Inject
+    Answer2HybridGradedCommentService answer2HybridGradedCommentService;
+
+    @Inject
+    HybridGradedCommentService hybridGradedCommentService;
+
+        @Inject
+    HybridGradedCommentMapper hybridCommentMapper;
+
 
     @Inject
     FichierS3Service fichierS3Service;
@@ -1950,6 +1970,90 @@ public class ExtendedAPI {
     }
 
     @GET
+    @Path("/getZone4HybridComment/{examId}/{hynridCommentId}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getZone4HybridComment(@PathParam("examId") final long examId,
+            @PathParam("hynridCommentId") final long hybridCommentId, @Context final UriInfo uriInfo,
+            @Context final SecurityContext ctx) {
+
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access this ressource").build();
+        }
+        List<Answer2HybridGradedComment> r = StudentResponse.getAllStudentResponse4examIdHybridCommentId(examId, hybridCommentId)
+                .list();
+
+        ZoneSameCommentDTO dto = new ZoneSameCommentDTO();
+        List<Answer4QuestionDTO> answers = new ArrayList<>();
+        // Map<Long,TextCommentDTO> textComments = new HashMap<>();
+        Map<Long, HybridGradedCommentDTO> comments = new HashMap<>();
+
+        if (r.size() > 0 && r.get(0).studentResponse.question != null) {
+            int numero = r.get(0).studentResponse.question.numero;
+            dto.setNumero(numero);
+            List<Question> questions = Question.findQuestionbyExamIdandnumero(examId, numero).list();
+            if (questions.size() > 0) {
+                dto.setZones(zoneMapper.toDto(questions.stream().map(q -> q.zone).collect(Collectors.toList())));
+                dto.setGradeType(questions.get(0).gradeType);
+                dto.setPoint(Integer.valueOf(questions.get(0).quarterpoint).doubleValue() / 4);
+                dto.setStep(questions.get(0).step);
+                dto.setValidExpression(questions.get(0).validExpression);
+                dto.setAlgoName(questions.get(0).type.algoName);
+
+            }
+        }
+        Set<StudentResponse> processSt = new HashSet<>();
+        for (Answer2HybridGradedComment an : r) {
+            StudentResponse studentResponse= an.studentResponse;
+            if (!processSt.contains(studentResponse)){
+                Answer4QuestionDTO answerdto = new Answer4QuestionDTO();
+                answerdto.setPagemin(studentResponse.sheet.pagemin);
+                answerdto.setPagemax(studentResponse.sheet.pagemax);
+
+                if (studentResponse.star != null) {
+                    answerdto.setStar(studentResponse.star);
+                } else {
+                    answerdto.setStar(false);
+                }
+                if (studentResponse.worststar != null) {
+                    answerdto.setWorststar(studentResponse.worststar);
+                } else {
+                    answerdto.setWorststar(false);
+                }
+                Set<Student> students = studentResponse.sheet.students;
+                String studentName = "";
+                long nbeStudent = students.size();
+                long i = 0;
+                for (Student student : students) {
+                    i = i + 1;
+                    studentName = studentName + student.firstname + " " + student.name;
+                    if (i != nbeStudent) {
+                        studentName = studentName + ", ";
+                    }
+
+                }
+                answerdto.setStudentName(studentName);
+                answerdto.setNote(Integer.valueOf(studentResponse.quarternote).doubleValue() / 4);
+                answerdto.setComments(commentsMapper.toDto(new ArrayList<>(studentResponse.comments)));
+                answerdto.setHybridgradedComments(r.stream().filter(an1 -> an1.studentResponse.id == studentResponse.id && an1.stepValue>0).map(anh -> anh.hybridcomments.id).collect(Collectors.toList()));
+                processSt.add(studentResponse);
+                answers.add(answerdto);
+
+            }
+            if (!comments.containsKey(an.hybridcomments.id)) {
+                    comments.put(an.hybridcomments.id, hybridCommentMapper.toDto(an.hybridcomments));
+                }
+
+        }
+
+        dto.setAnswers(answers);
+        dto.setHybridComments(new ArrayList(comments.values()));
+        return Response.ok().entity(dto).build();
+
+    }
+
+
+
+    @GET
     @Path("/getZone4TextComment/{examId}/{textCommentId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getZone4TextComment(@PathParam("examId") final long examId,
@@ -2217,6 +2321,21 @@ public class ExtendedAPI {
 
     }
 
+
+    @PUT
+    @Transactional()
+    @Path("/update-2-hybrid-graded-comments/{responseId}/{hybridCommentId}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response updateStudentResponse4Cluster(@PathParam("responseId") final long responseId, @PathParam("hybridCommentId") final long hybridCommentId,
+            @Context final UriInfo uriInfo,
+            @Context final SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, responseId, StudentResponse.class)) {
+            return Response.status(403, "Current user cannot access this ressource").build();
+        }
+        Answer2HybridGradedCommentDTO result = this.answer2HybridGradedCommentService.incrementWithResponseIdAndHybridCommentId(responseId,hybridCommentId);
+        return Response.ok().entity(result).build();
+
+    }
     @POST
     @Transactional()
     @Path("/updateStudentResponse4Cluster/{examId}/{qid}")

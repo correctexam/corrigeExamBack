@@ -41,6 +41,10 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     @OneToMany(mappedBy = "studentResponse", cascade = {CascadeType.REMOVE})
     public Set<Comments> comments = new HashSet<>();
 
+    @OneToMany(mappedBy = "studentResponse", cascade = {CascadeType.REMOVE})
+  //  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    public Set<Answer2HybridGradedComment> hybridcommentsValues = new HashSet<>();
+
     @ManyToOne
     @JoinColumn(name = "question_id")
     @JsonbTransient
@@ -265,6 +269,10 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
 
     public static PanacheQuery<StudentResponse> getAllStudentResponse4examIdGradedCommentId(long examId, long gradedCommentid) {
         return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet join fetch sr.question as q join fetch q.zone join fetch sheet.students left join fetch sr.gradedcomments gc1 join sr.gradedcomments gc  where sr.question.exam.id = ?1 and gc.id = ?2 and sheet.pagemin <> -1 and sheet.pagemax <> -1 and sheet.students IS NOT EMPTY",examId,gradedCommentid );
+    }
+
+    public static PanacheQuery<Answer2HybridGradedComment> getAllStudentResponse4examIdHybridCommentId(long examId, long hybridCommentid) {
+        return find("select distinct an from Answer2HybridGradedComment an join fetch an.studentResponse as sr join fetch sr.sheet as sheet join fetch sr.question as q join fetch q.zone join fetch sheet.students join fetch an.hybridcomments hc  where sr.question.exam.id = ?1 and hc.id = ?2 and sheet.pagemin <> -1 and sheet.pagemax <> -1 and sheet.students IS NOT EMPTY",examId,hybridCommentid );
     }
 
 

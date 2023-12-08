@@ -20,7 +20,7 @@ public class Answer4QuestionDTO {
     List<CommentsDTO> comments = new ArrayList<>();
     List<Long> textComments = new ArrayList<>();
     List<Long> gradedComments = new ArrayList<>();
-
+    List<Long> hybridgradedComments = new ArrayList<>();
 
     public Answer4QuestionDTO() {
     }
@@ -109,7 +109,15 @@ public class Answer4QuestionDTO {
         this.textComments = textComments;
     }
 
-    public List<Long> getGradedComments() {
+    public List<Long> getHybridgradedComments() {
+        return this.hybridgradedComments;
+    }
+
+    public void setHybridgradedComments(List<Long> hybridgradedComments) {
+        this.hybridgradedComments = hybridgradedComments;
+    }
+
+        public List<Long> getGradedComments() {
         return this.gradedComments;
     }
 

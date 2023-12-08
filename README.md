@@ -108,3 +108,12 @@ update question set point = point * 4;
 update `student_response` set note = note * 4;
 ALTER TABLE `question` ADD `libelle` VARCHAR(255) NULL DEFAULT NULL AFTER `valid_expression`;
 ALTER TABLE `gradeScopeIstic`.`final_result` ADD UNIQUE `UniqueStudentIdAndExamId` (`student_id`, `exam_id`);
+
+
+create table answer_2_hybrid_graded_comment (id bigint not null auto_increment, step_value integer, hybridcomments_id bigint, student_response_id bigint, primary key (id)) engine=InnoDB;
+create table hybrid_graded_comment (id bigint not null auto_increment, description longtext, grade integer, relative bit, step integer, text varchar(255), question_id bigint, primary key (id)) engine=InnoDB;
+alter table final_result add column frozen bit;
+alter table question add column defaultpoint integer;
+alter table answer_2_hybrid_graded_comment add constraint FK9ijm3itpjwpgf534m94df8dt6 foreign key (hybridcomments_id) references hybrid_graded_comment (id);
+alter table answer_2_hybrid_graded_comment add constraint FKqxflsw40s622dtyt99himou2k foreign key (student_response_id) references student_response (id);
+alter table hybrid_graded_comment add constraint FKrrl2y7dngtnqlklwt0scsy8jq foreign key (question_id) references question (id);

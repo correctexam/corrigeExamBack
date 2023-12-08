@@ -28,6 +28,9 @@ public class FinalResult extends PanacheEntityBase implements Serializable {
     @Column(name = "note")
     public Integer note;
 
+    @Column(name = "frozen")
+    public Boolean frozen;
+
     @ManyToOne
     @JoinColumn(name = "student_id")
     @JsonbTransient
@@ -64,10 +67,7 @@ public class FinalResult extends PanacheEntityBase implements Serializable {
 
     @Override
     public String toString() {
-        return "FinalResult{" +
-            "id=" + id +
-            ", note=" + note +
-            "}";
+        return "FinalResult{" + "id=" + id + ", note=" + note + ", frozen='" + frozen + "'" + "}";
     }
 
     public FinalResult update() {
@@ -85,6 +85,7 @@ public class FinalResult extends PanacheEntityBase implements Serializable {
         var entity = FinalResult.<FinalResult>findById(finalResult.id);
         if (entity != null) {
             entity.note = finalResult.note;
+            entity.frozen = finalResult.frozen;
             entity.student = finalResult.student;
             entity.exam = finalResult.exam;
         }

@@ -20,6 +20,7 @@ public interface StudentResponseMapper extends EntityMapper<StudentResponseDTO, 
     StudentResponseDTO toDto(StudentResponse studentResponse);
 
     @Mapping(target = "comments", ignore = true)
+    @Mapping(target = "hybridcommentsValues", ignore = true)
     @Mapping(source = "questionId", target = "question")
     @Mapping(source = "sheetId", target = "sheet")
     @Mapping(source = "note", target = "quarternote", qualifiedByName = "note2quarternote")
