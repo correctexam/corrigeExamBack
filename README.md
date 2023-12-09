@@ -123,8 +123,8 @@ ALTER TABLE `gradeScopeIstic`.`answer_2_hybrid_graded_comment` ADD UNIQUE `Uniqu
 [x] unique constraint for answer_2_hybrid_graded_comment
 [x] delete correctly when removing exam or course
 [x] Import Export with HybridComment
-[ ] Test import and export
-[ ] Export PDF with HybridComment
+[x] Test import and export
+[x] check delete
+[x] Export PDF with HybridComment
 [ ] update question or hybridComment => recompute score4 linked StudentResponse
-[ ] check delete
 

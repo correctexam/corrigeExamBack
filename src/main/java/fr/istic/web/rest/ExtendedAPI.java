@@ -55,6 +55,7 @@ import fr.istic.service.customdto.correctexamstate.QuestionStateDTO;
 import fr.istic.service.customdto.correctexamstate.SheetStateDTO;
 import fr.istic.service.customdto.exportpdf.ExportPDFDto;
 import fr.istic.service.customdto.exportpdf.Gradedcommentspdf;
+import fr.istic.service.customdto.exportpdf.Hybridcommentspdf;
 import fr.istic.service.customdto.exportpdf.Questionspdf;
 import fr.istic.service.customdto.exportpdf.Sheetspdf;
 import fr.istic.service.customdto.exportpdf.StudentResponsepdf;
@@ -294,9 +295,15 @@ public class ExtendedAPI {
             sheetPdfs.add(sheetpdf);
             sheetpdf.setName(sheet.name);
             if (sheet.students.size() > 0) {
+                var studentId = sheet.students.iterator().next().id;
                 FinalResult fr = FinalResult
-                        .findFinalResultByStudentIdAndExamId(sheet.students.iterator().next().id, examId).firstResult();
-                sheetpdf.setFinalresult(fr.note);
+                        .findFinalResultByStudentIdAndExamId(studentId, examId).firstResult();
+
+                if (fr!= null){
+                    sheetpdf.setFinalresult(fr.note);
+                } else {
+                    sheetpdf.setFinalresult(0);
+                }
             } else {
                 sheetpdf.setFinalresult(0);
             }
@@ -332,6 +339,23 @@ public class ExtendedAPI {
                     stpdf.setWorststar(false);
                 }
                 sheetpdf.getStudentResponsepdf().add(stpdf);
+                List<Answer2HybridGradedComment> ans = Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByAnswerId(resp.id).list();
+                stpdf.setHybridcommentspdf(new ArrayList<>());
+
+                ans.forEach(hc -> {
+                    Hybridcommentspdf hcpdf = new Hybridcommentspdf();
+                    hcpdf.setDescription(hc.hybridcomments.description);
+                    hcpdf.setText(hc.hybridcomments.text);
+                    hcpdf.setRelative(hc.hybridcomments.relative);
+                    hcpdf.setStepMax(hc.hybridcomments.step);
+                    hcpdf.setStepValue(hc.stepValue);
+                    hcpdf.setGrade(hc.hybridcomments.grade /4.0);
+                    if (hc.studentResponse.quarternote !=null){
+                        hcpdf.setAnswerGrade(hc.studentResponse.quarternote.doubleValue()/400.0);
+                    }
+
+                    stpdf.getHybridcommentspdf().add(hcpdf);
+                });
                 stpdf.setGradedcommentspdf(new ArrayList<>());
                 resp.gradedcomments.forEach(gc -> {
                     Gradedcommentspdf gcpdf = new Gradedcommentspdf();

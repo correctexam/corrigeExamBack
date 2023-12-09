@@ -234,6 +234,8 @@ public class ImportExportService {
                 questionJ.addProperty("quarterpoint", question.quarterpoint);
                 questionJ.addProperty("step", question.step);
                 questionJ.addProperty("validExpression", question.validExpression);
+                questionJ.addProperty("defaultpoint", question.defaultpoint);
+                questionJ.addProperty("libelle", question.libelle);
                 questionJ.addProperty("gradeType", question.gradeType.name());
                 questionJ.addProperty("type", question.type.algoName);
                 if (question.zone != null) {
@@ -423,6 +425,7 @@ public class ImportExportService {
                     uuidMap.put(finalResultU, finalResult.id);
                     finalResultJ.addProperty("uuid", finalResultU.toString());
                     finalResultJ.addProperty("note", finalResult.note);
+                    finalResultJ.addProperty("frozen", finalResult.frozen);
                     finalResults.add(finalResultJ);
                     finalResultsUID.put(finalResult.id, finalResultU);
 
@@ -709,7 +712,7 @@ public class ImportExportService {
                 ans.forEach(an -> {
                     JsonObject ob = new JsonObject();
                     ob.addProperty("left", studentResponsesUID.get(an.studentResponse.id).toString());
-                    ob.addProperty("right", gradedcommentsUID.get(an.hybridcomments.id).toString());
+                    ob.addProperty("right", hybridcommentsUID.get(an.hybridcomments.id).toString());
                     ob.addProperty("stepValue",an.stepValue);
                     studentResponseHybridCommentsR.add(ob);
                 });
@@ -974,6 +977,12 @@ public class ImportExportService {
                 if (gr.getAsJsonObject().get("validExpression") != null) {
                     question.validExpression = gr.getAsJsonObject().get("validExpression").getAsString();
                 }
+                if (gr.getAsJsonObject().get("libelle") != null) {
+                    question.libelle = gr.getAsJsonObject().get("libelle").getAsString();
+                }
+                if (gr.getAsJsonObject().get("defaultpoint") != null) {
+                    question.defaultpoint = gr.getAsJsonObject().get("defaultpoint").getAsInt();
+                }
                 if (gr.getAsJsonObject().get("gradeType") != null) {
                     question.gradeType = GradeType.valueOf(gr.getAsJsonObject().get("gradeType").getAsString());
                 }
@@ -1100,6 +1109,9 @@ public class ImportExportService {
                     FinalResult finalResult = new FinalResult();
                     if (gr.getAsJsonObject().get("note") != null) {
                         finalResult.note = gr.getAsJsonObject().get("note").getAsInt();
+                    }
+                    if (gr.getAsJsonObject().get("frozen") != null) {
+                        finalResult.frozen = gr.getAsJsonObject().get("frozen").getAsBoolean();
                     }
                     finalResult.persistAndFlush();
                     uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), finalResult.id);
