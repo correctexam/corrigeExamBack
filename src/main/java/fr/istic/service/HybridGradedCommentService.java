@@ -23,6 +23,9 @@ public class HybridGradedCommentService {
     @Inject
     HybridGradedCommentMapper hybridGradedCommentMapper;
 
+    @Inject
+    Answer2HybridGradedCommentService answer2HybridGradedCommentService;
+
     @Transactional
     public HybridGradedCommentDTO persistOrUpdate(HybridGradedCommentDTO hybridGradedCommentDTO) {
         log.debug("Request to save HybridGradedComment : {}", hybridGradedCommentDTO);
@@ -39,6 +42,7 @@ public class HybridGradedCommentService {
     @Transactional
     public void delete(Long id) {
         log.debug("Request to delete HybridGradedComment : {}", id);
+        this.answer2HybridGradedCommentService.deleteAllAnswerHybridGradedCommentByCommentId(id);
         HybridGradedComment
             .findByIdOptional(id)
             .ifPresent(hybridGradedComment -> {
@@ -71,7 +75,7 @@ public class HybridGradedCommentService {
     }
 
     public Paged<HybridGradedCommentDTO> findHybridGradedCommentByQuestionId(Page page, long qId) {
- log.debug("Request to get all GradedComments by QID");
+         log.debug("Request to get all GradedComments by QID");
         return new Paged<>(HybridGradedComment.findByQuestionId(qId).page(page))
             .map(hgradedComment -> hybridGradedCommentMapper.toDto((HybridGradedComment) hgradedComment));    }
 }

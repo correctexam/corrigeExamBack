@@ -1,8 +1,10 @@
 package fr.istic.service;
 
 import io.quarkus.panache.common.Page;
+import fr.istic.domain.Answer2HybridGradedComment;
 import fr.istic.domain.Exam;
 import fr.istic.domain.GradedComment;
+import fr.istic.domain.HybridGradedComment;
 import fr.istic.domain.Question;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.TextComment;
@@ -69,9 +71,16 @@ public class QuestionService {
         List<Long> textCommentsids = textComments.stream().map(gc -> gc.id).collect(Collectors.toList());
 
         this.deleteComments(gradeCommentids, textCommentsids);
+
         srs.forEach(sr -> {
+            Answer2HybridGradedComment.deleteAllAnswerHybridGradedCommentByAnswerId(sr.id);
             sr.delete();
         });
+        Set<Long> qids = new HashSet<>();
+        qids.add(question.id);
+        HybridGradedComment.deleteByQIds(qids);
+
+
         return question;
     }
 

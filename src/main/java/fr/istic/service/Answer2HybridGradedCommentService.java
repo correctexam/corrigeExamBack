@@ -89,8 +89,6 @@ public class Answer2HybridGradedCommentService {
             Answer2HybridGradedCommentDTO dto = new Answer2HybridGradedCommentDTO();
             dto.stepValue = 1;
             dto.studentResponseId= responseId;
-            log.error("responseId" + responseId);
-            log.error("hybridCommentId" + hybridCommentId);
             dto.hybridcommentsId = hybridCommentId;
             return this.persistOrUpdate(dto);
         } else {
@@ -118,7 +116,12 @@ public class Answer2HybridGradedCommentService {
                 answer2HybridGradedCommentMapper.toDto((Answer2HybridGradedComment) answer2HybridGradedComment)
             );
     }
-
+    public void deleteAllAnswerHybridGradedCommentByCommentId(long  commentId){
+        Answer2HybridGradedComment.deleteAllAnswerHybridGradedCommentByCommentId(commentId);
+    }
+    public void deleteAllAnswerHybridGradedCommentByAnswerId(long  answerId){
+        Answer2HybridGradedComment.deleteAllAnswerHybridGradedCommentByAnswerId(answerId);
+    }
 
 
 }

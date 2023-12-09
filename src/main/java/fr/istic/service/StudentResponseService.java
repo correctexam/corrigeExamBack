@@ -25,6 +25,9 @@ public class StudentResponseService {
     @Inject
     StudentResponseMapper studentResponseMapper;
 
+    @Inject
+    Answer2HybridGradedCommentService answer2HybridGradedCommentService;
+
     @Transactional
     public StudentResponseDTO persistOrUpdate(StudentResponseDTO studentResponseDTO) {
         log.debug("Request to save StudentResponse : {}", studentResponseDTO);
@@ -66,7 +69,9 @@ public class StudentResponseService {
     @Transactional
     public void delete(Long id) {
         log.debug("Request to delete StudentResponse : {}", id);
+
         StudentResponse.findByIdOptional(id).ifPresent(studentResponse -> {
+            this.answer2HybridGradedCommentService.deleteAllAnswerHybridGradedCommentByAnswerId(id);
             studentResponse.delete();
         });
     }

@@ -105,5 +105,13 @@ public class Answer2HybridGradedComment extends PanacheEntityBase implements Ser
         return find("select ex from Answer2HybridGradedComment ex join ex.hybridcomments.question.exam.course.profs as u where ex.id =?1 and u.login =?2", commentId, login);
     }
 
+    public static long deleteAllAnswerHybridGradedCommentByCommentId(long  commentId){
+        return delete("hybridcomments.id", commentId);
+    }
+    public static long deleteAllAnswerHybridGradedCommentByAnswerId(long  responseId){
+        return delete("studentResponse.id", responseId);
+    }
+
+
 
 }

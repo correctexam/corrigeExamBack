@@ -436,7 +436,13 @@ public class ExtendedAPI {
                             finalnote = finalnote + (currentNote * 100 / 4 / resp.question.step);
                         }
 
-                    } else if ("QCM".equals(resp.question.type.algoName) && resp.question.step > 0) {
+                    } else if (resp.question.gradeType == GradeType.HYBRID
+                            && !"QCM".equals(resp.question.type.algoName)) {
+                        // TODO
+                            finalnote = finalnote + (resp.quarternote / 4 );
+
+                    }
+                    else if ("QCM".equals(resp.question.type.algoName) && resp.question.step > 0) {
                         int currentNote = 0;
                         for (var g : resp.gradedcomments) {
                             if (g.description.startsWith("correct")) {
@@ -696,7 +702,13 @@ public class ExtendedAPI {
                                 df.format(
                                         resp1.quarternote.doubleValue() / 4));
 
-                    } else {
+                    } else if (GradeType.HYBRID.equals(resp1.question.gradeType)) {
+
+                        res.getNotequestions().put(resp1.question.numero,
+                                df.format(
+                                        resp1.quarternote.doubleValue() / 400));
+                }
+                    else {
                         res.getNotequestions().put(resp1.question.numero,
                                 df.format(
                                         ((resp1.quarternote.doubleValue() * 100.0 / 4) / resp1.question.step) / 100.0));
@@ -1646,6 +1658,7 @@ public class ExtendedAPI {
                 tc.persistOrUpdate();
             });
             sr.get().clearComments();
+            this.answer2HybridGradedCommentService.deleteAllAnswerHybridGradedCommentByAnswerId(sr.get().id);
             sr.get().delete();
         }
         var response = Response.noContent();

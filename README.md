@@ -117,3 +117,14 @@ alter table question add column defaultpoint integer;
 alter table answer_2_hybrid_graded_comment add constraint FK9ijm3itpjwpgf534m94df8dt6 foreign key (hybridcomments_id) references hybrid_graded_comment (id);
 alter table answer_2_hybrid_graded_comment add constraint FKqxflsw40s622dtyt99himou2k foreign key (student_response_id) references student_response (id);
 alter table hybrid_graded_comment add constraint FKrrl2y7dngtnqlklwt0scsy8jq foreign key (question_id) references question (id);
+
+ALTER TABLE `gradeScopeIstic`.`answer_2_hybrid_graded_comment` ADD UNIQUE `UniqueHybridcommentsIdAndStudentResponseId` (`student_response_id`, `hybridcomments_id`);
+
+[x] unique constraint for answer_2_hybrid_graded_comment
+[x] delete correctly when removing exam or course
+[x] Import Export with HybridComment
+[ ] Test import and export
+[ ] Export PDF with HybridComment
+[ ] update question or hybridComment => recompute score4 linked StudentResponse
+[ ] check delete
+
