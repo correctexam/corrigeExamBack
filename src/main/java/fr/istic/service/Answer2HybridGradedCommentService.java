@@ -102,6 +102,27 @@ public class Answer2HybridGradedCommentService {
         }
     }
 
+    public Answer2HybridGradedCommentDTO setStepValueWithResponseIdAndHybridCommentId(long responseId, long hybridCommentId, int stepValue) {
+        log.debug("Request to incrementWithResponseIdAndHybridCommentId");
+        var q = Answer2HybridGradedComment.findAllWithResponseIdAndHybridCommentId(responseId, hybridCommentId);
+        if (q.count() == 0){
+            Answer2HybridGradedCommentDTO dto = new Answer2HybridGradedCommentDTO();
+            dto.stepValue = stepValue;
+            dto.studentResponseId= responseId;
+            dto.hybridcommentsId = hybridCommentId;
+            return this.persistOrUpdate(dto);
+        } else {
+             Answer2HybridGradedComment o = q.firstResult();
+            o.stepValue = stepValue;
+            if (o.stepValue> o.hybridcomments.step){
+                o.stepValue = o.hybridcomments.step;
+            }
+            o.persistOrUpdate();
+            return answer2HybridGradedCommentMapper.toDto(o);
+        }
+    }
+
+
 
         /**
      * Get all the answer2HybridGradedComments.

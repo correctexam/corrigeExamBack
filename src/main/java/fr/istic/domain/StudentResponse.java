@@ -246,6 +246,10 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         return find("select distinct sr from StudentResponse sr where sr.question.id = ?1  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1 and sr.sheet.students IS NOT EMPTY ",questionId );
     }
 
+    public static PanacheQuery<StudentResponse> findAllByQuestionIdfetchAnswerfetchHybridCommand( long questionId) {
+        return find("select distinct sr from StudentResponse sr join fetch sr.hybridcommentsValues ah join fetch ah.hybridcomments h2 where sr.question.id = ?1  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1 and sr.sheet.students IS NOT EMPTY ",questionId );
+    }
+
 
 
 

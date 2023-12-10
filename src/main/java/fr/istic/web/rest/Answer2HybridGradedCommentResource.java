@@ -197,7 +197,7 @@ public class Answer2HybridGradedCommentResource {
      */
     @GET
     @Path("/{id}")
-    public Response getAnswer2HybridGradedComment(@PathParam("id") Long id) {
+    public Response getAnswer2HybridGradedComment(@PathParam("iAnswer2HybridGradedCommentd") Long id) {
         log.debug("REST request to get Answer2HybridGradedComment : {}", id);
         Optional<Answer2HybridGradedCommentDTO> answer2HybridGradedCommentDTO = answer2HybridGradedCommentService.findOne(id);
         return ResponseUtil.wrapOrNotFound(answer2HybridGradedCommentDTO);

@@ -126,5 +126,10 @@ ALTER TABLE `gradeScopeIstic`.`answer_2_hybrid_graded_comment` ADD UNIQUE `Uniqu
 [x] Test import and export
 [x] check delete
 [x] Export PDF with HybridComment
-[ ] update question or hybridComment => recompute score4 linked StudentResponse
 
+[x] update question or hybridComment => recompute score4 linked StudentResponse
+[x] test update question or hybridComment => recompute score4 linked StudentResponse
+[ ] update show all with this hybridComment
+[ ] update apply to all the same grade
+[x] update maximal step from 5 to 12. 
+[x] Allow direct grading when clicking to star

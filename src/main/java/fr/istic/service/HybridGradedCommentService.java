@@ -1,5 +1,6 @@
 package fr.istic.service;
 
+import fr.istic.domain.Answer2HybridGradedComment;
 import fr.istic.domain.GradedComment;
 import fr.istic.domain.HybridGradedComment;
 import fr.istic.service.dto.HybridGradedCommentDTO;
@@ -8,6 +9,9 @@ import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.panache.common.Page;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -30,7 +34,59 @@ public class HybridGradedCommentService {
     public HybridGradedCommentDTO persistOrUpdate(HybridGradedCommentDTO hybridGradedCommentDTO) {
         log.debug("Request to save HybridGradedComment : {}", hybridGradedCommentDTO);
         var hybridGradedComment = hybridGradedCommentMapper.toEntity(hybridGradedCommentDTO);
+        boolean shouldUpdate =false;
+
+        if (hybridGradedComment.id!= null){
+            HybridGradedComment h2 = HybridGradedComment.findById(hybridGradedComment.id);
+            if (h2 != null){
+                var oldGrade  = h2.grade;
+                var oldRelative  = h2.relative;
+                var oldStep  = h2.step;
+                if (hybridGradedComment.grade != oldGrade || hybridGradedComment.step != oldStep || hybridGradedComment.relative!= oldRelative){
+                    shouldUpdate  =true;
+                }
+
+            }
+        }
         hybridGradedComment = HybridGradedComment.persistOrUpdate(hybridGradedComment);
+        if (shouldUpdate){
+                List<Answer2HybridGradedComment> ans = Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByCommentId(hybridGradedComment.id).list().stream().filter(an3 -> an3.stepValue>0).collect(Collectors.toList());
+                for( Answer2HybridGradedComment an : ans){
+                    var st = an.studentResponse;
+                    var ans2 = an.studentResponse.hybridcommentsValues;
+
+                    var currentNote = 0.0;
+                    var absoluteNote2Add = 0.0;
+                    double pourcentage = 0.0;
+                    if (st.question != null && st.question.defaultpoint != null){
+                        pourcentage = st.question.defaultpoint.doubleValue()/4;
+                    }
+                    for (Answer2HybridGradedComment an2 : ans2){
+                        var stepValue = an.stepValue !=null ? an2.stepValue.doubleValue(): 0.0;
+                        if (stepValue > 0) {
+                            var relative = an2.hybridcomments.relative != null ? an2.hybridcomments.relative : false;
+                            var step = an2.hybridcomments.step != null ? an2.hybridcomments.step.doubleValue() : 1.0;
+                            var grade = an2.hybridcomments.grade != null ? an2.hybridcomments.grade.doubleValue() : 0.0;
+                            if (relative) {
+                              pourcentage = pourcentage + (stepValue / step) * grade;
+                            } else {
+                              absoluteNote2Add = absoluteNote2Add + (stepValue / step) * grade;
+                            }
+                          }
+                    }
+                    var point = st.question.quarterpoint !=null ? st.question.quarterpoint.doubleValue(): 0.0;
+                    currentNote = (point * pourcentage) / 100.0 + absoluteNote2Add;
+                    if (currentNote > point) {
+                        currentNote = point;
+                    } else if (currentNote < 0) {
+                        currentNote = 0;
+                    }
+                    st.quarternote = Double.valueOf(currentNote*100).intValue();
+                    st.persistOrUpdate();
+                }
+            }
+
+
         return hybridGradedCommentMapper.toDto(hybridGradedComment);
     }
 

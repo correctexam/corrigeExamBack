@@ -2359,11 +2359,29 @@ public class ExtendedAPI {
     }
 
 
+
+    @PUT
+    @Transactional()
+    @Path("/update-2-hybrid-graded-comments-with-stepvalue/{responseId}/{hybridCommentId}/{stepValue}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response updateAnswerHybridCommentWithStepValue(@PathParam("responseId") final long responseId, @PathParam("hybridCommentId") final long hybridCommentId,
+    @PathParam("stepValue") final int stepValue,
+            @Context final UriInfo uriInfo,
+            @Context final SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, responseId, StudentResponse.class)) {
+            return Response.status(403, "Current user cannot access this ressource").build();
+        }
+        Answer2HybridGradedCommentDTO result = this.answer2HybridGradedCommentService.setStepValueWithResponseIdAndHybridCommentId(responseId,hybridCommentId,stepValue);
+        return Response.ok().entity(result).build();
+
+    }
+
+
     @PUT
     @Transactional()
     @Path("/update-2-hybrid-graded-comments/{responseId}/{hybridCommentId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response updateStudentResponse4Cluster(@PathParam("responseId") final long responseId, @PathParam("hybridCommentId") final long hybridCommentId,
+    public Response updateAnswerHybridCommentWith(@PathParam("responseId") final long responseId, @PathParam("hybridCommentId") final long hybridCommentId,
             @Context final UriInfo uriInfo,
             @Context final SecurityContext ctx) {
         if (!securityService.canAccess(ctx, responseId, StudentResponse.class)) {
