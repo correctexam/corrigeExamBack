@@ -1,12 +1,15 @@
 package fr.istic.service;
 
 import io.quarkus.panache.common.Page;
+import fr.istic.domain.Answer2HybridGradedComment;
 import fr.istic.domain.Exam;
 import fr.istic.domain.GradedComment;
+import fr.istic.domain.HybridGradedComment;
 import fr.istic.domain.Question;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.TextComment;
 import fr.istic.domain.Zone;
+import fr.istic.domain.enumeration.GradeType;
 import fr.istic.service.dto.ExamDTO;
 import fr.istic.service.dto.QuestionDTO;
 import fr.istic.service.mapper.ExamMapper;
@@ -46,6 +49,48 @@ public class QuestionService {
     public QuestionDTO persistOrUpdate(QuestionDTO questionDTO) {
         log.debug("Request to save Question : {}", questionDTO);
         var question = questionMapper.toEntity(questionDTO);
+
+        if (question.id!= null){
+            Question q2 = Question.findById(question.id);
+            if (q2 != null && question.gradeType == GradeType.HYBRID && (
+                q2.gradeType != question.gradeType || q2.defaultpoint != question.defaultpoint || q2.quarterpoint != q2.quarterpoint
+            ) ){
+
+            List<StudentResponse> sts= StudentResponse.findAllByQuestionIdfetchAnswerfetchHybridCommand(question.id).list();
+            for (StudentResponse st : sts ){
+                var currentNote = 0.0;
+                    var absoluteNote2Add = 0.0;
+                    double pourcentage = 0.0;
+                    if (question != null && question.defaultpoint != null){
+                        pourcentage = question.defaultpoint.doubleValue();
+                    }
+
+                for( Answer2HybridGradedComment an2 : st.hybridcommentsValues){
+                        var stepValue = an2.stepValue.doubleValue();
+                        if (stepValue > 0) {
+                            var relative = an2.hybridcomments.relative != null ? an2.hybridcomments.relative : false;
+                            var step = an2.hybridcomments.step != null ? an2.hybridcomments.step.doubleValue() : 1.0;
+                            var grade = an2.hybridcomments.grade != null ? an2.hybridcomments.grade.doubleValue() : 0.0;
+
+                            if (relative) {
+                              pourcentage = pourcentage + (stepValue / step) * grade;
+                            } else {
+                              absoluteNote2Add = absoluteNote2Add + (stepValue / step) * grade;
+                            }
+                          }
+                    }
+                    var point = question.quarterpoint !=null ? question.quarterpoint.doubleValue(): 0.0;
+                    currentNote = (point * pourcentage) / 100.0 + absoluteNote2Add;
+                    if (currentNote > point) {
+                        currentNote = point;
+                    } else if (currentNote < 0) {
+                        currentNote = 0;
+                    }
+                    st.quarternote = Double.valueOf(currentNote*100).intValue();
+                    st.persistOrUpdate();
+                }
+            }
+        }
         question = Question.persistOrUpdate(question);
         return questionMapper.toDto(question);
     }
@@ -69,9 +114,16 @@ public class QuestionService {
         List<Long> textCommentsids = textComments.stream().map(gc -> gc.id).collect(Collectors.toList());
 
         this.deleteComments(gradeCommentids, textCommentsids);
+
         srs.forEach(sr -> {
+            Answer2HybridGradedComment.deleteAllAnswerHybridGradedCommentByAnswerId(sr.id);
             sr.delete();
         });
+        Set<Long> qids = new HashSet<>();
+        qids.add(question.id);
+        HybridGradedComment.deleteByQIds(qids);
+
+
         return question;
     }
 

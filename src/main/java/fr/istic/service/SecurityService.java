@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.core.SecurityContext;
 
+import fr.istic.domain.Answer2HybridGradedComment;
 import fr.istic.domain.Authority;
 import fr.istic.domain.Comments;
 import fr.istic.domain.Course;
@@ -15,6 +16,7 @@ import fr.istic.domain.Exam;
 import fr.istic.domain.ExamSheet;
 import fr.istic.domain.FinalResult;
 import fr.istic.domain.GradedComment;
+import fr.istic.domain.HybridGradedComment;
 import fr.istic.domain.Question;
 import fr.istic.domain.Scan;
 import fr.istic.domain.Student;
@@ -77,7 +79,12 @@ public class SecurityService {
                 number = Template.canAccess(id, userLogin.get()).count();
             } else if (entity.equals(TextComment.class)){
                 number = TextComment.canAccess(id, userLogin.get()).count();
-            } else if (entity.equals(Zone.class)){
+            }else if (entity.equals(HybridGradedComment.class)){
+                number = HybridGradedComment.canAccess(id, userLogin.get()).count();
+            }else if (entity.equals(Answer2HybridGradedComment.class)){
+                number = Answer2HybridGradedComment.canAccess(id, userLogin.get()).count();
+            }
+             else if (entity.equals(Zone.class)){
                 number = Zone.canAccess1(id, userLogin.get()).count();
                 number = number + Zone.canAccess2(id, userLogin.get()).count();
 

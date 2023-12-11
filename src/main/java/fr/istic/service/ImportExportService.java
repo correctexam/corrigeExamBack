@@ -30,6 +30,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
+import fr.istic.domain.Answer2HybridGradedComment;
 import fr.istic.domain.Comments;
 import fr.istic.domain.Course;
 import fr.istic.domain.CourseGroup;
@@ -37,6 +38,7 @@ import fr.istic.domain.Exam;
 import fr.istic.domain.ExamSheet;
 import fr.istic.domain.FinalResult;
 import fr.istic.domain.GradedComment;
+import fr.istic.domain.HybridGradedComment;
 import fr.istic.domain.Question;
 import fr.istic.domain.QuestionType;
 import fr.istic.domain.Scan;
@@ -232,6 +234,8 @@ public class ImportExportService {
                 questionJ.addProperty("quarterpoint", question.quarterpoint);
                 questionJ.addProperty("step", question.step);
                 questionJ.addProperty("validExpression", question.validExpression);
+                questionJ.addProperty("defaultpoint", question.defaultpoint);
+                questionJ.addProperty("libelle", question.libelle);
                 questionJ.addProperty("gradeType", question.gradeType.name());
                 questionJ.addProperty("type", question.type.algoName);
                 if (question.zone != null) {
@@ -284,6 +288,29 @@ public class ImportExportService {
                 gradedcommentJ.addProperty("zonegeneratedid", gradedcomment.zonegeneratedid);
                 gradedcomments.add(gradedcommentJ);
                 gradedcommentsUID.put(gradedcomment.id, gradedcommentU);
+            });
+        });
+
+        // HybridComments
+
+        JsonArray hybridcomments = new JsonArray();
+        Map<Long, UUID> hybridcommentsUID = new HashMap<>();
+        root.add("hybridcomments", hybridcomments);
+        questionsUID.keySet().stream().forEach(questionId -> {
+            Question question = Question.findById(questionId);
+            question.hybridcomments.stream().forEach(t -> {
+                HybridGradedComment hybridcomment = HybridGradedComment.findById(t.id);
+                JsonObject hybridcommentJ = new JsonObject();
+                UUID hybridcommentU = UUID.randomUUID();
+                uuidMap.put(hybridcommentU, hybridcomment.id);
+                hybridcommentJ.addProperty("uuid", hybridcommentU.toString());
+                hybridcommentJ.addProperty("text", hybridcomment.text);
+                hybridcommentJ.addProperty("description", hybridcomment.description);
+                hybridcommentJ.addProperty("relative", hybridcomment.relative);
+                hybridcommentJ.addProperty("grade", hybridcomment.grade);
+                hybridcommentJ.addProperty("step", hybridcomment.step);
+                hybridcomments.add(hybridcommentJ);
+                hybridcommentsUID.put(hybridcomment.id, hybridcommentU);
             });
         });
 
@@ -398,6 +425,7 @@ public class ImportExportService {
                     uuidMap.put(finalResultU, finalResult.id);
                     finalResultJ.addProperty("uuid", finalResultU.toString());
                     finalResultJ.addProperty("note", finalResult.note);
+                    finalResultJ.addProperty("frozen", finalResult.frozen);
                     finalResults.add(finalResultJ);
                     finalResultsUID.put(finalResult.id, finalResultU);
 
@@ -550,6 +578,18 @@ public class ImportExportService {
                 questionGradedCommentsR.add(ob);
             });
         });
+        JsonArray questionHybridCommentsR = new JsonArray();
+        root.add("questionHybridCommentsR", questionHybridCommentsR);
+        questionsUID.keySet().forEach(sid -> {
+            Question s = Question.findById(sid);
+            s.hybridcomments.forEach(hc -> {
+                JsonObject ob = new JsonObject();
+                ob.addProperty("left", questionsUID.get(sid).toString());
+                ob.addProperty("right", hybridcommentsUID.get(hc.id).toString());
+                questionHybridCommentsR.add(ob);
+            });
+        });
+
 
         if (includeStudentData) {
 
@@ -660,6 +700,21 @@ public class ImportExportService {
                     ob.addProperty("left", studentResponsesUID.get(sid).toString());
                     ob.addProperty("right", gradedcommentsUID.get(gc.id).toString());
                     studentResponseGradedCommentsR.add(ob);
+                });
+            });
+
+
+            JsonArray studentResponseHybridCommentsR = new JsonArray();
+            root.add("studentResponseHybridCommentsR", studentResponseHybridCommentsR);
+            studentResponsesUID.keySet().forEach(sid -> {
+                List<Answer2HybridGradedComment> ans = Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByAnswerId(sid).list();
+//                StudentResponse s = StudentResponse.findById(sid);
+                ans.forEach(an -> {
+                    JsonObject ob = new JsonObject();
+                    ob.addProperty("left", studentResponsesUID.get(an.studentResponse.id).toString());
+                    ob.addProperty("right", hybridcommentsUID.get(an.hybridcomments.id).toString());
+                    ob.addProperty("stepValue",an.stepValue);
+                    studentResponseHybridCommentsR.add(ob);
                 });
             });
 
@@ -922,6 +977,12 @@ public class ImportExportService {
                 if (gr.getAsJsonObject().get("validExpression") != null) {
                     question.validExpression = gr.getAsJsonObject().get("validExpression").getAsString();
                 }
+                if (gr.getAsJsonObject().get("libelle") != null) {
+                    question.libelle = gr.getAsJsonObject().get("libelle").getAsString();
+                }
+                if (gr.getAsJsonObject().get("defaultpoint") != null) {
+                    question.defaultpoint = gr.getAsJsonObject().get("defaultpoint").getAsInt();
+                }
                 if (gr.getAsJsonObject().get("gradeType") != null) {
                     question.gradeType = GradeType.valueOf(gr.getAsJsonObject().get("gradeType").getAsString());
                 }
@@ -976,6 +1037,31 @@ public class ImportExportService {
             });
         }
 
+        // HybridComments
+        if (_course.getAsJsonArray("hybridcomments") != null) {
+
+            _course.getAsJsonArray("hybridcomments").forEach(gr -> {
+                HybridGradedComment hybridComment = new HybridGradedComment();
+                if (gr.getAsJsonObject().get("text") != null) {
+                    hybridComment.text = gr.getAsJsonObject().get("text").getAsString();
+                }
+                if (gr.getAsJsonObject().get("description") != null) {
+                    hybridComment.description = gr.getAsJsonObject().get("description").getAsString();
+                }
+                if (gr.getAsJsonObject().get("grade") != null) {
+                    hybridComment.grade = gr.getAsJsonObject().get("grade").getAsInt();
+                }
+                if (gr.getAsJsonObject().get("step") != null) {
+                    hybridComment.step = gr.getAsJsonObject().get("step").getAsInt();
+                }
+                if (gr.getAsJsonObject().get("relative") != null) {
+                    hybridComment.relative = gr.getAsJsonObject().get("relative").getAsBoolean();
+                }
+                hybridComment.persistAndFlush();
+                uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), hybridComment.id);
+            });
+        }
+
         if (includeStudentData) {
 
             // ExamSheets
@@ -1023,6 +1109,9 @@ public class ImportExportService {
                     FinalResult finalResult = new FinalResult();
                     if (gr.getAsJsonObject().get("note") != null) {
                         finalResult.note = gr.getAsJsonObject().get("note").getAsInt();
+                    }
+                    if (gr.getAsJsonObject().get("frozen") != null) {
+                        finalResult.frozen = gr.getAsJsonObject().get("frozen").getAsBoolean();
                     }
                     finalResult.persistAndFlush();
                     uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), finalResult.id);
@@ -1267,6 +1356,19 @@ public class ImportExportService {
             });
         }
 
+
+        if (_course.getAsJsonArray("questionHybridCommentsR") != null) {
+
+            _course.getAsJsonArray("questionHybridCommentsR").forEach(gr -> {
+                String left = gr.getAsJsonObject().get("left").getAsString();
+                String right = gr.getAsJsonObject().get("right").getAsString();
+                Question ex = Question.findById(uuidId.get(left));
+                HybridGradedComment st = HybridGradedComment.findById(uuidId.get(right));
+                ex.hybridcomments.add(st);
+                st.question = ex;
+            });
+        }
+
         if (includeStudentData) {
 
             if (_course.getAsJsonArray("studentResponseTextCommentsR") != null) {
@@ -1291,6 +1393,25 @@ public class ImportExportService {
                     st.studentResponses.add(ex);
                 });
             }
+            if (_course.getAsJsonArray("studentResponseHybridCommentsR") != null) {
+
+                _course.getAsJsonArray("studentResponseHybridCommentsR").forEach(gr -> {
+                    String left = gr.getAsJsonObject().get("left").getAsString();
+                    String right = gr.getAsJsonObject().get("right").getAsString();
+                    StudentResponse ex = StudentResponse.findById(uuidId.get(left));
+                    HybridGradedComment st = HybridGradedComment.findById(uuidId.get(right));
+                    Answer2HybridGradedComment an = new Answer2HybridGradedComment();
+                    an.studentResponse=ex;
+                    ex.hybridcommentsValues.add(an);
+                    an.hybridcomments=st;
+                    st.valueAnswers.add(an);
+                    if (gr.getAsJsonObject().get("stepValue") != null){
+                        an.stepValue =  gr.getAsJsonObject().get("stepValue").getAsInt();
+                    }
+                    an.persistAndFlush();
+                });
+            }
+
             if (_course.getAsJsonArray("studentExamSheetR") != null) {
 
                 _course.getAsJsonArray("studentExamSheetR").forEach(gr -> {

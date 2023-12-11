@@ -7,6 +7,9 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class StudentResponsepdf {
     private List<Gradedcommentspdf> gradedcommentspdf;
+    private List<Hybridcommentspdf> hybridcommentspdf;
+
+
     private long id;
     private long note;
     private long questionID;
@@ -42,4 +45,21 @@ public class StudentResponsepdf {
 
     public boolean getWorststar() { return worststar; }
     public void setWorststar(boolean value) { this.worststar = value; }
+
+    public List<Hybridcommentspdf> getHybridcommentspdf() {
+        return this.hybridcommentspdf;
+    }
+
+    public void setHybridcommentspdf(List<Hybridcommentspdf> hybridcommentspdf) {
+        this.hybridcommentspdf = hybridcommentspdf;
+    }
+
+
+    public boolean isStar() {
+        return this.star;
+    }
+
+    public boolean isWorststar() {
+        return this.worststar;
+    }
 }

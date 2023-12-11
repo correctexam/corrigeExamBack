@@ -31,12 +31,17 @@ entity Question {
     step Integer
     validExpression String
     gradeType GradeType
+
+    // Add default point
+    defaultpoint Integer // Between 0 and 100
+
 }
 
 enum GradeType {
   DIRECT,
   POSITIVE,
-  NEGATIVE
+  NEGATIVE,
+  HYBRID
 }
 
 entity QuestionType {
@@ -59,11 +64,12 @@ entity Scan {
 
 entity FinalResult {
 	note Integer
+    frozen Boolean
 }
 
 
 entity StudentResponse {
-	note Integer
+	quarternote Integer
     star Boolean
     worststar Boolean
 
@@ -72,13 +78,9 @@ entity StudentResponse {
 entity TextComment {
 	text String
 	description TextBlob
-    // Could be removed
-	zonegeneratedid String
 }
 
 entity GradedComment {
-    // Could be removed
-	zonegeneratedid String
 	text String
     description TextBlob
 	grade Integer
@@ -99,11 +101,18 @@ entity Zone {
 	height Integer
 }
 
-
-entity CacheFile {
-	uuid String required
-	content Blob
+// New
+entity HybridGradedComment {
+	text String
+    description TextBlob
+	grade Integer
+    relative Boolean
+    step Integer
 }
+entity Answer2HybridGradedComment {
+    stepValue Integer
+}
+
 
 
 relationship ManyToOne {
@@ -112,7 +121,9 @@ relationship ManyToOne {
     StudentResponse{question(numero)} to Question
     StudentResponse{sheet(name)} to ExamSheet
     Question{type(algoName)} to QuestionType
-    CacheFile{question} to Question
+    // new
+    Answer2HybridGradedComment{hybridcomments(text)} to HybridGradedComment{valueAnswer}
+
 
 }
 
@@ -120,11 +131,14 @@ relationship OneToMany{
     Course{exam(name)} to Exam{course(name)}
 	Course{groups(groupName)} to CourseGroup{course(name)}
 	Exam{question(numero)} to Question{exam(name)}
-//	Exam{scan(name)} to Scan{exam(name)}
     StudentResponse{comments} to Comments{studentResponse}
     Scan{sheets} to ExamSheet{scan(name)}
     Question{textcomments} to TextComment{question}
     Question{gradedcomments} to GradedComment{question}
+    // new
+    Question{hybridcomments(text)} to HybridGradedComment{question}
+    StudentResponse{hybridcommentsValue} to Answer2HybridGradedComment
+
 
 }
 
@@ -138,14 +152,13 @@ relationship ManyToMany {
 
 relationship OneToOne {
 	Exam{template(name)} to Template{exam(name)}
+    // To change
 	Question{zone} to Zone
     Exam{idzone} to Zone
     Exam{namezone} to Zone
     Exam{firstnamezone} to Zone
     Exam{notezone} to Zone
     Exam{scanfile(name)} to Scan
-    CacheFile{question} to ExamSheet
-
 }
 
 

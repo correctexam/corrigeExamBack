@@ -48,6 +48,10 @@ public class Question extends PanacheEntityBase implements Serializable {
     @Column(name = "grade_type")
     public GradeType gradeType;
 
+    @Column(name = "defaultpoint")
+    public Integer defaultpoint;
+
+
     @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(unique = true)
     public Zone zone;
@@ -59,6 +63,10 @@ public class Question extends PanacheEntityBase implements Serializable {
     @OneToMany(mappedBy = "question",cascade = CascadeType.REMOVE)
     // @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     public Set<GradedComment> gradedcomments = new HashSet<>();
+
+    @OneToMany(mappedBy = "question")
+    // @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    public Set<HybridGradedComment> hybridcomments = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "type_id")
@@ -121,9 +129,11 @@ public class Question extends PanacheEntityBase implements Serializable {
             entity.validExpression = question.validExpression;
             entity.libelle = question.libelle;
             entity.gradeType = question.gradeType;
+            entity.defaultpoint = question.defaultpoint;
             entity.zone = question.zone;
             entity.textcomments = question.textcomments;
             entity.gradedcomments = question.gradedcomments;
+            entity.hybridcomments = question.hybridcomments;
             entity.type = question.type;
             entity.exam = question.exam;
         }

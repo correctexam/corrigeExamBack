@@ -26,6 +26,7 @@ public interface QuestionMapper extends EntityMapper<QuestionDTO, Question> {
     @Mapping(target = "textcomments", ignore = true)
     @Mapping(target = "gradedcomments", ignore = true)
   //  @Mapping(target = "zoneDTO", ignore = true)
+    @Mapping(target = "hybridcomments", ignore = true)
     @Mapping(source = "typeId", target = "type")
     @Mapping(source = "examId", target = "exam")
     @Mapping(source = "point", target = "quarterpoint", qualifiedByName = "point2quarterpoint")
