@@ -2505,6 +2505,12 @@ public class ExtendedAPI {
         if (answerdtotempalate.studentResponseId == -1) {
             return Response.noContent().build();
         }
+        List<Answer2HybridGradedComment> answerToCommentTemplate = new ArrayList<>();
+        if (question.gradeType == GradeType.HYBRID){
+            answerToCommentTemplate =Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByAnswerId(
+                        answerdtotempalate.studentResponseId).list();
+        }
+
         for (int toUpdate : clusterDto.getCopies()) {
             SheetQuestion answerdtoUpdate = answers.get(toUpdate);
             if (answerdtoUpdate.studentResponseId == -1) {
@@ -2519,13 +2525,30 @@ public class ExtendedAPI {
                     stToUpdate.textcomments.addAll(textcomments.values().stream()
                             .filter(gs2 -> answerdtotempalate.textComments.contains(gs2.id))
                             .collect(Collectors.toList()));
-                } else {
+                    StudentResponse.persist(stToUpdate);
+
+                } else if(question.gradeType == GradeType.HYBRID){
+                    StudentResponse.persist(stToUpdate);
+                    Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByAnswerId(
+                        answerdtotempalate.studentResponseId).list().forEach(an1-> {
+                        Answer2HybridGradedCommentDTO an = new Answer2HybridGradedCommentDTO();
+                        an.hybridcommentsId = an1.hybridcomments.id;
+                        an.studentResponseId = stToUpdate.id;
+                        an.stepValue = an1.stepValue;
+                        this.answer2HybridGradedCommentService.persistOrUpdate(an);
+                                                    log.error("pass par la2");
+
+                    });
+                }
+
+                else {
                     stToUpdate.gradedcomments.addAll(gradedcomments.values().stream()
                             .filter(gs2 -> answerdtotempalate.gradedComments.contains(gs2.id))
                             .collect(Collectors.toList()));
+                    StudentResponse.persist(stToUpdate);
+
                 }
 
-                StudentResponse.persist(stToUpdate);
 
             } else {
                 StudentResponse stToUpdate = StudentResponse.cleanCommentAndGrade(answerdtoUpdate.studentResponse);
@@ -2543,7 +2566,36 @@ public class ExtendedAPI {
                     stToUpdate.textcomments.addAll(textcomments.values().stream()
                             .filter(gs2 -> answerdtotempalate.textComments.contains(gs2.id))
                             .collect(Collectors.toList()));
-                } else {
+                } else if (question.gradeType == GradeType.HYBRID) {
+                    List<Answer2HybridGradedComment> existingComments =  Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByAnswerId(stToUpdate.id).list();
+                        existingComments.forEach(cc -> {
+                            cc.stepValue = 0;
+                            cc.persistOrUpdate();
+                        });
+
+                    answerToCommentTemplate.forEach(an1-> {
+                        if (existingComments.stream().map(cc-> cc.hybridcomments.id).anyMatch(ccid-> ccid==an1.hybridcomments.id)){
+                             var commentsToUpdate = existingComments.stream().filter(cc-> cc.hybridcomments.id == an1.hybridcomments.id).findFirst();
+                             if (commentsToUpdate.isPresent()){
+                                commentsToUpdate.get().stepValue = an1.stepValue;
+//                                log.error("should " + commentsToUpdate.get().hybridcomments.text + " "+
+ //                               commentsToUpdate.get().studentResponse.sheet.pagemin + " "+ commentsToUpdate.get().stepValue);
+
+                                commentsToUpdate.get().persistOrUpdate();
+                             } else{
+                                log.error("should never go there");
+                             }
+                        }else {
+                            Answer2HybridGradedCommentDTO an = new Answer2HybridGradedCommentDTO();
+                            an.hybridcommentsId = an1.hybridcomments.id;
+                            an.studentResponseId = stToUpdate.id;
+                            an.stepValue = an1.stepValue;
+                            this.answer2HybridGradedCommentService.persistOrUpdate(an);
+                        }
+                    });
+
+                }
+                else {
                     stToUpdate.gradedcomments.addAll(gradedcomments.values().stream()
                             .filter(gs2 -> answerdtotempalate.gradedComments.contains(gs2.id))
                             .collect(Collectors.toList()));
