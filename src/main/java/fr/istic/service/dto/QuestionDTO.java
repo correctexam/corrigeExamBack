@@ -28,6 +28,8 @@ public class QuestionDTO implements Serializable {
 
     public GradeType gradeType;
 
+    public Integer defaultpoint;
+
     public Long zoneId;
     public ZoneDTO zoneDTO;
     public Long typeId;

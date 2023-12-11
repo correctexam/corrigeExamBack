@@ -1,7 +1,9 @@
 package fr.istic.service.customdto;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import fr.istic.service.dto.CommentsDTO;
@@ -20,7 +22,7 @@ public class Answer4QuestionDTO {
     List<CommentsDTO> comments = new ArrayList<>();
     List<Long> textComments = new ArrayList<>();
     List<Long> gradedComments = new ArrayList<>();
-
+    Map<Long, Integer> hybridgradedComments = new HashMap<>();
 
     public Answer4QuestionDTO() {
     }
@@ -109,7 +111,15 @@ public class Answer4QuestionDTO {
         this.textComments = textComments;
     }
 
-    public List<Long> getGradedComments() {
+    public Map<Long,Integer> getHybridgradedComments() {
+        return this.hybridgradedComments;
+    }
+
+    public void setHybridgradedComments(Map<Long,Integer> hybridgradedComments) {
+        this.hybridgradedComments = hybridgradedComments;
+    }
+
+        public List<Long> getGradedComments() {
         return this.gradedComments;
     }
 

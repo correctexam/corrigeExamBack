@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import fr.istic.domain.HybridGradedComment;
 import fr.istic.domain.enumeration.GradeType;
 import fr.istic.service.dto.GradedCommentDTO;
+import fr.istic.service.dto.HybridGradedCommentDTO;
 import fr.istic.service.dto.TextCommentDTO;
 import fr.istic.service.dto.ZoneDTO;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -17,6 +19,7 @@ public class ZoneSameCommentDTO {
     List<Answer4QuestionDTO> answers;
     List<TextCommentDTO> textComments = new ArrayList<>();
     List<GradedCommentDTO> gradedComments = new ArrayList<>();
+    List<HybridGradedCommentDTO> hybridComments = new ArrayList<>();
 
      Double point;
      Integer step;
@@ -74,6 +77,15 @@ public class ZoneSameCommentDTO {
     public void setGradedComments(List<GradedCommentDTO> gradedComments) {
         this.gradedComments = gradedComments;
     }
+
+    public List<HybridGradedCommentDTO> getHybridComments() {
+        return this.hybridComments;
+    }
+
+    public void setHybridComments(List<HybridGradedCommentDTO> hybridComments) {
+        this.hybridComments = hybridComments;
+    }
+
 
     public Double getPoint() {
         return this.point;
@@ -140,6 +152,11 @@ public class ZoneSameCommentDTO {
 
     public ZoneSameCommentDTO gradedComments(List<GradedCommentDTO> gradedComments) {
         setGradedComments(gradedComments);
+        return this;
+    }
+
+        public ZoneSameCommentDTO hybridComments(List<HybridGradedCommentDTO> hybridComments) {
+        setHybridComments(hybridComments);
         return this;
     }
 

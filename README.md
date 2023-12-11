@@ -108,3 +108,29 @@ update question set point = point * 4;
 update `student_response` set note = note * 4;
 ALTER TABLE `question` ADD `libelle` VARCHAR(255) NULL DEFAULT NULL AFTER `valid_expression`;
 ALTER TABLE `gradeScopeIstic`.`final_result` ADD UNIQUE `UniqueStudentIdAndExamId` (`student_id`, `exam_id`);
+
+
+create table answer_2_hybrid_graded_comment (id bigint not null auto_increment, step_value integer, hybridcomments_id bigint, student_response_id bigint, primary key (id)) engine=InnoDB;
+create table hybrid_graded_comment (id bigint not null auto_increment, description longtext, grade integer, relative bit, step integer, text varchar(255), question_id bigint, primary key (id)) engine=InnoDB;
+alter table final_result add column frozen bit;
+alter table question add column defaultpoint integer;
+alter table answer_2_hybrid_graded_comment add constraint FK9ijm3itpjwpgf534m94df8dt6 foreign key (hybridcomments_id) references hybrid_graded_comment (id);
+alter table answer_2_hybrid_graded_comment add constraint FKqxflsw40s622dtyt99himou2k foreign key (student_response_id) references student_response (id);
+alter table hybrid_graded_comment add constraint FKrrl2y7dngtnqlklwt0scsy8jq foreign key (question_id) references question (id);
+
+ALTER TABLE `gradeScopeIstic`.`answer_2_hybrid_graded_comment` ADD UNIQUE `UniqueHybridcommentsIdAndStudentResponseId` (`student_response_id`, `hybridcomments_id`);
+
+[x] unique constraint for answer_2_hybrid_graded_comment
+[x] delete correctly when removing exam or course
+[x] Import Export with HybridComment
+[x] Test import and export
+[x] check delete
+[x] Export PDF with HybridComment
+
+[x] update question or hybridComment => recompute score4 linked StudentResponse
+[x] test update question or hybridComment => recompute score4 linked StudentResponse
+[x] update maximal step from 5 to 12. 
+[x] Allow direct grading when clicking to star
+[x] Update view copie4student
+[x] update show all with this hybridComment
+[ ] update apply to all the same grade

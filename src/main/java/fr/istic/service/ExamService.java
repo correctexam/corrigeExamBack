@@ -7,11 +7,13 @@ import io.minio.errors.InvalidResponseException;
 import io.minio.errors.ServerException;
 import io.minio.errors.XmlParserException;
 import io.quarkus.panache.common.Page;
+import fr.istic.domain.Answer2HybridGradedComment;
 import fr.istic.domain.Comments;
 import fr.istic.domain.Exam;
 import fr.istic.domain.ExamSheet;
 import fr.istic.domain.FinalResult;
 import fr.istic.domain.GradedComment;
+import fr.istic.domain.HybridGradedComment;
 import fr.istic.domain.Question;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.TextComment;
@@ -68,11 +70,17 @@ public class ExamService {
     public void delete(Long id) {
         log.debug("Request to delete Exam : {}", id);
         Exam.findByIdOptional(id).ifPresent(exam -> {
-            StudentResponse.getAll4ExamIdEvenOrphan(id).list().forEach(sr -> sr.clearComments());
+            StudentResponse.getAll4ExamIdEvenOrphan(id).list().forEach(sr -> {
+                sr.clearComments();
+                Answer2HybridGradedComment.deleteAllAnswerHybridGradedCommentByAnswerId(sr.id);
+            });
+
             ExamSheet.getAll4ExamIdEvenOrphan(id).list().forEach(sr -> sr.cleanBeforDelete());
             StudentResponse.getAll4ExamIdEvenOrphan(id).list().forEach(sr -> sr.delete());
             FinalResult.getAll4ExamId(id).list().forEach(f -> f.delete());
             Exam e = Exam.findById(id);
+            HybridGradedComment.deleteByQIds(e.questions.stream().map(q-> q.id).collect(Collectors.toSet()));
+
             if (e.scanfile != null && this.fichierS3Service.isObjectExist("scan/" + e.scanfile.id + ".pdf")) {
                 try {
                     this.fichierS3Service.deleteObject("scan/" + e.scanfile.id + ".pdf");
