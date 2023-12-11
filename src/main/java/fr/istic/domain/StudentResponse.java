@@ -271,12 +271,16 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     }
 
 
+    public static PanacheQuery<StudentResponse> getAllStudentResponse4QidNotInResponseIdLists(long qId, List<Long> otherResponseId) {
+            return find("select distinct sr from StudentResponse sr where sr.question.id = ?1 and sr.id NOT IN (?2)", qId,otherResponseId);
+    }
+
     public static PanacheQuery<StudentResponse> getAllStudentResponse4examIdGradedCommentId(long examId, long gradedCommentid) {
         return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet join fetch sr.question as q join fetch q.zone join fetch sheet.students left join fetch sr.gradedcomments gc1 join sr.gradedcomments gc  where sr.question.exam.id = ?1 and gc.id = ?2 and sheet.pagemin <> -1 and sheet.pagemax <> -1 and sheet.students IS NOT EMPTY",examId,gradedCommentid );
     }
 
-    public static PanacheQuery<Answer2HybridGradedComment> getAllStudentResponse4examIdHybridCommentId(long examId, long hybridCommentid) {
-        return find("select distinct an from Answer2HybridGradedComment an join fetch an.studentResponse as sr join fetch sr.sheet as sheet join fetch sr.question as q join fetch q.zone join fetch sheet.students join fetch an.hybridcomments hc  where sr.question.exam.id = ?1 and hc.id = ?2 and sheet.pagemin <> -1 and sheet.pagemax <> -1 and sheet.students IS NOT EMPTY",examId,hybridCommentid );
+    public static PanacheQuery<Answer2HybridGradedComment> getAllStudentResponse4examIdHybridCommentId(long examId, long hybridCommentid, int stepValue) {
+        return find("select distinct an from Answer2HybridGradedComment an join fetch an.studentResponse as sr join fetch sr.sheet as sheet join fetch sr.question as q join fetch q.zone join fetch sheet.students join fetch an.hybridcomments hc  where sr.question.exam.id = ?1 and hc.id = ?2 and an.stepValue=?3 and sheet.pagemin <> -1 and sheet.pagemax <> -1 and sheet.students IS NOT EMPTY",examId,hybridCommentid,stepValue );
     }
 
 

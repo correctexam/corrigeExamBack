@@ -103,6 +103,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -2007,18 +2008,35 @@ public class ExtendedAPI {
     }
 
     @GET
-    @Path("/getZone4HybridComment/{examId}/{hynridCommentId}")
+    @Path("/getZone4HybridComment/{examId}/{hybridCommentId}/{stepValue}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getZone4HybridComment(@PathParam("examId") final long examId,
-            @PathParam("hynridCommentId") final long hybridCommentId, @Context final UriInfo uriInfo,
+            @PathParam("hybridCommentId") final long hybridCommentId, @PathParam("stepValue") final int stepValue, @Context final UriInfo uriInfo,
             @Context final SecurityContext ctx) {
 
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access this ressource").build();
         }
-        List<Answer2HybridGradedComment> r = StudentResponse.getAllStudentResponse4examIdHybridCommentId(examId, hybridCommentId)
+        List<Answer2HybridGradedComment> _r = StudentResponse.getAllStudentResponse4examIdHybridCommentId(examId, hybridCommentId,stepValue)
                 .list();
+        List<Answer2HybridGradedComment> r = new ArrayList<>();
+        r.addAll(_r);
 
+        if (stepValue ==0){
+            Optional<HybridGradedComment> s = HybridGradedComment.findByIdOptional(hybridCommentId);
+            if (s.isPresent()){
+                long qId = s.get().question.id;
+                List<Long> answerIds = Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByCommentId(hybridCommentId).list().stream().map(hc -> hc.studentResponse.id).collect(Collectors.toList());
+                List<StudentResponse> resps = StudentResponse.getAllStudentResponse4QidNotInResponseIdLists(qId,answerIds).list();
+                for (StudentResponse resp : resps){
+                    Answer2HybridGradedComment an = new Answer2HybridGradedComment();
+                    an.hybridcomments = s.get();
+                    an.stepValue = 0;
+                    an.studentResponse = resp;
+                    r.add(an);
+                }
+            }
+        }
         ZoneSameCommentDTO dto = new ZoneSameCommentDTO();
         List<Answer4QuestionDTO> answers = new ArrayList<>();
         // Map<Long,TextCommentDTO> textComments = new HashMap<>();

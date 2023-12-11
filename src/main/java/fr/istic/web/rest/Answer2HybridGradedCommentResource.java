@@ -156,9 +156,9 @@ public class Answer2HybridGradedCommentResource {
 
          if (param.containsKey("answerId") ) {
             List answerId = (List) param.get("answerId");
-            if (!securityService.canAccess(ctx, Long.parseLong("" + answerId.get(0)), StudentResponse.class  )){
+/*            if (!securityService.canAccess(ctx, Long.parseLong("" + answerId.get(0)), StudentResponse.class  )){
                 return Response.status(403, "Current user cannot access to this ressource").build();
-            }
+            } */
             result = answer2HybridGradedCommentService.findAllAnswerHybridGradedCommentByAnswerId(page, Long.parseLong("" + answerId.get(0)));
         }
         else{

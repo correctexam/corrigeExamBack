@@ -81,7 +81,6 @@ public class QuestionService {
                     }
                     var point = question.quarterpoint !=null ? question.quarterpoint.doubleValue(): 0.0;
                     currentNote = (point * pourcentage) / 100.0 + absoluteNote2Add;
-                    log.error("currentNote : " +  currentNote);
                     if (currentNote > point) {
                         currentNote = point;
                     } else if (currentNote < 0) {

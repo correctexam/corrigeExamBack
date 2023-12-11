@@ -143,9 +143,9 @@ public class HybridGradedCommentResource {
 
          if (param.containsKey("questionId") ) {
             List questionId = (List) param.get("questionId");
-            if (!securityService.canAccess(ctx, Long.parseLong("" + questionId.get(0)), Question.class  )){
+            /* if (!securityService.canAccess(ctx, Long.parseLong("" + questionId.get(0)), Question.class  )){
                 return Response.status(403, "Current user cannot access to this ressource").build();
-            }
+            }*/
             result = hybridGradedCommentService.findHybridGradedCommentByQuestionId(page, Long.parseLong("" + questionId.get(0)));
         }
         else{
