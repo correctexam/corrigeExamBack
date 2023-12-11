@@ -2084,12 +2084,13 @@ public class ExtendedAPI {
                     if (i != nbeStudent) {
                         studentName = studentName + ", ";
                     }
-
                 }
                 answerdto.setStudentName(studentName);
                 answerdto.setNote(Integer.valueOf(studentResponse.quarternote).doubleValue() / 4);
                 answerdto.setComments(commentsMapper.toDto(new ArrayList<>(studentResponse.comments)));
-                answerdto.setHybridgradedComments(r.stream().filter(an1 -> an1.studentResponse.id == studentResponse.id && an1.stepValue>0).map(anh -> anh.hybridcomments.id).collect(Collectors.toList()));
+                Map<Long,Integer> hybridC = new HashMap<>();
+                r.stream().filter(an1 -> an1.studentResponse.id == studentResponse.id && an1.stepValue>0).forEach(anh-> hybridC.put(anh.hybridcomments.id, anh.stepValue));
+                answerdto.setHybridgradedComments(hybridC);
                 processSt.add(studentResponse);
                 answers.add(answerdto);
 
@@ -2206,9 +2207,14 @@ public class ExtendedAPI {
         List<Answer4QuestionDTO> answers = new ArrayList<>();
         Map<Long, TextCommentDTO> textcomments = new HashMap<>();
         Map<Long, GradedCommentDTO> gradedcomments = new HashMap<>();
+        Map<Long, HybridGradedComment> hybridcomments = new HashMap<>();
+
 
         if (r.size() > 0 && r.get(0).question != null) {
-            int numero = r.get(0).question.numero;
+             int numero = r.get(0).question.numero;
+            List<HybridGradedComment> hc=  HybridGradedComment.findByQuestionId(r.get(0).question.id).list();
+            hc.forEach(hc1 -> hybridcomments.put(hc1.id,hc1));
+
             dto.setNumero(numero);
             List<Question> questions = Question.findQuestionbyExamIdandnumero(examId, numero).list();
             if (questions.size() > 0) {
@@ -2271,12 +2277,18 @@ public class ExtendedAPI {
                     gradedcomments.put(gc.id, gradedCommentMapper.toDto(gc));
                 }
             }
+            List<Answer2HybridGradedComment> r1 = Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByAnswerId(studentResponse.id).list();
+            Map<Long,Integer> hybridC = new HashMap<>();
+            r1.stream().filter(an1 -> an1.studentResponse.id == studentResponse.id && an1.stepValue>0).forEach(anh-> hybridC.put(anh.hybridcomments.id, anh.stepValue));
+            answerdto.setHybridgradedComments(hybridC);
             answers.add(answerdto);
         }
 
         dto.setAnswers(answers);
         dto.setTextComments(new ArrayList(textcomments.values()));
         dto.setGradedComments(new ArrayList(gradedcomments.values()));
+        dto.setHybridComments(new ArrayList(hybridcomments.values()));
+
         return Response.ok().entity(dto).build();
 
     }
@@ -2297,11 +2309,15 @@ public class ExtendedAPI {
         List<Answer4QuestionDTO> answers = new ArrayList<>();
         Map<Long, TextCommentDTO> textcomments = new HashMap<>();
         Map<Long, GradedCommentDTO> gradedcomments = new HashMap<>();
+        Map<Long, HybridGradedComment> hybridcomments = new HashMap<>();
 
         int numero = question.numero;
         dto.setNumero(numero);
         List<Question> questions = Question.findQuestionbyExamIdandnumero(examId, numero).list();
         if (questions.size() > 0) {
+            List<HybridGradedComment> hc=  HybridGradedComment.findByQuestionId(questions.get(0).id).list();
+            hc.forEach(hc1 -> hybridcomments.put(hc1.id,hc1));
+
             dto.setZones(zoneMapper.toDto(questions.stream().map(q -> q.zone).collect(Collectors.toList())));
             dto.setGradeType(questions.get(0).gradeType);
             dto.setPoint(Integer.valueOf(questions.get(0).quarterpoint).doubleValue() / 4);
@@ -2363,15 +2379,19 @@ public class ExtendedAPI {
                         gradedcomments.put(gc.id, gradedCommentMapper.toDto(gc));
                     }
                 }
-
+                List<Answer2HybridGradedComment> r1 = Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByAnswerId(studentResponse.id).list();
+                Map<Long,Integer> hybridC = new HashMap<>();
+                r1.stream().filter(an1 -> an1.studentResponse.id == studentResponse.id && an1.stepValue>0).forEach(anh-> hybridC.put(anh.hybridcomments.id, anh.stepValue));
+                answerdto.setHybridgradedComments(hybridC);
             }
-
             answers.add(answerdto);
         }
 
         dto.setAnswers(answers);
         dto.setTextComments(new ArrayList(textcomments.values()));
         dto.setGradedComments(new ArrayList(gradedcomments.values()));
+        dto.setHybridComments(new ArrayList(hybridcomments.values()));
+
         return Response.ok().entity(dto).build();
 
     }
