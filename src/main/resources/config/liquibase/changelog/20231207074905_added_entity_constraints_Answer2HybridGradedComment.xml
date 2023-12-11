@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <!--
+        Added the constraints for entity Answer2HybridGradedComment.
+    -->
+    <changeSet id="20231207074905-2" author="jhipster">
+
+        <addForeignKeyConstraint baseColumnNames="hybridcomments_id"
+                                 baseTableName="answer_2_hybrid_graded_comment"
+                                 constraintName="fk_answer_2_hybrid_graded_comment__hybridcomments_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="hybrid_graded_comment"/>
+
+        <addForeignKeyConstraint baseColumnNames="student_response_id"
+                                 baseTableName="answer_2_hybrid_graded_comment"
+                                 constraintName="fk_answer_2_hybrid_graded_comment__student_response_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="student_response"/>
+    </changeSet>
+</databaseChangeLog>
