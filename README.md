@@ -133,4 +133,4 @@ ALTER TABLE `gradeScopeIstic`.`answer_2_hybrid_graded_comment` ADD UNIQUE `Uniqu
 [x] Allow direct grading when clicking to star
 [x] Update view copie4student
 [x] update show all with this hybridComment
-[ ] update apply to all the same grade
+[x] update apply to all the same grade
