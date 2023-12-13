@@ -2,10 +2,13 @@ package fr.istic.web.rest;
 
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
+import fr.istic.domain.Answer2HybridGradedComment;
 import fr.istic.domain.Authority;
 import fr.istic.domain.GradedComment;
 import fr.istic.domain.HybridGradedComment;
 import fr.istic.domain.Question;
+import fr.istic.domain.StudentResponse;
+import fr.istic.domain.TextComment;
 import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.HybridGradedCommentService;
@@ -187,5 +190,17 @@ public class HybridGradedCommentResource {
         log.debug("REST request to get HybridGradedComment : {}", id);
         Optional<HybridGradedCommentDTO> hybridGradedCommentDTO = hybridGradedCommentService.findOne(id);
         return ResponseUtil.wrapOrNotFound(hybridGradedCommentDTO);
+    }
+
+    @GET
+    @Path("/countHowManyUse/{id}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    public Response getUsedOfGradedComment(@PathParam("id") Long id, @Context SecurityContext ctx) {
+        log.debug("REST request to get count HybridGradedCommentUse : {}", id);
+        if (!securityService.canAccess(ctx, id, HybridGradedComment.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        long l = Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByCommentIdWithStepvalueUpperThan0(id).count();
+        return Response.ok(Long.valueOf(l)).build();
     }
 }

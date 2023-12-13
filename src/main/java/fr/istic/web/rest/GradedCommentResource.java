@@ -5,6 +5,7 @@ import static javax.ws.rs.core.UriBuilder.fromPath;
 import fr.istic.domain.Authority;
 import fr.istic.domain.GradedComment;
 import fr.istic.domain.Question;
+import fr.istic.domain.StudentResponse;
 import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.GradedCommentService;
@@ -185,4 +186,17 @@ public class GradedCommentResource {
         Optional<GradedCommentDTO> gradedCommentDTO = gradedCommentService.findOne(id);
         return ResponseUtil.wrapOrNotFound(gradedCommentDTO);
     }
+
+    @GET
+    @Path("/countHowManyUse/{id}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    public Response getUsedOfGradedComment(@PathParam("id") Long id, @Context SecurityContext ctx) {
+        log.debug("REST request to get GradedComment : {}", id);
+        if (!securityService.canAccess(ctx, id, GradedComment.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        long l = StudentResponse.findAllByGradedCommentsIds(id).count();
+        return Response.ok(Long.valueOf(l)).build();
+    }
+
 }
