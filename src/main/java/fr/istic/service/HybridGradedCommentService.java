@@ -50,7 +50,7 @@ public class HybridGradedCommentService {
         }
         hybridGradedComment = HybridGradedComment.persistOrUpdate(hybridGradedComment);
         if (shouldUpdate){
-                List<Answer2HybridGradedComment> ans = Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByCommentId(hybridGradedComment.id).list().stream().filter(an3 -> an3.stepValue>0).collect(Collectors.toList());
+                List<Answer2HybridGradedComment> ans = Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByCommentIdWithFetchWithStepvalueUpperThan0(hybridGradedComment.id).list(); //.stream().filter(an3 -> an3.stepValue>0).collect(Collectors.toList());
                 for( Answer2HybridGradedComment an : ans){
                     var st = an.studentResponse;
                     var ans2 = an.studentResponse.hybridcommentsValues;

@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.istic.domain.Authority;
+import fr.istic.domain.GradedComment;
+import fr.istic.domain.StudentResponse;
 import fr.istic.domain.TextComment;
 import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
@@ -181,4 +183,18 @@ public class TextCommentResource {
         Optional<TextCommentDTO> textCommentDTO = textCommentService.findOne(id);
         return ResponseUtil.wrapOrNotFound(textCommentDTO);
     }
+
+
+    @GET
+    @Path("/countHowManyUse/{id}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    public Response getUsedOfGradedComment(@PathParam("id") Long id, @Context SecurityContext ctx) {
+        log.debug("REST request to get count textcommentUse : {}", id);
+        if (!securityService.canAccess(ctx, id, TextComment.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        long l = StudentResponse.findAllByTextCommentsIds(id).count();
+        return Response.ok(Long.valueOf(l)).build();
+    }
+
 }

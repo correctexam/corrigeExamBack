@@ -100,8 +100,16 @@ public class Answer2HybridGradedComment extends PanacheEntityBase implements Ser
     public static PanacheQuery<Answer2HybridGradedComment> findAllAnswerHybridGradedCommentByAnswerId(long responseId){
         return find("select c from Answer2HybridGradedComment c where c.studentResponse.id =?1", responseId);
     }
-    public static PanacheQuery<Answer2HybridGradedComment> findAllAnswerHybridGradedCommentByCommentId(long hybridCommentId){
-        return find("select c from Answer2HybridGradedComment c join fetch c.studentResponse st join fetch st.hybridcommentsValues ah2 join fetch ah2.hybridcomments as h2 where c.hybridcomments.id  =?1", hybridCommentId);
+    public static PanacheQuery<Answer2HybridGradedComment> findAllAnswerHybridGradedCommentByCommentIdWithStepvalueUpperThan0(long hybridcommentId){
+        return find("select c from Answer2HybridGradedComment c where c.hybridcomments.id =?1 and c.stepValue >0", hybridcommentId);
+    }
+
+    public static PanacheQuery<Answer2HybridGradedComment> findAllAnswerHybridGradedCommentByCommentId(long hybridcommentId){
+        return find("select c from Answer2HybridGradedComment c where c.hybridcomments.id =?1", hybridcommentId);
+    }
+
+    public static PanacheQuery<Answer2HybridGradedComment> findAllAnswerHybridGradedCommentByCommentIdWithFetchWithStepvalueUpperThan0(long hybridCommentId){
+        return find("select c from Answer2HybridGradedComment c join fetch c.studentResponse st join fetch st.hybridcommentsValues ah2 join fetch ah2.hybridcomments as h2 where c.hybridcomments.id  =?1 and c.stepValue >0", hybridCommentId);
     }
 
     public static PanacheQuery<Answer2HybridGradedComment> canAccess(long commentId, String login) {
