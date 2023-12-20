@@ -10,8 +10,11 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -76,7 +79,7 @@ public class ImportExportService {
     @Inject
     CourseMapper courseMapper;
 
-    public JsonObject export(long courseId, boolean includeStudentData) {
+    public JsonObject export(long courseId, boolean includeStudentData, long eid) {
         Map<UUID, Long> uuidMap = new HashMap<UUID, Long>();
         JsonObject root = new JsonObject();
 
@@ -140,7 +143,12 @@ public class ImportExportService {
         JsonArray exams = new JsonArray();
         Map<Long, UUID> examsUID = new HashMap<>();
         root.add("exams", exams);
-        course.exams.stream().forEach(exam -> {
+        Set<Exam> _exams = course.exams;
+        if (eid != -1){
+           _exams= _exams.stream().filter(ex-> ex.id == eid).collect(Collectors.toSet());
+        }
+
+        _exams.stream().forEach(exam -> {
             JsonObject examJ = new JsonObject();
             UUID examU = UUID.randomUUID();
             uuidMap.put(examU, exam.id);
@@ -458,7 +466,7 @@ public class ImportExportService {
         }
         JsonArray courseExamR = new JsonArray();
         root.add("courseExamR", courseExamR);
-        course.exams.forEach(ex -> {
+        _exams.forEach(ex -> {
             JsonObject ob = new JsonObject();
             ob.addProperty("left", courseU.toString());
             ob.addProperty("right", examsUID.get(ex.id).toString());
@@ -723,10 +731,12 @@ public class ImportExportService {
             studentsUID.keySet().forEach(sid -> {
                 Student s = Student.findById(sid);
                 s.examSheets.forEach(gc -> {
-                    JsonObject ob = new JsonObject();
-                    ob.addProperty("left", studentsUID.get(sid).toString());
-                    ob.addProperty("right", examSheetsUID.get(gc.id).toString());
-                    studentExamSheetR.add(ob);
+                    if (examSheetsUID.containsKey(gc.id)){
+                        JsonObject ob = new JsonObject();
+                        ob.addProperty("left", studentsUID.get(sid).toString());
+                        ob.addProperty("right", examSheetsUID.get(gc.id).toString());
+                        studentExamSheetR.add(ob);
+                    }
                 });
             });
 

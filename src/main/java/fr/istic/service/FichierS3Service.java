@@ -27,6 +27,7 @@ import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
 import io.minio.StatObjectArgs;
+import io.minio.UploadObjectArgs;
 import io.minio.errors.ErrorResponseException;
 import io.minio.errors.InsufficientDataException;
 import io.minio.errors.InternalException;
@@ -104,7 +105,44 @@ public class FichierS3Service {
             }
         }
     }
+    public void uploadObject(String name, String filename, String contenttype) throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException{
+         if (!saveasfile) {
+        try {
 
+                this.createBucketifNotExist();
+
+                minioClient.uploadObject(
+                        UploadObjectArgs.builder()
+                                .bucket(bucketName)
+                                .object(name).filename(
+                                        filename)
+                                .contentType(contenttype)
+                                .build());
+            } catch (MinioException e) {
+                e.printStackTrace();
+                throw new IllegalStateException(e);
+
+        }}
+        else{
+            Path patht = Paths.get("template");
+            if (!Files.exists(patht)){
+                Files.createDirectory(patht);
+            }
+            Path paths = Paths.get("scan");
+            if (!Files.exists(paths)){
+                Files.createDirectory(paths);
+            }
+             Path pathc = Paths.get("cache");
+            if (!Files.exists(pathc)){
+                Files.createDirectory(pathc);
+            }
+            Path path = Paths.get(name);
+            OutputStream outputStream = Files.newOutputStream(path);
+            outputStream.write(Files.readAllBytes(Paths.get(filename)));
+            outputStream.close();
+        }
+
+    }
     public void putObject(String name, byte[] bytes, String contenttype)
             throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException {
         if (saveasfile) {

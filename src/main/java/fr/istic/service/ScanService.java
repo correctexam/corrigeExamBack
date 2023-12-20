@@ -15,18 +15,12 @@ import io.minio.errors.XmlParserException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.pdfbox.io.MemoryUsageSetting;
-import org.apache.pdfbox.io.RandomAccessReadBuffer;
 import org.apache.pdfbox.io.RandomAccessReadBufferedFile;
-import org.apache.pdfbox.io.RandomAccessStreamCache;
-import org.apache.pdfbox.io.ScratchFile;
-import org.apache.pdfbox.io.RandomAccessStreamCache.StreamCacheCreateFunction;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.multipdf.PDFMergerUtility.DocumentMergeMode;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
-import org.simpleframework.xml.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +28,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -317,22 +310,25 @@ public class ScanService {
             src.save(fo);
             fo.close();
 
-            byte[] bytes = IOUtils.toByteArray(new FileInputStream(res.toFile()));
+            scan.toFile().delete();
+            toadd.toFile().delete();
+
+
+//            byte[] bytes = IOUtils.toByteArray(new FileInputStream(res.toFile()));
             if (this.uses3) {
                 String fileName = "scan/" + scanId + ".pdf";
                 try {
+                    this.uploadObject(fileName, res.toFile().getAbsoluteFile().getAbsolutePath(), contenttype);
+                    res.toFile().delete();
 
-                    this.putObject(fileName, bytes, contenttype);
                 } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
                     e.printStackTrace();
                 }
             } else {
+                byte[] bytes = IOUtils.toByteArray(new FileInputStream(res.toFile()));
                 this.updateContent(scanId, bytes);
-
+                res.toFile().delete();
             }
-            scan.toFile().delete();
-            toadd.toFile().delete();
-            res.toFile().delete();
 
         } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
             e.printStackTrace();
@@ -374,5 +370,10 @@ public class ScanService {
             throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException {
         this.fichierS3Service.putObject(name, bytes, contenttype);
     }
+        protected void uploadObject(String name,String origfilename, String contenttype)
+            throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException {
+        this.fichierS3Service.uploadObject(name, origfilename, contenttype);
+    }
+
 
 }

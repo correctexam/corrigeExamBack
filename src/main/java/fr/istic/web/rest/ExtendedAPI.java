@@ -1265,7 +1265,45 @@ public class ExtendedAPI {
                             InputStream source = null;
                             try {
                                 source = new ByteArrayInputStream(
-                                        new Gson().toJson(importExportService.export(courseId, true)).getBytes());
+                                        new Gson().toJson(importExportService.export(courseId, true,-1)).getBytes());
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                return;
+                            }
+                            byte[] buf = new byte[8192];
+                            int length;
+                            while ((length = source.read(buf)) != -1) {
+                                outputStream.write(buf, 0, length);
+                            }
+                        }
+                    }, MediaType.APPLICATION_OCTET_STREAM)
+                    .header("Content-Disposition", "attachment;filename=" + courseId + ".json")
+                    .build();
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            return Response.noContent().build();
+        }
+    }
+
+        @GET
+    @Path("/exportExam/{courseId}/{examId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response exportExam(@PathParam("courseId") long courseId, @PathParam("examId") long examId, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, courseId, Course.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        try {
+            return Response.ok(
+                    new StreamingOutput() {
+                        @Override
+                        public void write(OutputStream outputStream) throws IOException, WebApplicationException {
+                            InputStream source = null;
+                            try {
+                                source = new ByteArrayInputStream(
+                                        new Gson().toJson(importExportService.export(courseId, true,examId)).getBytes());
 
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -1397,7 +1435,45 @@ public class ExtendedAPI {
                             InputStream source = null;
                             try {
                                 source = new ByteArrayInputStream(
-                                        new Gson().toJson(importExportService.export(courseId, false)).getBytes());
+                                        new Gson().toJson(importExportService.export(courseId, false,-1)).getBytes());
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                return;
+                            }
+                            byte[] buf = new byte[8192];
+                            int length;
+                            while ((length = source.read(buf)) != -1) {
+                                outputStream.write(buf, 0, length);
+                            }
+                        }
+                    }, MediaType.APPLICATION_OCTET_STREAM)
+                    .header("Content-Disposition", "attachment;filename=" + courseId + ".json")
+                    .build();
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            return Response.noContent().build();
+        }
+    }
+
+        @GET
+    @Path("/exportExamWithoutStudentData/{courseId}/{examId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response exportExamWithoutStudentData(@PathParam("courseId") long courseId, @PathParam("examId") long examId, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, courseId, Course.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        try {
+            return Response.ok(
+                    new StreamingOutput() {
+                        @Override
+                        public void write(OutputStream outputStream) throws IOException, WebApplicationException {
+                            InputStream source = null;
+                            try {
+                                source = new ByteArrayInputStream(
+                                        new Gson().toJson(importExportService.export(courseId, false,examId)).getBytes());
 
                             } catch (Exception e) {
                                 e.printStackTrace();
