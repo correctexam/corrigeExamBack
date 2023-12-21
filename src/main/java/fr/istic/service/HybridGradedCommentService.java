@@ -75,7 +75,7 @@ public class HybridGradedCommentService {
                           }
                     }
                     var point = st.question.quarterpoint !=null ? st.question.quarterpoint.doubleValue(): 0.0;
-                    currentNote = (point * pourcentage) / 100.0 + absoluteNote2Add;
+                    currentNote = (point * pourcentage) / 400.0 + absoluteNote2Add;
                     if (currentNote > point) {
                         currentNote = point;
                     } else if (currentNote < 0) {
