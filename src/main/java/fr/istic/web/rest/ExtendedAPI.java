@@ -36,6 +36,7 @@ import fr.istic.service.SecurityService;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.hibernate.result.Output;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 
@@ -87,9 +88,11 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -109,6 +112,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import static javax.ws.rs.core.UriBuilder.fromPath;
 
@@ -1297,24 +1301,17 @@ public class ExtendedAPI {
         }
         try {
             return Response.ok(
+
                     new StreamingOutput() {
                         @Override
                         public void write(OutputStream outputStream) throws IOException, WebApplicationException {
-                            InputStream source = null;
-                            try {
-                                source = new ByteArrayInputStream(
-                                        new Gson().toJson(importExportService.export(courseId, true,examId)).getBytes());
-
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                return;
-                            }
-                            byte[] buf = new byte[8192];
-                            int length;
-                            while ((length = source.read(buf)) != -1) {
-                                outputStream.write(buf, 0, length);
-                            }
+                            OutputStreamWriter w = new OutputStreamWriter(outputStream);
+                            Gson gson = new GsonBuilder().create();
+                            gson.toJson(importExportService.export(courseId, true,examId), w);
+                            w.flush();
+                            w.close();
                         }
+
                     }, MediaType.APPLICATION_OCTET_STREAM)
                     .header("Content-Disposition", "attachment;filename=" + courseId + ".json")
                     .build();
