@@ -65,7 +65,6 @@ class Relation {
 }
 
 @ApplicationScoped
-@Transactional
 public class ImportExportService {
 
     private final Logger log = LoggerFactory.getLogger(ImportExportService.class);
@@ -1453,6 +1452,7 @@ public class ImportExportService {
         this.fichierS3Service.putObject(name, bytes, contenttype);
     }
 
+    @Transactional
     public CourseDTO importCourse(MultipartFormDataInput input, User user, boolean includeStudentData) {
         Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
 
