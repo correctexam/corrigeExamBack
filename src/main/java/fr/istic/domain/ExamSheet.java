@@ -115,20 +115,31 @@ public class ExamSheet extends PanacheEntityBase implements Serializable {
         return find("select e from ExamSheet e where e.name =?1", name);
     }
 
+    public static PanacheQuery<ExamSheet> findExamSheetByScanAndPageminAndPagemax(Long scanId, Integer pagemin,
+            Integer pagemax) {
+        return find("select e from ExamSheet e where e.scan.id =?1 and  e.pagemin = ?2 and e.pagemax = ?3", scanId,pagemin,pagemax);
+    }
+
+
     public static PanacheQuery<ExamSheet> findExamSheetByScan( long scanId) {
         return find("select e from ExamSheet e where e.scan.id =?1", scanId);
     }
+
+    public static PanacheQuery<ExamSheet> findExamSheetByScanWithoutMinusOne( long scanId) {
+        return find("select e from ExamSheet e where e.scan.id =?1 and  e.pagemin <> -1 and e.pagemax <> -1", scanId);
+    }
+
 
     public static PanacheQuery<ExamSheet> findExamSheetByScanAndStudentId( long scanId, long studentId) {
         return find("select e from ExamSheet e join e.students as st where e.scan.id =?1 and st.id = ?2", scanId, studentId);
     }
 
     public static PanacheQuery<ExamSheet> canAccess(long courseGroupId, String login) {
-        return find("select ex from ExamSheet ex join ex.students as s join s.groups as g join g.course.profs as u where  ex.id =?1 and u.login =?2", courseGroupId, login);
+        return find("select ex from Exam ex join ex.scanfile as s join s.sheets as sh join ex.course.profs as u where  sh.id =?1 and u.login =?2", courseGroupId, login);
     }
 
     public static PanacheQuery<ExamSheet> getAll4ExamId( long examId) {
-        return find("select distinct ex from Exam as e join  e.scanfile.sheets  as ex  where e.id = ?1 and  ex.pagemin <> -1 and ex.pagemax <> -1 and ex.students IS NOT EMPTY" ,examId);
+        return find("select distinct ex from Exam as e join  e.scanfile.sheets  as ex  where e.id = ?1 and  ex.pagemin <> -1 and ex.pagemax <> -1" ,examId);
     }
 
     public static PanacheQuery<ExamSheet> getAll4ExamIdEvenOrphan( long examId) {
@@ -158,4 +169,5 @@ public class ExamSheet extends PanacheEntityBase implements Serializable {
             e.update();
         });
     }
+
 }

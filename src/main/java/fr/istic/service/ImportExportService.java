@@ -739,13 +739,13 @@ public class ImportExportService {
                 });
             });
 
-            JsonArray studentIdUidMappings = new JsonArray();
-            root.add("studentIdUidMappings", studentIdUidMappings);
-            studentsUID.entrySet().forEach(sid -> {
+            JsonArray sheetIdUidMappings = new JsonArray();
+            root.add("sheetIdUidMappings", sheetIdUidMappings);
+            examSheetsUID.entrySet().forEach(sid -> {
                 JsonObject ob = new JsonObject();
                 ob.addProperty("left", sid.getKey());
                 ob.addProperty("right", sid.getValue().toString());
-                studentIdUidMappings.add(ob);
+                sheetIdUidMappings.add(ob);
             });
         }
 
@@ -779,7 +779,8 @@ public class ImportExportService {
 
     public Course importCourse(JsonObject _course, User user, boolean includeStudentData) {
         Map<Long, String> importexamsUID = new HashMap<>();
-        Map<Long, String> importstudentsUID = new HashMap<>();
+        //Map<Long, String> _importstudentsUID = new HashMap<>();
+        Map<Long, String> importsheetUID = new HashMap<>();
         Map<String, Long> uuidId = new HashMap<>();
 
 
@@ -789,10 +790,17 @@ public class ImportExportService {
         });
 
         if (includeStudentData) {
-            if (_course.getAsJsonArray("studentIdUidMappings") != null) {
+           /* if (_course.getAsJsonArray("studentIdUidMappings") != null) {
 
                 _course.getAsJsonArray("studentIdUidMappings").forEach(st -> {
                     importstudentsUID.put(st.getAsJsonObject().get("left").getAsLong(),
+                            st.getAsJsonObject().get("right").getAsString());
+                });
+            }*/
+            if (_course.getAsJsonArray("sheetIdUidMappings") != null) {
+
+                _course.getAsJsonArray("sheetIdUidMappings").forEach(st -> {
+                    importsheetUID.put(st.getAsJsonObject().get("left").getAsLong(),
                             st.getAsJsonObject().get("right").getAsString());
                 });
             }
@@ -1138,7 +1146,7 @@ public class ImportExportService {
                     StringTokenizer t = new StringTokenizer(comment.zonegeneratedid, "_");
                     if (t.countTokens() > 1) {
                         String examId = t.nextToken();
-                        String studentId = t.nextToken();
+                        String sheetId = t.nextToken();
                         String questiono = t.nextToken();
                         String index = t.nextToken();
                         /*
@@ -1147,7 +1155,7 @@ public class ImportExportService {
                          *
                          */
                         comment.zonegeneratedid = "" + uuidId.get(importexamsUID.get(Long.parseLong(examId))) + "_" +
-                                uuidId.get(importstudentsUID.get(Long.parseLong(studentId))) + "_" + questiono + "_"
+                                uuidId.get(importsheetUID.get(Long.parseLong(sheetId))) + "_" + questiono + "_"
                                 + index;
                     }
 

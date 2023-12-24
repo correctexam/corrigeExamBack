@@ -36,8 +36,10 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -145,14 +147,19 @@ public class ExamResource {
         Optional<Exam> ex = Exam.findByIdOptional(id);
         if (ex.isPresent()){
             List<Student> st = Student.findStudentsbyCourseId(ex.get().course.id).list();
+            Set<ExamSheet> toRemoveS = new HashSet<>();
             for (Student student : st){
                 List<ExamSheet> toRemove = student.examSheets.stream().filter(es -> es.scan.id == ex.get().scanfile.id).collect(Collectors.toList());
+                toRemoveS.addAll(toRemove);
                 student.examSheets.removeIf(es -> es.scan.id == ex.get().scanfile.id);
                 Student.update(student);
-                for (ExamSheet toRemove1: toRemove){
+            }
+            for (ExamSheet toRemove1: toRemoveS){
+                if (StudentResponse.findStudentResponsesbysheetId(toRemove1.id).count() ==0){
                     toRemove1.delete();
                 }
             }
+
         }
         var response = Response.noContent();
         HeaderUtil.createEntityDeletionAlert(applicationName, true, "examSheet", "-1")

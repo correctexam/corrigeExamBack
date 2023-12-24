@@ -59,10 +59,11 @@ public class HybridGradedCommentService {
                     var absoluteNote2Add = 0.0;
                     double pourcentage = 0.0;
                     if (st.question != null && st.question.defaultpoint != null){
-                        pourcentage = st.question.defaultpoint.doubleValue()/4;
+                        pourcentage = st.question.defaultpoint.doubleValue() *4;
+
                     }
                     for (Answer2HybridGradedComment an2 : ans2){
-                        var stepValue = an.stepValue !=null ? an2.stepValue.doubleValue(): 0.0;
+                        var stepValue = an2.stepValue !=null ? an2.stepValue.doubleValue(): 0.0;
                         if (stepValue > 0) {
                             var relative = an2.hybridcomments.relative != null ? an2.hybridcomments.relative : false;
                             var step = an2.hybridcomments.step != null ? an2.hybridcomments.step.doubleValue() : 1.0;

@@ -228,8 +228,9 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         return find("select sr from StudentResponse sr where sr.sheet.id =?1 ", sheetId );
     }
 
+    // and sr.sheet.students IS NOT EMPTY
     public static PanacheQuery<StudentResponse> getAll4ExamId( long examId) {
-        return find("select sr from StudentResponse sr where  sr.question.exam.id = ?1  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1 and sr.sheet.students IS NOT EMPTY",examId);
+        return find("select sr from StudentResponse sr where  sr.question.exam.id = ?1  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1",examId);
     }
 
     public static PanacheQuery<StudentResponse> getAll4ExamIdEvenOrphan( long examId) {
@@ -306,7 +307,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
 
 
     public static PanacheQuery<StudentResponse> getAllStudentResponseWithexamIdWithOrphanId(long examId) {
-        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1",examId);
+        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone  left join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1",examId);
     }
 
 

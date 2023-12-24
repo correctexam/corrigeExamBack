@@ -165,7 +165,6 @@ public class ExtendedAPI {
     @Inject
     GradedCommentMapper gradedCommentMapper;
 
-
     @Inject
     TextCommentMapper textCommentMapper;
 
@@ -193,9 +192,8 @@ public class ExtendedAPI {
     @Inject
     HybridGradedCommentService hybridGradedCommentService;
 
-        @Inject
+    @Inject
     HybridGradedCommentMapper hybridCommentMapper;
-
 
     @Inject
     FichierS3Service fichierS3Service;
@@ -300,12 +298,13 @@ public class ExtendedAPI {
             Sheetspdf sheetpdf = new Sheetspdf();
             sheetPdfs.add(sheetpdf);
             sheetpdf.setName(sheet.name);
+            sheetpdf.setID(sheet.id);
             if (sheet.students.size() > 0) {
                 var studentId = sheet.students.iterator().next().id;
                 FinalResult fr = FinalResult
                         .findFinalResultByStudentIdAndExamId(studentId, examId).firstResult();
 
-                if (fr!= null){
+                if (fr != null) {
                     sheetpdf.setFinalresult(fr.note);
                 } else {
                     sheetpdf.setFinalresult(0);
@@ -326,6 +325,15 @@ public class ExtendedAPI {
                 stpdf.setMail(st.mail);
                 sheetpdf.getStudentpdf().add(stpdf);
             });
+            if (sheet.students.size()==0){
+                Studentpdf stpdf = new Studentpdf();
+                stpdf.setFirstname("anonymous");
+                stpdf.setName("anonymous");
+                stpdf.setID(-1);
+                stpdf.setIne("anonymous");
+                stpdf.setMail("anonymous@anonymous.fr");
+                sheetpdf.getStudentpdf().add(stpdf);
+            }
             sheetpdf.setStudentResponsepdf(new ArrayList<>());
             responses.forEach((resp) -> {
                 StudentResponsepdf stpdf = new StudentResponsepdf();
@@ -345,7 +353,8 @@ public class ExtendedAPI {
                     stpdf.setWorststar(false);
                 }
                 sheetpdf.getStudentResponsepdf().add(stpdf);
-                List<Answer2HybridGradedComment> ans = Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByAnswerId(resp.id).list();
+                List<Answer2HybridGradedComment> ans = Answer2HybridGradedComment
+                        .findAllAnswerHybridGradedCommentByAnswerId(resp.id).list();
                 stpdf.setHybridcommentspdf(new ArrayList<>());
 
                 ans.forEach(hc -> {
@@ -355,9 +364,9 @@ public class ExtendedAPI {
                     hcpdf.setRelative(hc.hybridcomments.relative);
                     hcpdf.setStepMax(hc.hybridcomments.step);
                     hcpdf.setStepValue(hc.stepValue);
-                    hcpdf.setGrade(hc.hybridcomments.grade /4.0);
-                    if (hc.studentResponse.quarternote !=null){
-                        hcpdf.setAnswerGrade(hc.studentResponse.quarternote.doubleValue()/400.0);
+                    hcpdf.setGrade(hc.hybridcomments.grade / 4.0);
+                    if (hc.studentResponse.quarternote != null) {
+                        hcpdf.setAnswerGrade(hc.studentResponse.quarternote.doubleValue() / 400.0);
                     }
 
                     stpdf.getHybridcommentspdf().add(hcpdf);
@@ -468,14 +477,12 @@ public class ExtendedAPI {
 
                     } else if (resp.question.gradeType == GradeType.HYBRID
                             && !"QCM".equals(resp.question.type.algoName)) {
-                                this.computeNote4Hybrid(resp);
+                        this.computeNote4Hybrid(resp);
 
+                        // resp.persistOrUpdate();
+                        finalnote = finalnote + (resp.quarternote / 4);
 
-                            //    resp.persistOrUpdate();
-                            finalnote = finalnote + (resp.quarternote / 4 );
-
-                    }
-                    else if ("QCM".equals(resp.question.type.algoName) && resp.question.step > 0) {
+                    } else if ("QCM".equals(resp.question.type.algoName) && resp.question.step > 0) {
                         int currentNote = 0;
                         for (var g : resp.gradedcomments) {
                             if (g.description.startsWith("correct")) {
@@ -688,72 +695,116 @@ public class ExtendedAPI {
         List<StudentResultDTO> results = new ArrayList<>();
         List<Long> studentsId = new ArrayList<>();
         List<Long> sheetsId = new ArrayList<>();
-        // List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
-        // students.forEach(student -> {
-        // long count = FinalResult.findFinalResultByStudentIdAndExamId(student.id,
-        // ex.id).count();
-        // if (count > 0) {
-        // List<FinalResult> rs = FinalResult.getAll4ExamIdFetchSheet(examId).list();
-        for (Map.Entry<Long, FinalResult> finalResult1 : finalfinalResultsByStudentId.entrySet()) {
-            FinalResult r = finalResult1.getValue();
-            // FinalResult r = FinalResult.findFinalResultByStudentIdAndExamId(student.id,
-            // ex.id).firstResult();
-            /*
-             * List<ExamSheet> sheets = r.exam.scanfile.sheets.stream().filter(sh ->
-             * sh.students.contains(r.student))
-             * .collect(Collectors.toList());
-             */
-            List<ExamSheet> sheets = finalNotes.keySet().stream()
-                    .filter(e -> e.students.stream().anyMatch(s -> s.id == finalResult1.getKey()))
-                    .collect(Collectors.toList());
-            if (sheets.size() > 0) {
-                ExamSheet sheet = sheets.get(0);
-                // ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id,
-                // r.student.id).firstResult();
-                String uuid = sheet.name;
-                int studentnumber = (sheet.pagemin / (sheet.pagemax - sheet.pagemin + 1)) + 1;
-                var res = new StudentResultDTO();
-                studentsId.add(r.student.id);
-                sheetsId.add(sheet.id);
-                res.setNom(r.student.name);
-                res.setPrenom(r.student.firstname);
-                res.setIne(r.student.ine);
-                res.setMail(r.student.mail);
-                final DecimalFormat df = new DecimalFormat("0.00");
-                res.setNote(df.format(r.note.doubleValue() / 100.0));
-                res.setUuid(uuid);
-                res.setStudentNumber("" + studentnumber);
-                res.setAbi(false);
-                res.setNotequestions(new HashMap<>());
-                List<StudentResponse> resp = mapstudentResp.get(sheet);
 
-                resp.forEach(resp1 -> {
-                    // log.error("resp1 " + resp1.id);
+        // for (Map.Entry<Long, FinalResult> finalResult1 :
+        // finalfinalResultsByStudentId.entrySet()) {
+        // FinalResult r = finalResult1.getValue();
+        log.error("sheets "+finalNotes.size() );
 
-                    if ("QCM".equals(resp1.question.type.algoName) && resp1.question.step < 0) {
-                        res.getNotequestions().put(resp1.question.numero,
-                                df.format(
-                                        resp1.quarternote.doubleValue() / 4));
+        for (Map.Entry<ExamSheet, Integer> sheetEntry : finalNotes.entrySet()) {
+            // List<ExamSheet> sheets = finalNotes.keySet().stream()
+            // .filter(e -> e.students.stream().anyMatch(s -> s.id ==
+            // finalResult1.getKey()))
+            // .collect(Collectors.toList());
+            // if (sheets.size() > 0) {
+            // ExamSheet sheet = sheets.get(0);
+            // ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id,
+            // r.student.id).firstResult();
+            var sheet = sheetEntry.getKey();
+            Integer r = sheetEntry.getValue();
+            String uuid = sheet.name;
+            int studentnumber = (sheet.pagemin / (sheet.pagemax - sheet.pagemin + 1)) + 1;
+            if (sheet.students != null && sheet.students.size() > 0) {
+                for (Student student : sheet.students) {
 
-                    } else if (GradeType.HYBRID.equals(resp1.question.gradeType)) {
+                    var res = new StudentResultDTO();
+                    sheetsId.add(sheet.id);
 
-                        res.getNotequestions().put(resp1.question.numero,
-                                df.format(
-                                        resp1.quarternote.doubleValue() / 400));
+                    studentsId.add(student.id);
+                    res.setNom(student.name);
+                    res.setPrenom(student.firstname);
+                    res.setIne(student.ine);
+                    res.setMail(student.mail);
+                    final DecimalFormat df = new DecimalFormat("0.00");
+                    res.setNote(df.format(r.doubleValue() / 100.0));
+                    res.setUuid(uuid);
+                    res.setStudentNumber("" + studentnumber);
+                    res.setAbi(false);
+                    res.setNotequestions(new HashMap<>());
+                    List<StudentResponse> resp = mapstudentResp.get(sheet);
+
+                    resp.forEach(resp1 -> {
+                        // log.error("resp1 " + resp1.id);
+
+                        if ("QCM".equals(resp1.question.type.algoName) && resp1.question.step < 0) {
+                            res.getNotequestions().put(resp1.question.numero,
+                                    df.format(
+                                            resp1.quarternote.doubleValue() / 4));
+
+                        } else if (GradeType.HYBRID.equals(resp1.question.gradeType)) {
+
+                            res.getNotequestions().put(resp1.question.numero,
+                                    df.format(
+                                            resp1.quarternote.doubleValue() / 400));
+                        } else {
+                            res.getNotequestions().put(resp1.question.numero,
+                                    df.format(
+                                            ((resp1.quarternote.doubleValue() * 100.0 / 4) / resp1.question.step)
+                                                    / 100.0));
+
+                        }
+
+                    });
+                    results.add(res);
                 }
-                    else {
-                        res.getNotequestions().put(resp1.question.numero,
-                                df.format(
-                                        ((resp1.quarternote.doubleValue() * 100.0 / 4) / resp1.question.step) / 100.0));
+            }
+            else {
+                    var res = new StudentResultDTO();
+                    sheetsId.add(sheet.id);
+                    studentsId.add(Long.valueOf(-1));
+                    res.setNom("anonymous");
+                    res.setPrenom("anonymous");
+                    res.setIne("anonymous");
+                    res.setMail("anonymous@anonymous.fr");
+                    final DecimalFormat df = new DecimalFormat("0.00");
+                    res.setNote(df.format(r.doubleValue() / 100.0));
+                    res.setUuid(uuid);
+                    res.setStudentNumber("" + studentnumber);
+                    res.setAbi(false);
+                    res.setNotequestions(new HashMap<>());
+                    List<StudentResponse> resp = mapstudentResp.get(sheet);
 
-                    }
+                    resp.forEach(resp1 -> {
+                        // log.error("resp1 " + resp1.id);
 
-                });
-                results.add(res);
+                        if ("QCM".equals(resp1.question.type.algoName) && resp1.question.step < 0) {
+                            res.getNotequestions().put(resp1.question.numero,
+                                    df.format(
+                                            resp1.quarternote.doubleValue() / 4));
+
+                        } else if (GradeType.HYBRID.equals(resp1.question.gradeType)) {
+
+                            res.getNotequestions().put(resp1.question.numero,
+                                    df.format(
+                                            resp1.quarternote.doubleValue() / 400));
+                        } else {
+                            res.getNotequestions().put(resp1.question.numero,
+                                    df.format(
+                                            ((resp1.quarternote.doubleValue() * 100.0 / 4) / resp1.question.step)
+                                                    / 100.0));
+
+                        }
+
+                    });
+                    results.add(res);
+
+
+
             }
         }
-        // Si la correction n'a démarré pour aucun étudiant, initialise la liste avec un numéro  pour la requête
-        if (sheetsId.size()==0){
+        // Si la correction n'a démarré pour aucun étudiant, initialise la liste avec un
+        // numéro pour la requête
+        if (sheetsId.size() == 0) {
             sheetsId.add(Long.valueOf(-1));
         }
         // Etudiant dont la correction n'a pas démarré.
@@ -1270,22 +1321,15 @@ public class ExtendedAPI {
                     new StreamingOutput() {
                         @Override
                         public void write(OutputStream outputStream) throws IOException, WebApplicationException {
-                            InputStream source = null;
-                            try {
-                                source = new ByteArrayInputStream(
-                                        new Gson().toJson(importExportService.export(courseId, true,-1)).getBytes());
+                            OutputStreamWriter w = new OutputStreamWriter(outputStream);
+                            Gson gson = new GsonBuilder().create();
+                            gson.toJson(importExportService.export(courseId, true, -1), w);
+                            w.flush();
+                            w.close();
+                        };
 
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                return;
-                            }
-                            byte[] buf = new byte[8192];
-                            int length;
-                            while ((length = source.read(buf)) != -1) {
-                                outputStream.write(buf, 0, length);
-                            }
-                        }
                     }, MediaType.APPLICATION_OCTET_STREAM)
+
                     .header("Content-Disposition", "attachment;filename=" + courseId + ".json")
                     .build();
         } catch (Exception e) {
@@ -1295,11 +1339,12 @@ public class ExtendedAPI {
         }
     }
 
-        @GET
+    @GET
     @Path("/exportExam/{courseId}/{examId}")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response exportExam(@PathParam("courseId") long courseId, @PathParam("examId") long examId, @Context SecurityContext ctx) {
+    public Response exportExam(@PathParam("courseId") long courseId, @PathParam("examId") long examId,
+            @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseId, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -1311,10 +1356,10 @@ public class ExtendedAPI {
                         public void write(OutputStream outputStream) throws IOException, WebApplicationException {
                             OutputStreamWriter w = new OutputStreamWriter(outputStream);
                             Gson gson = new GsonBuilder().create();
-                            gson.toJson(importExportService.export(courseId, true,examId), w);
+                            gson.toJson(importExportService.export(courseId, true, examId), w);
                             w.flush();
                             w.close();
-                            };
+                        };
 
                     }, MediaType.APPLICATION_OCTET_STREAM)
                     .header("Content-Disposition", "attachment;filename=" + courseId + ".json")
@@ -1433,22 +1478,15 @@ public class ExtendedAPI {
                     new StreamingOutput() {
                         @Override
                         public void write(OutputStream outputStream) throws IOException, WebApplicationException {
-                            InputStream source = null;
-                            try {
-                                source = new ByteArrayInputStream(
-                                        new Gson().toJson(importExportService.export(courseId, false,-1)).getBytes());
+                            OutputStreamWriter w = new OutputStreamWriter(outputStream);
+                            Gson gson = new GsonBuilder().create();
+                            gson.toJson(importExportService.export(courseId, false, -1), w);
+                            w.flush();
+                            w.close();
+                        };
 
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                return;
-                            }
-                            byte[] buf = new byte[8192];
-                            int length;
-                            while ((length = source.read(buf)) != -1) {
-                                outputStream.write(buf, 0, length);
-                            }
-                        }
                     }, MediaType.APPLICATION_OCTET_STREAM)
+
                     .header("Content-Disposition", "attachment;filename=" + courseId + ".json")
                     .build();
         } catch (Exception e) {
@@ -1458,11 +1496,12 @@ public class ExtendedAPI {
         }
     }
 
-        @GET
+    @GET
     @Path("/exportExamWithoutStudentData/{courseId}/{examId}")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response exportExamWithoutStudentData(@PathParam("courseId") long courseId, @PathParam("examId") long examId, @Context SecurityContext ctx) {
+    public Response exportExamWithoutStudentData(@PathParam("courseId") long courseId, @PathParam("examId") long examId,
+            @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseId, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -1471,22 +1510,15 @@ public class ExtendedAPI {
                     new StreamingOutput() {
                         @Override
                         public void write(OutputStream outputStream) throws IOException, WebApplicationException {
-                            InputStream source = null;
-                            try {
-                                source = new ByteArrayInputStream(
-                                        new Gson().toJson(importExportService.export(courseId, false,examId)).getBytes());
+                            OutputStreamWriter w = new OutputStreamWriter(outputStream);
+                            Gson gson = new GsonBuilder().create();
+                            gson.toJson(importExportService.export(courseId, false, examId), w);
+                            w.flush();
+                            w.close();
+                        };
 
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                return;
-                            }
-                            byte[] buf = new byte[8192];
-                            int length;
-                            while ((length = source.read(buf)) != -1) {
-                                outputStream.write(buf, 0, length);
-                            }
-                        }
                     }, MediaType.APPLICATION_OCTET_STREAM)
+
                     .header("Content-Disposition", "attachment;filename=" + courseId + ".json")
                     .build();
         } catch (Exception e) {
@@ -1870,7 +1902,7 @@ public class ExtendedAPI {
         });
 
         for (ExamSheet sh : sheets) {
-            if (sh.students != null && sh.students.size() > 0 && sh.pagemin != -1 && sh.pagemax != -1) {
+            if (/* sh.students != null && sh.students.size() > 0 && */ sh.pagemin != -1 && sh.pagemax != -1) {
                 final var res = new SheetStateDTO();
                 res.setAnsweredSheets(0);
                 res.setFirstUnmarkedQuestion(1);
@@ -2084,41 +2116,47 @@ public class ExtendedAPI {
 
     }
 
-    private void computeNote4Hybrid(StudentResponse resp){
-                                var currentNote = 0.0;
-                                var absoluteNote2Add = 0.0;
-                                double pourcentage = 0.0;
-                                if (resp.question != null && resp.question.defaultpoint != null){
-                                    pourcentage = resp.question.defaultpoint.doubleValue();
-                                }
+    private void computeNote4Hybrid(StudentResponse resp) {
+        var currentNote = 0.0;
+        var absoluteNote2Add = 0.0;
+        double pourcentage = 0.0;
+        if (resp.question != null && resp.question.defaultpoint != null) {
+            pourcentage = resp.question.defaultpoint.doubleValue() *4;
+        }
+ //       log.error("default point for question " + resp.question.numero + " " + pourcentage);
 
-                            for( Answer2HybridGradedComment an2 : resp.hybridcommentsValues){
-                                    var stepValue = an2.stepValue.doubleValue();
-                                    if (stepValue > 0) {
-                                        var relative = an2.hybridcomments.relative != null ? an2.hybridcomments.relative : false;
-                                        var step = an2.hybridcomments.step != null ? an2.hybridcomments.step.doubleValue() : 1.0;
-                                        var grade = an2.hybridcomments.grade != null ? an2.hybridcomments.grade.doubleValue() : 0.0;
+        for (Answer2HybridGradedComment an2 : resp.hybridcommentsValues) {
+            var stepValue = an2.stepValue !=null ? an2.stepValue.doubleValue(): 0.0;
+            if (stepValue > 0) {
+                var relative = an2.hybridcomments.relative != null ? an2.hybridcomments.relative : false;
+                var step = an2.hybridcomments.step != null ? an2.hybridcomments.step.doubleValue() : 1.0;
+                var grade = an2.hybridcomments.grade != null ? an2.hybridcomments.grade.doubleValue() : 0.0;
 
-                                        if (relative) {
-                                          pourcentage = pourcentage + ((stepValue / step) * grade);
-                                        } else {
-                                          absoluteNote2Add = absoluteNote2Add + (stepValue / step) * grade;
-                                        }
-                                      }
-                                }
-                                var point = resp.question.quarterpoint !=null ? resp.question.quarterpoint.doubleValue(): 0.0;
-                                currentNote = (point * pourcentage) / 400.0 + absoluteNote2Add;
+                if (relative) {
+                    pourcentage = pourcentage + ((stepValue / step) * grade);
 
-                                if (currentNote > point) {
-                                    currentNote = point;
-                                } else if (currentNote < 0) {
-                                    currentNote = 0;
-                                }
-                                log.error("currentNote "+ Double.valueOf(currentNote*100).intValue());
-                            if (Double.valueOf(currentNote*100).intValue() != resp.quarternote) {
-                                resp.quarternote = Double.valueOf(currentNote*100).intValue();
-                                StudentResponse.update(resp);
-                            }
+                } else {
+                    absoluteNote2Add = absoluteNote2Add + (stepValue / step) * grade;
+
+                }
+            }
+        }
+        var point = resp.question.quarterpoint != null ? resp.question.quarterpoint.doubleValue() : 0.0;
+      //  log.error("point for question " + resp.question.numero + " " + absoluteNote2Add + " " + point + " " + pourcentage);
+
+        currentNote = ((point * pourcentage) / 400.0) + absoluteNote2Add;
+
+        if (currentNote > point) {
+//            log.error("currentNote " + currentNote + " " + point + " " + resp.question.numero);
+            currentNote = point;
+        } else if (currentNote < 0) {
+            currentNote = 0;
+        }
+       // log.error("question " + resp.question.numero+ " currentNote " + Double.valueOf(currentNote /4));
+        if (Double.valueOf(currentNote * 100).intValue() != resp.quarternote) {
+            resp.quarternote = Double.valueOf(currentNote * 100).intValue();
+            StudentResponse.update(resp);
+        }
 
     }
 
@@ -2126,24 +2164,29 @@ public class ExtendedAPI {
     @Path("/getZone4HybridComment/{examId}/{hybridCommentId}/{stepValue}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getZone4HybridComment(@PathParam("examId") final long examId,
-            @PathParam("hybridCommentId") final long hybridCommentId, @PathParam("stepValue") final int stepValue, @Context final UriInfo uriInfo,
+            @PathParam("hybridCommentId") final long hybridCommentId, @PathParam("stepValue") final int stepValue,
+            @Context final UriInfo uriInfo,
             @Context final SecurityContext ctx) {
 
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access this ressource").build();
         }
-        List<Answer2HybridGradedComment> _r = StudentResponse.getAllStudentResponse4examIdHybridCommentId(examId, hybridCommentId,stepValue)
+        List<Answer2HybridGradedComment> _r = StudentResponse
+                .getAllStudentResponse4examIdHybridCommentId(examId, hybridCommentId, stepValue)
                 .list();
         List<Answer2HybridGradedComment> r = new ArrayList<>();
         r.addAll(_r);
 
-        if (stepValue ==0){
+        if (stepValue == 0) {
             Optional<HybridGradedComment> s = HybridGradedComment.findByIdOptional(hybridCommentId);
-            if (s.isPresent()){
+            if (s.isPresent()) {
                 long qId = s.get().question.id;
-                List<Long> answerIds = Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByCommentId(hybridCommentId).list().stream().map(hc -> hc.studentResponse.id).collect(Collectors.toList());
-                List<StudentResponse> resps = StudentResponse.getAllStudentResponse4QidNotInResponseIdLists(qId,answerIds).list();
-                for (StudentResponse resp : resps){
+                List<Long> answerIds = Answer2HybridGradedComment
+                        .findAllAnswerHybridGradedCommentByCommentId(hybridCommentId).list().stream()
+                        .map(hc -> hc.studentResponse.id).collect(Collectors.toList());
+                List<StudentResponse> resps = StudentResponse
+                        .getAllStudentResponse4QidNotInResponseIdLists(qId, answerIds).list();
+                for (StudentResponse resp : resps) {
                     Answer2HybridGradedComment an = new Answer2HybridGradedComment();
                     an.hybridcomments = s.get();
                     an.stepValue = 0;
@@ -2173,10 +2216,10 @@ public class ExtendedAPI {
         }
         Set<StudentResponse> processSt = new HashSet<>();
         for (Answer2HybridGradedComment an : r) {
-            StudentResponse studentResponse= an.studentResponse;
+            StudentResponse studentResponse = an.studentResponse;
             this.computeNote4Hybrid(studentResponse);
 
-            if (!processSt.contains(studentResponse)){
+            if (!processSt.contains(studentResponse)) {
                 Answer4QuestionDTO answerdto = new Answer4QuestionDTO();
                 answerdto.setPagemin(studentResponse.sheet.pagemin);
                 answerdto.setPagemax(studentResponse.sheet.pagemax);
@@ -2205,16 +2248,17 @@ public class ExtendedAPI {
                 answerdto.setStudentName(studentName);
                 answerdto.setNote(Integer.valueOf(studentResponse.quarternote).doubleValue() / 4);
                 answerdto.setComments(commentsMapper.toDto(new ArrayList<>(studentResponse.comments)));
-                Map<Long,Integer> hybridC = new HashMap<>();
-                r.stream().filter(an1 -> an1.studentResponse.id == studentResponse.id && an1.stepValue>0).forEach(anh-> hybridC.put(anh.hybridcomments.id, anh.stepValue));
+                Map<Long, Integer> hybridC = new HashMap<>();
+                r.stream().filter(an1 -> an1.studentResponse.id == studentResponse.id && an1.stepValue > 0)
+                        .forEach(anh -> hybridC.put(anh.hybridcomments.id, anh.stepValue));
                 answerdto.setHybridgradedComments(hybridC);
                 processSt.add(studentResponse);
                 answers.add(answerdto);
 
             }
             if (!comments.containsKey(an.hybridcomments.id)) {
-                    comments.put(an.hybridcomments.id, hybridCommentMapper.toDto(an.hybridcomments));
-                }
+                comments.put(an.hybridcomments.id, hybridCommentMapper.toDto(an.hybridcomments));
+            }
 
         }
 
@@ -2223,8 +2267,6 @@ public class ExtendedAPI {
         return Response.ok().entity(dto).build();
 
     }
-
-
 
     @GET
     @Path("/getZone4TextComment/{examId}/{textCommentId}")
@@ -2326,11 +2368,10 @@ public class ExtendedAPI {
         Map<Long, GradedCommentDTO> gradedcomments = new HashMap<>();
         Map<Long, HybridGradedCommentDTO> hybridcomments = new HashMap<>();
 
-
         if (r.size() > 0 && r.get(0).question != null) {
-             int numero = r.get(0).question.numero;
-            List<HybridGradedComment> hc=  HybridGradedComment.findByQuestionId(r.get(0).question.id).list();
-            hc.forEach(hc1 -> hybridcomments.put(hc1.id,this.hybridCommentMapper.toDto(hc1)));
+            int numero = r.get(0).question.numero;
+            List<HybridGradedComment> hc = HybridGradedComment.findByQuestionId(r.get(0).question.id).list();
+            hc.forEach(hc1 -> hybridcomments.put(hc1.id, this.hybridCommentMapper.toDto(hc1)));
 
             dto.setNumero(numero);
             List<Question> questions = Question.findQuestionbyExamIdandnumero(examId, numero).list();
@@ -2377,7 +2418,8 @@ public class ExtendedAPI {
 
             }
             answerdto.setStudentName(studentName);
-            if (studentResponse.question.gradeType == GradeType.HYBRID && !"QCM".equals(studentResponse.question.type.algoName)){
+            if (studentResponse.question.gradeType == GradeType.HYBRID
+                    && !"QCM".equals(studentResponse.question.type.algoName)) {
                 this.computeNote4Hybrid(studentResponse);
             }
             answerdto.setNote(Integer.valueOf(studentResponse.quarternote).doubleValue() / 4);
@@ -2398,9 +2440,11 @@ public class ExtendedAPI {
                     gradedcomments.put(gc.id, gradedCommentMapper.toDto(gc));
                 }
             }
-            List<Answer2HybridGradedComment> r1 = Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByAnswerId(studentResponse.id).list();
-            Map<Long,Integer> hybridC = new HashMap<>();
-            r1.stream().filter(an1 -> an1.studentResponse.id == studentResponse.id && an1.stepValue>0).forEach(anh-> hybridC.put(anh.hybridcomments.id, anh.stepValue));
+            List<Answer2HybridGradedComment> r1 = Answer2HybridGradedComment
+                    .findAllAnswerHybridGradedCommentByAnswerId(studentResponse.id).list();
+            Map<Long, Integer> hybridC = new HashMap<>();
+            r1.stream().filter(an1 -> an1.studentResponse.id == studentResponse.id && an1.stepValue > 0)
+                    .forEach(anh -> hybridC.put(anh.hybridcomments.id, anh.stepValue));
             answerdto.setHybridgradedComments(hybridC);
             answers.add(answerdto);
         }
@@ -2436,8 +2480,8 @@ public class ExtendedAPI {
         dto.setNumero(numero);
         List<Question> questions = Question.findQuestionbyExamIdandnumero(examId, numero).list();
         if (questions.size() > 0) {
-            List<HybridGradedComment> hc=  HybridGradedComment.findByQuestionId(questions.get(0).id).list();
-            hc.forEach(hc1 -> hybridcomments.put(hc1.id,this.hybridCommentMapper.toDto(hc1)));
+            List<HybridGradedComment> hc = HybridGradedComment.findByQuestionId(questions.get(0).id).list();
+            hc.forEach(hc1 -> hybridcomments.put(hc1.id, this.hybridCommentMapper.toDto(hc1)));
 
             dto.setZones(zoneMapper.toDto(questions.stream().map(q -> q.zone).collect(Collectors.toList())));
             dto.setGradeType(questions.get(0).gradeType);
@@ -2500,9 +2544,11 @@ public class ExtendedAPI {
                         gradedcomments.put(gc.id, gradedCommentMapper.toDto(gc));
                     }
                 }
-                List<Answer2HybridGradedComment> r1 = Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByAnswerId(studentResponse.id).list();
-                Map<Long,Integer> hybridC = new HashMap<>();
-                r1.stream().filter(an1 -> an1.studentResponse.id == studentResponse.id && an1.stepValue>0).forEach(anh-> hybridC.put(anh.hybridcomments.id, anh.stepValue));
+                List<Answer2HybridGradedComment> r1 = Answer2HybridGradedComment
+                        .findAllAnswerHybridGradedCommentByAnswerId(studentResponse.id).list();
+                Map<Long, Integer> hybridC = new HashMap<>();
+                r1.stream().filter(an1 -> an1.studentResponse.id == studentResponse.id && an1.stepValue > 0)
+                        .forEach(anh -> hybridC.put(anh.hybridcomments.id, anh.stepValue));
                 answerdto.setHybridgradedComments(hybridC);
             }
             answers.add(answerdto);
@@ -2517,39 +2563,41 @@ public class ExtendedAPI {
 
     }
 
-
-
     @PUT
     @Transactional()
     @Path("/update-2-hybrid-graded-comments-with-stepvalue/{responseId}/{hybridCommentId}/{stepValue}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response updateAnswerHybridCommentWithStepValue(@PathParam("responseId") final long responseId, @PathParam("hybridCommentId") final long hybridCommentId,
-    @PathParam("stepValue") final int stepValue,
+    public Response updateAnswerHybridCommentWithStepValue(@PathParam("responseId") final long responseId,
+            @PathParam("hybridCommentId") final long hybridCommentId,
+            @PathParam("stepValue") final int stepValue,
             @Context final UriInfo uriInfo,
             @Context final SecurityContext ctx) {
         if (!securityService.canAccess(ctx, responseId, StudentResponse.class)) {
             return Response.status(403, "Current user cannot access this ressource").build();
         }
-        Answer2HybridGradedCommentDTO result = this.answer2HybridGradedCommentService.setStepValueWithResponseIdAndHybridCommentId(responseId,hybridCommentId,stepValue);
+        Answer2HybridGradedCommentDTO result = this.answer2HybridGradedCommentService
+                .setStepValueWithResponseIdAndHybridCommentId(responseId, hybridCommentId, stepValue);
         return Response.ok().entity(result).build();
 
     }
-
 
     @PUT
     @Transactional()
     @Path("/update-2-hybrid-graded-comments/{responseId}/{hybridCommentId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response updateAnswerHybridCommentWith(@PathParam("responseId") final long responseId, @PathParam("hybridCommentId") final long hybridCommentId,
+    public Response updateAnswerHybridCommentWith(@PathParam("responseId") final long responseId,
+            @PathParam("hybridCommentId") final long hybridCommentId,
             @Context final UriInfo uriInfo,
             @Context final SecurityContext ctx) {
         if (!securityService.canAccess(ctx, responseId, StudentResponse.class)) {
             return Response.status(403, "Current user cannot access this ressource").build();
         }
-        Answer2HybridGradedCommentDTO result = this.answer2HybridGradedCommentService.incrementWithResponseIdAndHybridCommentId(responseId,hybridCommentId);
+        Answer2HybridGradedCommentDTO result = this.answer2HybridGradedCommentService
+                .incrementWithResponseIdAndHybridCommentId(responseId, hybridCommentId);
         return Response.ok().entity(result).build();
 
     }
+
     @POST
     @Transactional()
     @Path("/updateStudentResponse4Cluster/{examId}/{qid}")
@@ -2627,9 +2675,9 @@ public class ExtendedAPI {
             return Response.noContent().build();
         }
         List<Answer2HybridGradedComment> answerToCommentTemplate = new ArrayList<>();
-        if (question.gradeType == GradeType.HYBRID){
-            answerToCommentTemplate =Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByAnswerId(
-                        answerdtotempalate.studentResponseId).list();
+        if (question.gradeType == GradeType.HYBRID) {
+            answerToCommentTemplate = Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByAnswerId(
+                    answerdtotempalate.studentResponseId).list();
         }
 
         for (int toUpdate : clusterDto.getCopies()) {
@@ -2648,18 +2696,18 @@ public class ExtendedAPI {
                             .collect(Collectors.toList()));
                     StudentResponse.persist(stToUpdate);
 
-                } else if(question.gradeType == GradeType.HYBRID){
+                } else if (question.gradeType == GradeType.HYBRID) {
                     StudentResponse.persist(stToUpdate);
                     Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByAnswerId(
-                        answerdtotempalate.studentResponseId).list().forEach(an1-> {
-                        Answer2HybridGradedCommentDTO an = new Answer2HybridGradedCommentDTO();
-                        an.hybridcommentsId = an1.hybridcomments.id;
-                        an.studentResponseId = stToUpdate.id;
-                        an.stepValue = an1.stepValue;
-                        this.answer2HybridGradedCommentService.persistOrUpdate(an);
-                                                    log.error("pass par la2");
+                            answerdtotempalate.studentResponseId).list().forEach(an1 -> {
+                                Answer2HybridGradedCommentDTO an = new Answer2HybridGradedCommentDTO();
+                                an.hybridcommentsId = an1.hybridcomments.id;
+                                an.studentResponseId = stToUpdate.id;
+                                an.stepValue = an1.stepValue;
+                                this.answer2HybridGradedCommentService.persistOrUpdate(an);
+                                log.error("pass par la2");
 
-                    });
+                            });
                 }
 
                 else {
@@ -2669,7 +2717,6 @@ public class ExtendedAPI {
                     StudentResponse.persist(stToUpdate);
 
                 }
-
 
             } else {
                 StudentResponse stToUpdate = StudentResponse.cleanCommentAndGrade(answerdtoUpdate.studentResponse);
@@ -2688,25 +2735,29 @@ public class ExtendedAPI {
                             .filter(gs2 -> answerdtotempalate.textComments.contains(gs2.id))
                             .collect(Collectors.toList()));
                 } else if (question.gradeType == GradeType.HYBRID) {
-                    List<Answer2HybridGradedComment> existingComments =  Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByAnswerId(stToUpdate.id).list();
-                        existingComments.forEach(cc -> {
-                            cc.stepValue = 0;
-                            cc.persistOrUpdate();
-                        });
+                    List<Answer2HybridGradedComment> existingComments = Answer2HybridGradedComment
+                            .findAllAnswerHybridGradedCommentByAnswerId(stToUpdate.id).list();
+                    existingComments.forEach(cc -> {
+                        cc.stepValue = 0;
+                        cc.persistOrUpdate();
+                    });
 
-                    answerToCommentTemplate.forEach(an1-> {
-                        if (existingComments.stream().map(cc-> cc.hybridcomments.id).anyMatch(ccid-> ccid==an1.hybridcomments.id)){
-                             var commentsToUpdate = existingComments.stream().filter(cc-> cc.hybridcomments.id == an1.hybridcomments.id).findFirst();
-                             if (commentsToUpdate.isPresent()){
+                    answerToCommentTemplate.forEach(an1 -> {
+                        if (existingComments.stream().map(cc -> cc.hybridcomments.id)
+                                .anyMatch(ccid -> ccid == an1.hybridcomments.id)) {
+                            var commentsToUpdate = existingComments.stream()
+                                    .filter(cc -> cc.hybridcomments.id == an1.hybridcomments.id).findFirst();
+                            if (commentsToUpdate.isPresent()) {
                                 commentsToUpdate.get().stepValue = an1.stepValue;
-//                                log.error("should " + commentsToUpdate.get().hybridcomments.text + " "+
- //                               commentsToUpdate.get().studentResponse.sheet.pagemin + " "+ commentsToUpdate.get().stepValue);
+                                // log.error("should " + commentsToUpdate.get().hybridcomments.text + " "+
+                                // commentsToUpdate.get().studentResponse.sheet.pagemin + " "+
+                                // commentsToUpdate.get().stepValue);
 
                                 commentsToUpdate.get().persistOrUpdate();
-                             } else{
+                            } else {
                                 log.error("should never go there");
-                             }
-                        }else {
+                            }
+                        } else {
                             Answer2HybridGradedCommentDTO an = new Answer2HybridGradedCommentDTO();
                             an.hybridcommentsId = an1.hybridcomments.id;
                             an.studentResponseId = stToUpdate.id;
@@ -2715,8 +2766,7 @@ public class ExtendedAPI {
                         }
                     });
 
-                }
-                else {
+                } else {
                     stToUpdate.gradedcomments.addAll(gradedcomments.values().stream()
                             .filter(gs2 -> answerdtotempalate.gradedComments.contains(gs2.id))
                             .collect(Collectors.toList()));

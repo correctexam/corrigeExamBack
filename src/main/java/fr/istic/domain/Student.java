@@ -163,5 +163,9 @@ public class Student extends PanacheEntityBase implements Serializable {
         return find("select s from Student s join s.groups as c join c.course.profs as u where s.id =?1 and u.login =?2", studentId, login);
     }
 
+    public static PanacheQuery<Student>  findStudentsbyIds(List<Long> studentsId) {
+        return find("select s from Student s where s.id in (?1)", studentsId);
+    }
+
 
 }

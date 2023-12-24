@@ -99,12 +99,40 @@ public class ExamSheetResource {
         if (!securityService.canAccess(ctx, examSheetDTO.id, ExamSheet.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
-
         var result = examSheetService.persistOrUpdate(examSheetDTO);
         var response = Response.ok().entity(result);
         HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, examSheetDTO.id.toString())
                 .forEach(response::header);
         return response.build();
+    }
+
+    @PUT
+    @Path("/boundstudents/{id}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response updateExamSheetboundstudents(@PathParam("id") Long id, List<Long> studentsId,
+            @Context SecurityContext ctx) {
+
+        if (id == null || id <= 0) {
+            throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
+        }
+        if (!securityService.canAccess(ctx, id, ExamSheet.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+
+        ExamSheetDTO result = null;
+        try {
+            result = examSheetService.updateStudent(id, studentsId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (result != null) {
+            var response = Response.ok().entity(result);
+            return response.build();
+        } else {
+            var response = Response.noContent();
+            return response.build();
+
+        }
     }
 
     /**
@@ -130,8 +158,6 @@ public class ExamSheetResource {
         return response.build();
     }
 
-
-
     /**
      * {@code GET  /exam-sheets} : get all the examSheets.
      *
@@ -145,32 +171,82 @@ public class ExamSheetResource {
         log.debug("REST request to get a page of ExamSheets");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
-        Paged<ExamSheetDTO> result = new Paged(0,0,0,0, new ArrayList<>());
+
+        Paged<ExamSheetDTO> result = new Paged(0, 0, 0, 0, new ArrayList<>());
         MultivaluedMap param = uriInfo.getQueryParameters();
 
         if (param.containsKey("name")) {
             List name = (List) param.get("name");
             result = examSheetService.findExamSheetByName(page, "" + name.get(0));
         } else {
-            if (ctx.getUserPrincipal().getName()!= null){
+            if (ctx.getUserPrincipal().getName() != null) {
 
-            var userLogin = Optional
-                    .ofNullable(ctx.getUserPrincipal().getName());
-            if (!userLogin.isPresent()) {
-                throw new AccountResourceException("Current user login not found");
-            }
-            var user = User.findOneByLogin(userLogin.get());
-            if (!user.isPresent()) {
-                throw new AccountResourceException("User could not be found");
-            } else if (user.get().authorities.size() >= 1
-                    && user.get().authorities.stream().anyMatch(e1 -> e1.equals(new Authority("ROLE_ADMIN")))) {
-                result = examSheetService.findAll(page);
+                var userLogin = Optional
+                        .ofNullable(ctx.getUserPrincipal().getName());
+                if (!userLogin.isPresent()) {
+                    throw new AccountResourceException("Current user login not found");
+                }
+                var user = User.findOneByLogin(userLogin.get());
+                if (!user.isPresent()) {
+                    throw new AccountResourceException("User could not be found");
+                } else if (user.get().authorities.size() >= 1
+                        && user.get().authorities.stream().anyMatch(e1 -> e1.equals(new Authority("ROLE_ADMIN"))
+                                || e1.equals(new Authority("ROLE_USER")))) {
+                    if (param.containsKey("scanId") && param.containsKey("nbreFeuilleParCopie")
+                            && param.containsKey("numberPagesInScan")) {
+                        List scanId = (List) param.get("scanId");
+                        int nbreFeuilleParCopie = Integer
+                                .valueOf("" + ((List) param.get("nbreFeuilleParCopie")).get(0));
+                        int numberPagesInScan = Integer.valueOf("" + ((List) param.get("numberPagesInScan")).get(0));
+                        if (nbreFeuilleParCopie > 0 && numberPagesInScan > 0
+                                && numberPagesInScan % nbreFeuilleParCopie == 0) {
+                            try {
+                                result = examSheetService.findOrCreateExamSheetByName(page,
+                                        Long.valueOf("" + scanId.get(0)), nbreFeuilleParCopie, numberPagesInScan);
+                            } catch (NumberFormatException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            } catch (Exception e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            }
+                        } else {
+                            log.error("query sheets but with inconsistency in pages " + nbreFeuilleParCopie + " "
+                                    + numberPagesInScan + " " + scanId.get(0));
+                        }
+                    } else if (param.containsKey("scanId") && param.containsKey("pagemin")
+                            && param.containsKey("pagemax")) {
+                        List scanId = (List) param.get("scanId");
+                        int pagemin = Integer.valueOf("" + ((List) param.get("pagemin")).get(0));
+                        int pagemax = Integer.valueOf("" + ((List) param.get("pagemax")).get(0));
+                        if (pagemin >= 0 && pagemax >= 0 && pagemax >= pagemin) {
+                            try {
+                                result = examSheetService.findOrCreateExamSheetByPageMinAndPageMax(page,
+                                        Long.valueOf("" + scanId.get(0)), pagemin, pagemax);
+                            } catch (NumberFormatException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            } catch (Exception e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            }
+                        } else {
+                            log.error("query sheets but with inconsistency in pages min and max " + pagemin + " "
+                                    + pagemax + " " + scanId.get(0));
+                        }
+                    }
 
-            } else {
-                return Response.status(403, "Current user cannot access to this ressource").build();
+                    else {
+                        result = examSheetService.findAll(page);
+
+                    }
+
+                } else {
+                    return Response.status(403, "Current user cannot access to this ressource").build();
+                }
             }
         }
-    }
+
         var response = Response.ok().entity(result.content);
         response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
         return response.build();

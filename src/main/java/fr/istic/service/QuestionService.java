@@ -62,7 +62,7 @@ public class QuestionService {
                     var absoluteNote2Add = 0.0;
                     double pourcentage = 0.0;
                     if (question != null && question.defaultpoint != null){
-                        pourcentage = question.defaultpoint.doubleValue();
+                        pourcentage = question.defaultpoint.doubleValue() *4;
                     }
 
                 for( Answer2HybridGradedComment an2 : st.hybridcommentsValues){
