@@ -105,9 +105,8 @@ public class ExamSheetService {
 
             long nbrpage =     ExamSheet.findExamSheetByScanWithoutMinusOne(scanId).count();
 
-
             if (nbrpage == pageInScan/pageInTemplate){
-                 return new Paged<>(ExamSheet.findExamSheetByScan(scanId).page(page))
+                 return new Paged<>(ExamSheet.findExamSheetByScanWithoutMinusOne(scanId).page(page))
             .map(examSheet -> examSheetMapper.toDto((ExamSheet) examSheet));
             } else {
                 for (int i = 0; i< pageInScan/pageInTemplate ;i++){
