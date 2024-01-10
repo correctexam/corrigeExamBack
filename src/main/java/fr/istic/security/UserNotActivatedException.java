@@ -1,6 +1,6 @@
 package fr.istic.security;
 
-import javax.ws.rs.NotAuthorizedException;
+import jakarta.ws.rs.NotAuthorizedException;
 
 public class UserNotActivatedException extends NotAuthorizedException {
 

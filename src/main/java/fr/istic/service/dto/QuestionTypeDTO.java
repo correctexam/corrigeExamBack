@@ -2,7 +2,7 @@ package fr.istic.service.dto;
 
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -11,7 +11,7 @@ import java.util.Objects;
  */
 @RegisterForReflection
 public class QuestionTypeDTO implements Serializable {
-    
+
     public Long id;
 
     @NotNull

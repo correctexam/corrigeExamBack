@@ -4,7 +4,7 @@ import fr.istic.domain.Authority;
 import fr.istic.domain.User;
 import fr.istic.service.dto.UserDTO;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;

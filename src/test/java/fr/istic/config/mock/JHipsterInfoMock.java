@@ -3,7 +3,7 @@ package fr.istic.config.mock;
 import fr.istic.config.JHipsterInfo;
 import io.quarkus.test.Mock;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @Mock
 @ApplicationScoped

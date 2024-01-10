@@ -9,7 +9,7 @@ import org.mapstruct.*;
 /**
  * Mapper for the entity {@link CourseGroup} and its DTO {@link CourseGroupDTO}.
  */
-@Mapper(componentModel = "cdi", uses = {StudentMapper.class, CourseMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "jakarta", uses = {StudentMapper.class, CourseMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface CourseGroupMapper extends EntityMapper<CourseGroupDTO, CourseGroup> {
 
     @Mapping(source = "course.id", target = "courseId")

@@ -32,7 +32,7 @@ public final class HeaderUtil {
      * @param enableTranslation a boolean.
      * @param entityName        a {@link java.lang.String} object.
      * @param param             a {@link java.lang.String} object.
-     * @return a {@link javax.ws.rs.core.MultivaluedMap} object.
+     * @return a {@link jakarta.ws.rs.core.MultivaluedMap} object.
      */
     public static Map<String, String> createEntityCreationAlert(
         String applicationName,
@@ -53,7 +53,7 @@ public final class HeaderUtil {
      * @param enableTranslation a boolean.
      * @param entityName        a {@link java.lang.String} object.
      * @param param             a {@link java.lang.String} object.
-     * @return a {@link javax.ws.rs.core.MultivaluedMap} object.
+     * @return a {@link jakarta.ws.rs.core.MultivaluedMap} object.
      */
     public static Map<String, String> createEntityUpdateAlert(
         String applicationName,
@@ -74,7 +74,7 @@ public final class HeaderUtil {
      * @param enableTranslation a boolean.
      * @param entityName        a {@link java.lang.String} object.
      * @param param             a {@link java.lang.String} object.
-     * @return a {@link javax.ws.rs.core.MultivaluedMap} object.
+     * @return a {@link jakarta.ws.rs.core.MultivaluedMap} object.
      */
     public static Map<String, String> createEntityDeletionAlert(
         String applicationName,
@@ -96,7 +96,7 @@ public final class HeaderUtil {
      * @param entityName        a {@link java.lang.String} object.
      * @param errorKey          a {@link java.lang.String} object.
      * @param defaultMessage    a {@link java.lang.String} object.
-     * @return a {@link javax.ws.rs.core.MultivaluedMap} object.
+     * @return a {@link jakarta.ws.rs.core.MultivaluedMap} object.
      */
     public static Map<String, String> createFailureAlert(
         String applicationName,

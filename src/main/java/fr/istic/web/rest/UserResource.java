@@ -1,6 +1,6 @@
 package fr.istic.web.rest;
 
-import static javax.ws.rs.core.UriBuilder.fromPath;
+import static jakarta.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
@@ -18,16 +18,16 @@ import fr.istic.web.util.PaginationUtil;
 import fr.istic.web.util.ResponseUtil;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.security.RolesAllowed;
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;

@@ -1,6 +1,6 @@
 package fr.istic.web.rest;
 
-import static javax.ws.rs.core.UriBuilder.fromPath;
+import static jakarta.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.domain.CourseGroup;
 import fr.istic.security.AuthoritiesConstants;
@@ -19,12 +19,12 @@ import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
-import javax.annotation.security.RolesAllowed;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.*;
 import java.util.List;
 import java.util.Optional;
 

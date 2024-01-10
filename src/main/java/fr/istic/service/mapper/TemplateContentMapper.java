@@ -9,7 +9,7 @@ import org.mapstruct.*;
 /**
  * Mapper for the entity {@link Template} and its DTO {@link TemplateDTOContent}.
  */
-@Mapper(componentModel = "cdi", uses = {}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "jakarta", uses = {}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface TemplateContentMapper extends EntityMapper<TemplateDTOContent, Template> {
 
 

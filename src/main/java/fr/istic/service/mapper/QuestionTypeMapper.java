@@ -9,7 +9,7 @@ import org.mapstruct.*;
 /**
  * Mapper for the entity {@link QuestionType} and its DTO {@link QuestionTypeDTO}.
  */
-@Mapper(componentModel = "cdi", uses = {}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "jakarta", uses = {}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface QuestionTypeMapper extends EntityMapper<QuestionTypeDTO, QuestionType> {
 
 

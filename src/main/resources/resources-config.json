@@ -2,6 +2,21 @@
   "resources": [
     {
       "pattern": "jwt/privateKey.pem"
+    },
+    {
+      "pattern": "org/apache/pdfbox/resources/afm/*"
+    },
+    {
+      "pattern": "org/apache/pdfbox/resources/glyphlist/*"
+    },
+    {
+      "pattern": "org/apache/pdfbox/resources/icc/*"
+    },
+    {
+      "pattern": "org/apache/pdfbox/resources/text/*"
+    },
+    {
+      "pattern": "org/apache/pdfbox/resources/ttf/*"
     }
   ]
 }

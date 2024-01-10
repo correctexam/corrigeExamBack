@@ -1,11 +1,11 @@
 package fr.istic.domain;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import javax.json.bind.annotation.JsonbTransient;
+import jakarta.json.bind.annotation.JsonbTransient;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
-import javax.persistence.*;
-import javax.transaction.Transactional;
+import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
 
 import java.io.Serializable;
 import java.util.HashSet;

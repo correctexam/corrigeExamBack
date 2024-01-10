@@ -9,7 +9,7 @@ import org.mapstruct.*;
 /**
  * Mapper for the entity {@link Scan} and its DTO {@link ScanDTO}.
  */
-@Mapper(componentModel = "cdi", uses = {}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "jakarta", uses = {}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface ScanMapper extends EntityMapper<ScanDTO, Scan> {
 
 

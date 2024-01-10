@@ -1,7 +1,7 @@
 package fr.istic.config;
 import org.junit.jupiter.api.Test;
 
-import javax.ws.rs.ext.ParamConverter;
+import jakarta.ws.rs.ext.ParamConverter;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
