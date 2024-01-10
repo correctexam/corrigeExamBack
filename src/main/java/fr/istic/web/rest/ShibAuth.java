@@ -4,6 +4,9 @@ import fr.istic.security.jwt.TokenProvider;
 import fr.istic.service.AuthenticationService;
 import fr.istic.service.UserService;
 import io.quarkus.security.runtime.QuarkusSecurityIdentity;
+
+import org.eclipse.microprofile.config.inject.ConfigProperties;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +32,9 @@ public class ShibAuth {
     final String shibbolethLastName = "sn";
     final String shibbolethFirstName = "givenName";
 
+    @ConfigProperty(name="correctexam.shib.redirect.address",defaultValue = "https://correctexam-test.univ-rennes.fr?shib=true")
+    private String shibAdressRedirect;
+
     @Inject
     public ShibAuth(AuthenticationService authenticationService, TokenProvider tokenProvider, UserService userService, HttpServletRequest request) {
         this.authenticationService = authenticationService;
@@ -53,7 +59,7 @@ public class ShibAuth {
     {
         log.debug("SHIB REDIRECTION");
         logHeadersShib();
-        return Response.seeOther(URI.create("https://correctexam-test.univ-rennes.fr?shib=true")).build();
+        return Response.seeOther(URI.create(shibAdressRedirect)).build();
     }
 
     @GET
