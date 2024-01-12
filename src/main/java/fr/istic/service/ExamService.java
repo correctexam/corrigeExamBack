@@ -220,6 +220,7 @@ public class ExamService {
      */
     @Transactional
     public Paged<ExamDTO> findAll(Page page) {
+
         log.debug("Request to get all Exams");
         return new Paged<>(Exam.findAll().page(page))
                 .map(exam -> examMapper.toDto((Exam) exam));
