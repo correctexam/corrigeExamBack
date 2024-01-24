@@ -3,9 +3,9 @@ package fr.istic.config;
 import java.lang.reflect.Type;
 import java.util.Base64;
 
-import javax.json.bind.serializer.DeserializationContext;
-import javax.json.bind.serializer.JsonbDeserializer;
-import javax.json.stream.JsonParser;
+import jakarta.json.bind.serializer.DeserializationContext;
+import jakarta.json.bind.serializer.JsonbDeserializer;
+import jakarta.json.stream.JsonParser;
 
 public class FooDeserializer implements JsonbDeserializer<byte[]> {
 

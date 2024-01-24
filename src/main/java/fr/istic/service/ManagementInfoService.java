@@ -4,8 +4,8 @@ import io.quarkus.runtime.configuration.ProfileManager;
 import fr.istic.config.JHipsterInfo;
 import fr.istic.service.dto.ManagementInfoDTO;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 /**
 * Provides information for management/info resource

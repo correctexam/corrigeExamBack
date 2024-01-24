@@ -9,7 +9,7 @@ import org.mapstruct.*;
 /**
  * Mapper for the entity {@link Exam} and its DTO {@link ExamDTO}.
  */
-@Mapper(componentModel = "cdi", uses = {TemplateMapper.class, ZoneMapper.class, ScanMapper.class, CourseMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "jakarta", uses = {TemplateMapper.class, ZoneMapper.class, ScanMapper.class, CourseMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface ExamMapper extends EntityMapper<ExamDTO, Exam> {
 
     @Mapping(source = "template.id", target = "templateId")

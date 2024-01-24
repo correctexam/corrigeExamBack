@@ -7,8 +7,8 @@ import io.quarkus.mailer.MailTemplate;
 import io.quarkus.mailer.reactive.ReactiveMailer;
 import io.quarkus.qute.Location;
 import java.util.concurrent.CompletionStage;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -2,7 +2,7 @@ package fr.istic.service.dto;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
-import javax.json.bind.annotation.JsonbProperty;
+import jakarta.json.bind.annotation.JsonbProperty;
 import java.util.ArrayList;
 import java.util.List;
 

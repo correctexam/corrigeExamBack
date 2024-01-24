@@ -24,9 +24,9 @@ import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.transaction.Transactional;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -37,7 +37,7 @@ import java.util.Optional;
 
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 
-import javax.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import java.io.InputStream;
 import java.nio.file.Files;

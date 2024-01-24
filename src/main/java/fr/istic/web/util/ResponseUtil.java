@@ -3,7 +3,7 @@ package fr.istic.web.util;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 public interface ResponseUtil {
     static Response wrapOrNotFound(Optional maybeResponse) {

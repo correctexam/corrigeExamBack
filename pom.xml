@@ -8,11 +8,11 @@
     <version>1.0.0-SNAPSHOT</version>
     <name>CorrectExam</name>
     <properties>
-        <archunit-junit5.version>1.0.1</archunit-junit5.version>
+        <archunit-junit5.version>1.2.1</archunit-junit5.version>
         <cas.version>3.6.4</cas.version>
         <checkstyle.version>8.27</checkstyle.version>
         <git-commit-id-plugin.version>4.0.0</git-commit-id-plugin.version>
-        <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
         <jacoco.utReportFile>${jacoco.utReportFolder}/test.exec</jacoco.utReportFile>
         <jacoco.utReportFolder>${project.build.directory}/jacoco/test</jacoco.utReportFolder>
         <java.version>11</java.version>
@@ -33,16 +33,16 @@
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <maven.version>3.6.3</maven.version>
+        <maven.version>3.8.1</maven.version>
         <node.version>v18.12.0</node.version>
         <npm.version>8.19.2</npm.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.testresult.directory>${project.build.directory}/test-results</project.testresult.directory>
         <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
-        <quarkus-plugin.version>2.16.8.Final</quarkus-plugin.version>
+        <quarkus-plugin.version>3.6.4</quarkus-plugin.version>
         <quarkus.logManager>org.jboss.logmanager.LogManager</quarkus.logManager>
-        <quarkus.platform.version>2.16.8.Final</quarkus.platform.version>
+        <quarkus.platform.version>3.6.4</quarkus.platform.version>
         <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
     </properties>
     <dependencyManagement>
@@ -57,21 +57,37 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
-        <dependency>
+
+
+       <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>3.0.0</version>
+            <version>3.0.1</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/io.quarkus/quarkus-awt -->
+<dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-awt</artifactId>
+    <version>3.6.4</version>
+</dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.camel.quarkus/camel-quarkus-pdf -->
+<!--<dependency>
+    <groupId>org.apache.camel.quarkus</groupId>
+    <artifactId>camel-quarkus-pdf</artifactId>
+    <version>3.6.0</version>
+</dependency>-->
 
-        <dependency>
-            <groupId>io.quarkiverse.minio</groupId>
-            <artifactId>quarkus-minio</artifactId>
-            <version>2.9.2</version>
-        </dependency>
+
+<dependency>
+    <groupId>io.quarkiverse.minio</groupId>
+    <artifactId>quarkus-minio</artifactId>
+    <version>3.3.1</version>
+</dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-undertow</artifactId>
         </dependency>
+
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy</artifactId>
@@ -112,7 +128,7 @@
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm</artifactId>
-            <version>9.5</version>
+            <version>9.6</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -181,11 +197,14 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
+            <version>5.4.0</version>
+
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
+                <version>3.25.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -210,13 +229,20 @@
         <dependency>
             <groupId>io.quarkiverse.jdbc</groupId>
             <artifactId>quarkus-jdbc-sqlite</artifactId>
-            <version>1.0.3</version>
+            <version>3.0.7</version>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.jasig.cas.client</groupId>
             <artifactId>cas-client-core</artifactId>
             <version>${cas.version}</version>
-        </dependency>
+        </dependency>-->
+        <!-- https://mvnrepository.com/artifact/org.apereo.cas.client/cas-client-core -->
+<dependency>
+    <groupId>org.apereo.cas.client</groupId>
+    <artifactId>cas-client-core</artifactId>
+    <version>4.0.3</version>
+</dependency>
+
     </dependencies>
     <build>
         <defaultGoal>compile quarkus:dev</defaultGoal>
@@ -274,7 +300,7 @@
                         </includeOnlyProperties>
                     </configuration>
                 </plugin>
-                <plugin>
+<!--                <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
                     <version>${jacoco-maven-plugin.version}</version>
@@ -302,7 +328,7 @@
                             </configuration>
                         </execution>
                     </executions>
-                </plugin>
+                </plugin>-->
                 <plugin>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>${maven-javadoc-plugin.version}</version>
@@ -351,9 +377,9 @@
                             </requireMavenVersion>
                             <requireJavaVersion>
                                 <message>You are running an incompatible version of Java. JHipster Quarkus supports JDK
-                                    8 to
-                                    17.</message>
-                                <version>[1.8,19)</version>
+                                    17 to
+                                    21.</message>
+                                <version>[17,22)</version>
                             </requireJavaVersion>
                         </rules>
                     </configuration>
@@ -373,10 +399,12 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven-surefire-plugin.version}</version>
                     <configuration>
-                        <systemProperties>
-                            <jacoco-agent.destfile>${jacoco.utReportFile}</jacoco-agent.destfile>
+                        <systemPropertyVariables>
+                         <!--   <jacoco-agent.destfile>${jacoco.utReportFile}</jacoco-agent.destfile>-->
                             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
-                        </systemProperties>
+                                      <maven.home>${maven.home}</maven.home>
+
+                        </systemPropertyVariables>
                     </configuration>
                 </plugin>
                 <plugin>

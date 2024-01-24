@@ -1,18 +1,21 @@
-FROM ghcr.io/graalvm/graalvm-ce:ol9-java11 AS build-step
+FROM quay.io/quarkus/ubi-quarkus-graalvmce-builder-image:jdk-21 AS build-step
+USER root
 WORKDIR /app
-RUN gu install native-image
+# RUN gu install native-image
 RUN microdnf install git -y
 RUN git clone https://github.com/correctexam/corrigeExamBack
+WORKDIR /app/corrigeExamBack
+RUN git checkout develop
 WORKDIR /app/corrigeExamBack
 
 RUN mkdir -p /opt/maven
 WORKDIR /opt/maven
-RUN curl -O "https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz" && tar xzvf "apache-maven-3.6.3-bin.tar.gz" && rm "apache-maven-3.6.3-bin.tar.gz"
+RUN curl -O "https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz" && tar xzvf "apache-maven-3.9.6-bin.tar.gz" && rm "apache-maven-3.9.6-bin.tar.gz"
 
 WORKDIR /app/corrigeExamBack
-RUN /opt/maven/apache-maven-3.6.3/bin/mvn package -Pnative
+RUN /opt/maven/apache-maven-3.9.6/bin/mvn package -Pnative
 
-FROM oraclelinux:9-slim as prod
+FROM quay.io/quarkus/quarkus-micro-image:2.0-amd64 as prod
 WORKDIR /work/
 RUN chown 1001 /work \
     && chmod "g+rwX" /work \

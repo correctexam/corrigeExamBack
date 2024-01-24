@@ -9,7 +9,7 @@ import org.mapstruct.*;
 /**
  * Mapper for the entity {@link GradedComment} and its DTO {@link GradedCommentDTO}.
  */
-@Mapper(componentModel = "cdi", uses = {QuestionMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "jakarta", uses = {QuestionMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface GradedCommentMapper extends EntityMapper<GradedCommentDTO, GradedComment> {
 
     @Mapping(source = "question.id", target = "questionId")

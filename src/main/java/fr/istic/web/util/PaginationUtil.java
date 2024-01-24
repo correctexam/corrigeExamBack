@@ -2,9 +2,9 @@ package fr.istic.web.util;
 
 import fr.istic.service.Paged;
 
-import javax.ws.rs.core.Link;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.Link;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 
 public final class PaginationUtil {

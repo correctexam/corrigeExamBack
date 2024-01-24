@@ -4,7 +4,7 @@ package fr.istic.service.dto;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.io.Serializable;
 import java.util.Objects;
-import javax.persistence.Lob;
+import jakarta.persistence.Lob;
 
 /**
  * A DTO for the {@link fr.istic.domain.GradedComment} entity.
