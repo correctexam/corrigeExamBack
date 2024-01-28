@@ -12,6 +12,7 @@ import fr.istic.domain.StudentResponse;
 import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.ExamService;
+import fr.istic.service.ExamSheetService;
 import fr.istic.web.rest.errors.AccountResourceException;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
@@ -60,6 +61,9 @@ public class ExamResource {
 
     @Inject
     ExamService examService;
+
+    @Inject
+    ExamSheetService examSheetService;
 
     @Inject
     SecurityService securityService;
@@ -146,18 +150,25 @@ public class ExamResource {
         }
         Optional<Exam> ex = Exam.findByIdOptional(id);
         if (ex.isPresent()){
-            List<Student> st = Student.findStudentsbyCourseId(ex.get().course.id).list();
-            Set<ExamSheet> toRemoveS = new HashSet<>();
-            for (Student student : st){
+//            List<Student> st = Student.findStudentsbyCourseId(ex.get().course.id).list();
+            List<ExamSheet> sheets = ExamSheet.getAll4ExamId(ex.get().id).list();
+           // Set<ExamSheet> toRemoveS = new HashSet<>();
+            /* for (Student student : st){
                 List<ExamSheet> toRemove = student.examSheets.stream().filter(es -> es.scan.id == ex.get().scanfile.id).collect(Collectors.toList());
                 toRemoveS.addAll(toRemove);
                 student.examSheets.removeIf(es -> es.scan.id == ex.get().scanfile.id);
                 Student.update(student);
-            }
-            for (ExamSheet toRemove1: toRemoveS){
-                if (StudentResponse.findStudentResponsesbysheetId(toRemove1.id).count() ==0){
-                    toRemove1.delete();
+            }*/
+            for (ExamSheet toRemove1: sheets){
+                try {
+                    this.examSheetService.updateStudent(toRemove1.id, new ArrayList<Long>());
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+
+/*                if (StudentResponse.findStudentResponsesbysheetId(toRemove1.id).count() ==0){
+                    toRemove1.delete();
+                }*/
             }
 
         }
