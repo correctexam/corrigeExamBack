@@ -7,13 +7,20 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
 public class StudentResultDTO extends StudentDTO{
+    Long id;
     String uuid;
     String studentNumber;
     String note;
-    boolean abi;
+    // abi = 0 => false, abi =1 => true abi = 2 abj
+    int abi;
     Map<Integer, String> notequestions =  new HashMap<>();
 
-
+    public Long getId() {
+        return id;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getUuid() {
         return uuid;
@@ -27,10 +34,10 @@ public class StudentResultDTO extends StudentDTO{
     public void setNote(String note) {
         this.note = note;
     }
-    public boolean isAbi() {
+    public int isAbi() {
         return abi;
     }
-    public void setAbi(boolean abi) {
+    public void setAbi(int abi) {
         this.abi = abi;
     }
 
@@ -56,7 +63,7 @@ public class StudentResultDTO extends StudentDTO{
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + (abi ? 1231 : 1237);
+        result = prime * result + Integer.valueOf(abi).hashCode();
         result = prime * result + ((note == null) ? 0 : note.hashCode());
         result = prime * result + ((notequestions == null) ? 0 : notequestions.hashCode());
         result = prime * result + ((studentNumber == null) ? 0 : studentNumber.hashCode());

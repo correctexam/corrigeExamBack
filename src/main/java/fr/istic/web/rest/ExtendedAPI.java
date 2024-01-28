@@ -117,6 +117,7 @@ import com.google.gson.GsonBuilder;
 
 import static jakarta.ws.rs.core.UriBuilder.fromPath;
 
+
 /**
  * REST controller for managing {@link fr.istic.domain.Comments}.
  */
@@ -125,6 +126,7 @@ import static jakarta.ws.rs.core.UriBuilder.fromPath;
 @Consumes(MediaType.APPLICATION_JSON)
 @ApplicationScoped
 public class ExtendedAPI {
+    final int VALUEFORABJ = -100000;
 
     private final Logger log = LoggerFactory.getLogger(ExtendedAPI.class);
 
@@ -520,9 +522,12 @@ public class ExtendedAPI {
                 sh.students.forEach(student -> {
                     var q = FinalResult.findFinalResultByStudentIdAndExamId(student.id, examId);
                     long count = q.count();
-                    if (count > 0) {
+                    var fr = q.list();
+                    // For managing ABJ
+                    if (count > 0 && fr.get(0).note != VALUEFORABJ) {
                         FinalResult.deleteById(q.firstResult().id);
-
+                    } else  if (count > 0 && fr.get(0).note == VALUEFORABJ) {
+                        finalfinalResultsByStudentId.put(student.id, fr.get(0));
                     }
                 });
             } else {
@@ -557,7 +562,6 @@ public class ExtendedAPI {
             }
         }
         return ex;
-
     }
 
     @POST
@@ -572,6 +576,40 @@ public class ExtendedAPI {
 
         this.computeFinalNote(examId, new HashMap<>(), new HashMap<>(), new HashMap<>());
         return Response.ok().build();
+    }
+
+    @PUT
+    @Path("toggleAsAbJ/{studentId}/{examId}/{abi}")
+    @Transactional
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response toggleAsAbJ(@PathParam("studentId") long studentId, @PathParam("examId") long examId, @PathParam("abi") long abi, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        var frs = FinalResult.findFinalResultByStudentIdAndExamId(studentId, examId).list();
+
+        if (frs.size() >0) {
+            var fr = frs.get(0);
+            if (abi ==2 && fr.note != VALUEFORABJ) {
+                fr.note = VALUEFORABJ;
+                fr = FinalResult.update(fr);
+            } else {
+                fr.delete();
+            }
+        }
+        else {
+            if (abi ==2){
+
+                FinalResult r = new FinalResult();
+                r.student = Student.findById(Long.valueOf(studentId));
+                r.exam = Exam.findById(Long.valueOf(examId));
+                r.note = VALUEFORABJ;
+                r = FinalResult.persistOrUpdate(r);
+            }
+
+        }
+        return Response.ok().build();
+
     }
 
     @POST
@@ -699,7 +737,6 @@ public class ExtendedAPI {
         // for (Map.Entry<Long, FinalResult> finalResult1 :
         // finalfinalResultsByStudentId.entrySet()) {
         // FinalResult r = finalResult1.getValue();
-        log.error("sheets "+finalNotes.size() );
 
         for (Map.Entry<ExamSheet, Integer> sheetEntry : finalNotes.entrySet()) {
             // List<ExamSheet> sheets = finalNotes.keySet().stream()
@@ -718,6 +755,7 @@ public class ExtendedAPI {
                 for (Student student : sheet.students) {
 
                     var res = new StudentResultDTO();
+                    res.setId(student.id);
                     sheetsId.add(sheet.id);
 
                     studentsId.add(student.id);
@@ -729,7 +767,7 @@ public class ExtendedAPI {
                     res.setNote(df.format(r.doubleValue() / 100.0));
                     res.setUuid(uuid);
                     res.setStudentNumber("" + studentnumber);
-                    res.setAbi(false);
+                    res.setAbi(0);
                     res.setNotequestions(new HashMap<>());
                     List<StudentResponse> resp = mapstudentResp.get(sheet);
 
@@ -770,7 +808,7 @@ public class ExtendedAPI {
                     res.setNote(df.format(r.doubleValue() / 100.0));
                     res.setUuid(uuid);
                     res.setStudentNumber("" + studentnumber);
-                    res.setAbi(false);
+                    res.setAbi(0);
                     res.setNotequestions(new HashMap<>());
                     List<StudentResponse> resp = mapstudentResp.get(sheet);
 
@@ -811,9 +849,11 @@ public class ExtendedAPI {
         List<ExamSheet> sheets1 = ExamSheet.getAll4ExamIdNotInStudentIdList(examId, sheetsId).list();
         for (ExamSheet sheet : sheets1) {
             for (Student student : sheet.students) {
+
                 String uuid = sheet.name;
                 int studentnumber = (sheet.pagemin / (sheet.pagemax - sheet.pagemin + 1)) + 1;
                 var res = new StudentResultDTO();
+                res.setId(student.id);
                 studentsId.add(student.id);
                 sheetsId.add(sheet.id);
                 res.setNom(student.name);
@@ -824,7 +864,8 @@ public class ExtendedAPI {
                 res.setNote(df.format(0));
                 res.setUuid(uuid);
                 res.setStudentNumber("" + studentnumber);
-                res.setAbi(false);
+                res.setAbi(0);
+
                 res.setNotequestions(new HashMap<>());
                 results.add(res);
             }
@@ -867,11 +908,18 @@ public class ExtendedAPI {
 
         studentsAbi.forEach(student -> {
             var res = new StudentResultDTO();
+            res.setId(student.id);
             res.setNom(student.name);
             res.setPrenom(student.firstname);
             res.setIne(student.ine);
             res.setMail(student.mail);
-            res.setAbi(true);
+            var frs = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).list();
+            if (frs.size()>0 && frs.get(0).note ==VALUEFORABJ){
+                res.setAbi(2);
+            }else {
+                res.setAbi(1);
+
+            }
             results.add(res);
         });
 
