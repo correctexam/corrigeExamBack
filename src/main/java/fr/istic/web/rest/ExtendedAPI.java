@@ -11,7 +11,6 @@ import fr.istic.domain.FinalResult;
 import fr.istic.domain.GradedComment;
 import fr.istic.domain.HybridGradedComment;
 import fr.istic.domain.Question;
-import fr.istic.domain.QuestionType;
 import fr.istic.domain.Scan;
 import fr.istic.domain.Student;
 import fr.istic.domain.StudentResponse;
@@ -37,7 +36,6 @@ import fr.istic.service.SecurityService;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.hibernate.result.Output;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 
@@ -88,8 +86,6 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -107,7 +103,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Map.Entry;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -779,7 +774,7 @@ public class ExtendedAPI {
                                     df.format(
                                             resp1.quarternote.doubleValue() / 4));
 
-                        } else if (GradeType.HYBRID.equals(resp1.question.gradeType)) {
+                        } else if (!"QCM".equals(resp1.question.type.algoName) && GradeType.HYBRID.equals(resp1.question.gradeType)) {
 
                             res.getNotequestions().put(resp1.question.numero,
                                     df.format(
