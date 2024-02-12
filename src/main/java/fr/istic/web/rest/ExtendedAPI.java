@@ -1878,6 +1878,28 @@ public class ExtendedAPI {
         return response.build();
     }
 
+    @GET
+    @Path("/getExamStatusFinish/{examId}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getExamStatusFinish(@PathParam("examId") final long examId, @Context final UriInfo uriInfo,
+            @Context final SecurityContext ctx) {
+
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access this ressource").build();
+        }
+
+        final MarkingExamStateDTO result = new MarkingExamStateDTO();
+        final List<StudentResponse> stdResponses = StudentResponse.getAll4ExamId(examId).list();
+        final Map<Long, List<StudentResponse>> byQuestion = stdResponses.stream()
+                .collect(Collectors.groupingBy(StudentResponse::getQuestionNumero));
+
+        var nbreSheet = ExamSheet.getAll4ExamId(examId).count();
+        var res = byQuestion.keySet().stream().allMatch(e-> byQuestion.get(e).size()==nbreSheet);
+        log.error(""  +result);
+
+        return Response.ok(res).build();
+    }
+
     /**
      * Provides summary data of a given exam.
      *
