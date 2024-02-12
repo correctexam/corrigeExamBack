@@ -1888,15 +1888,15 @@ public class ExtendedAPI {
             return Response.status(403, "Current user cannot access this ressource").build();
         }
 
-        final MarkingExamStateDTO result = new MarkingExamStateDTO();
         final List<StudentResponse> stdResponses = StudentResponse.getAll4ExamId(examId).list();
         final Map<Long, List<StudentResponse>> byQuestion = stdResponses.stream()
                 .collect(Collectors.groupingBy(StudentResponse::getQuestionNumero));
 
         var nbreSheet = ExamSheet.getAll4ExamId(examId).count();
         var res = byQuestion.keySet().stream().allMatch(e-> byQuestion.get(e).size()==nbreSheet);
-        log.error(""  +result);
-
+        if (nbreSheet ==0){
+            res = false;
+        }
         return Response.ok(res).build();
     }
 
