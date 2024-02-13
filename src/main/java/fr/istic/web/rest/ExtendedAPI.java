@@ -639,9 +639,9 @@ public class ExtendedAPI {
         List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
         students.forEach(student -> {
             long count = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).count();
-            if (count > 0) {
+            ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id, student.id).firstResult();
+            if (count > 0 && sheet !=null) {
                 FinalResult r = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).firstResult();
-                ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id, student.id).firstResult();
                 String uuid = sheet.name;
                 if (dto.getSheetuuid() == null || uuid.equals(dto.getSheetuuid())) {
 
@@ -667,6 +667,9 @@ public class ExtendedAPI {
                 }
 
             } else {
+                if (count > 0 && sheet == null){
+                    mailService.sendEmail("barais@irisa.fr", " FinalResult but no sheet for studentId: " + student.id + ", studentname: " + student.name + ", exam.id: " +ex.id, "[CorrectExam] strange behavior", "olivier.barais@gmail.com");
+                }
                 if (dto.isMailabi() && dto.getSheetuuid() == null) {
                     String body = dto.getBodyabi();
                     body = body.replace("${firstname}", student.firstname);
