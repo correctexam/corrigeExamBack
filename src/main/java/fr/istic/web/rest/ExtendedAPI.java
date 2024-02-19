@@ -637,6 +637,7 @@ public class ExtendedAPI {
         Exam ex = this.computeFinalNote(examId, finalfinalResultsByStudentId, finalNotes, mapstudentResp);
 
         List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
+        log.error("sizeStudent", students.size());
         students.forEach(student -> {
             long count = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).count();
             ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id, student.id).firstResult();
@@ -1896,10 +1897,14 @@ public class ExtendedAPI {
                 .collect(Collectors.groupingBy(StudentResponse::getQuestionNumero));
 
         var nbreSheet = ExamSheet.getAll4ExamId(examId).count();
+
+
         var res = byQuestion.keySet().stream().allMatch(e-> byQuestion.get(e).size()==nbreSheet);
-        if (nbreSheet ==0){
+
+        if (nbreSheet ==0 || stdResponses.size()==0){
             res = false;
         }
+
         return Response.ok(res).build();
     }
 
