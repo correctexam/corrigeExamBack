@@ -1896,10 +1896,14 @@ public class ExtendedAPI {
                 .collect(Collectors.groupingBy(StudentResponse::getQuestionNumero));
 
         var nbreSheet = ExamSheet.getAll4ExamId(examId).count();
+
+
         var res = byQuestion.keySet().stream().allMatch(e-> byQuestion.get(e).size()==nbreSheet);
-        if (nbreSheet ==0){
+
+        if (nbreSheet ==0 || stdResponses.size()==0){
             res = false;
         }
+
         return Response.ok(res).build();
     }
 
@@ -2773,7 +2777,6 @@ public class ExtendedAPI {
                                 an.studentResponseId = stToUpdate.id;
                                 an.stepValue = an1.stepValue;
                                 this.answer2HybridGradedCommentService.persistOrUpdate(an);
-                                log.error("pass par la2");
 
                             });
                 }
