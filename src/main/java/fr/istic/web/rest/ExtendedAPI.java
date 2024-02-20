@@ -637,7 +637,6 @@ public class ExtendedAPI {
         Exam ex = this.computeFinalNote(examId, finalfinalResultsByStudentId, finalNotes, mapstudentResp);
 
         List<Student> students = Student.findStudentsbyCourseId(ex.course.id).list();
-        log.error("sizeStudent", students.size());
         students.forEach(student -> {
             long count = FinalResult.findFinalResultByStudentIdAndExamId(student.id, ex.id).count();
             ExamSheet sheet = ExamSheet.findExamSheetByScanAndStudentId(ex.scanfile.id, student.id).firstResult();
@@ -2778,7 +2777,6 @@ public class ExtendedAPI {
                                 an.studentResponseId = stToUpdate.id;
                                 an.stepValue = an1.stepValue;
                                 this.answer2HybridGradedCommentService.persistOrUpdate(an);
-                                log.error("pass par la2");
 
                             });
                 }
