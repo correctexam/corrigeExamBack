@@ -14,7 +14,6 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -142,6 +141,18 @@ public class StudentResponseService {
             return Optional.empty();
         }
 
+
+    }
+
+    @Transactional
+    public void updateCorrectedBy(long id,User updatedBy) {
+        Optional<StudentResponse> sr = StudentResponse.findByIdOptional(id);
+        if (sr.isPresent()){
+            StudentResponse sr1 = sr.get();
+            sr1.lastModifiedDate = Instant.now();
+            sr1.correctedBy = updatedBy;
+            StudentResponse.persistOrUpdate(sr1);
+        }
 
     }
 
