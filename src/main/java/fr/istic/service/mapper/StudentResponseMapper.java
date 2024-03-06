@@ -17,10 +17,13 @@ public interface StudentResponseMapper extends EntityMapper<StudentResponseDTO, 
     @Mapping(source = "sheet.id", target = "sheetId")
     @Mapping(source = "sheet.name", target = "sheetName")
     @Mapping(source = "quarternote", target = "note", qualifiedByName = "quarternote2note")
+    @Mapping(source = "correctedBy", target = "correctedByInfo", qualifiedByName = "correctedByTranslation")
+    @Mapping(source = "correctedBy", target = "correctedByMail", qualifiedByName = "correctedByTranslationMail")
     StudentResponseDTO toDto(StudentResponse studentResponse);
 
     @Mapping(target = "comments", ignore = true)
     @Mapping(target = "hybridcommentsValues", ignore = true)
+    @Mapping(target = "correctedBy", ignore = true)
     @Mapping(source = "questionId", target = "question")
     @Mapping(source = "sheetId", target = "sheet")
     @Mapping(source = "note", target = "quarternote", qualifiedByName = "note2quarternote")
@@ -44,4 +47,22 @@ public interface StudentResponseMapper extends EntityMapper<StudentResponseDTO, 
     public static int point2quarterpoint(double note) {
         return Double.valueOf(note *4).intValue();
     }
+    @Named("correctedByTranslation")
+    public static String correctedByTranslation(User correctedBy) {
+        if (correctedBy != null){
+            return correctedBy.firstName + " " + correctedBy.lastName + " ( " + correctedBy.email + " )";
+        } else {
+            return null;
+        }
+    }
+
+    @Named("correctedByTranslationMail")
+    public static String correctedByTranslationMail(User correctedBy) {
+        if (correctedBy != null){
+            return correctedBy.email;
+        } else {
+            return null;
+        }
+    }
+
 }

@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.istic.domain.Authority;
+import fr.istic.domain.ExamSheet;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
@@ -68,13 +69,18 @@ public class StudentResponseResource {
      */
     @POST
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response createStudentResponse(StudentResponseDTO studentResponseDTO, @Context UriInfo uriInfo) {
+    public Response createStudentResponse(StudentResponseDTO studentResponseDTO, @Context UriInfo uriInfo,@Context final SecurityContext ctx) {
         log.debug("REST request to save StudentResponse : {}", studentResponseDTO);
         if (studentResponseDTO.id != null) {
             throw new BadRequestAlertException("A new studentResponse cannot already have an ID", ENTITY_NAME,
                     "idexists");
         }
-        var result = studentResponseService.persistOrUpdate(studentResponseDTO);
+        if (studentResponseDTO.sheetId != null && studentResponseDTO.sheetId.longValue() >0 && !securityService.canAccess(ctx, studentResponseDTO.sheetId, ExamSheet.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+
+        User correctedBy = this.securityService.getCurrentLoggedUser(ctx);
+        var result = studentResponseService.persistOrUpdate(studentResponseDTO,correctedBy);
         var response = Response.created(fromPath(uriInfo.getPath()).path(result.id.toString()).build()).entity(result);
         HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.id.toString())
                 .forEach(response::header);
@@ -102,8 +108,9 @@ public class StudentResponseResource {
         if (!securityService.canAccess(ctx, studentResponseDTO.id, StudentResponse.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
+        User correctedBy = this.securityService.getCurrentLoggedUser(ctx);
 
-        var result = studentResponseService.persistOrUpdate(studentResponseDTO);
+        var result = studentResponseService.persistOrUpdate(studentResponseDTO,correctedBy);
         var response = Response.ok().entity(result);
         HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, studentResponseDTO.id.toString())
                 .forEach(response::header);

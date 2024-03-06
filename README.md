@@ -120,6 +120,14 @@ alter table hybrid_graded_comment add constraint FKrrl2y7dngtnqlklwt0scsy8jq for
 
 ALTER TABLE `gradeScopeIstic`.`answer_2_hybrid_graded_comment` ADD UNIQUE `UniqueHybridcommentsIdAndStudentResponseId` (`student_response_id`, `hybridcomments_id`);
 
+ALTER TABLE `student_response` ADD UNIQUE(`question_id`, `sheet_id`);
+
+alter table student_response add column lastmodified datetime(6);
+alter table student_response add column correctedby_id bigint;
+alter table student_response add constraint FKinrpshecm7c6aiqo6000ju87c foreign key (correctedby_id) references jhi_user (id);
+
+
+
 [x] unique constraint for answer_2_hybrid_graded_comment
 [x] delete correctly when removing exam or course
 [x] Import Export with HybridComment
@@ -134,3 +142,22 @@ ALTER TABLE `gradeScopeIstic`.`answer_2_hybrid_graded_comment` ADD UNIQUE `Uniqu
 [x] Update view copie4student
 [x] update show all with this hybridComment
 [x] update apply to all the same grade
+
+
+
+ SELECT resp.id FROM `student_response` as resp WHERE EXISTS( SELECT * FROM `student_response` as resp2 WHERE resp.id <> resp2.id and resp.question_id = resp2.question_id and resp.sheet_id = resp2.sheet_id);
+
+select * from student_response_textcomments as st3 where st3.student_response_id IN(
+ SELECT resp.id FROM `student_response` as resp WHERE EXISTS( SELECT * FROM `student_response` as resp2 WHERE resp.id <> resp2.id and resp.question_id = resp2.question_id and resp.sheet_id = resp2.sheet_id));
+
+
+
+DELETE from answer_2_hybrid_graded_comment as an where an.student_response_id IN(
+ SELECT resp.id FROM `student_response` as resp WHERE EXISTS( SELECT * FROM `student_response` as resp2 WHERE resp.id <> resp2.id and resp.question_id = resp2.question_id and resp.sheet_id = resp2.sheet_id));
+
+select an.* from answer_2_hybrid_graded_comment as an where an.student_response_id IN(SELECT resp.id FROM `student_response` as resp WHERE EXISTS( SELECT * FROM `student_response` as resp2 WHERE resp.id <> resp2.id and resp.question_id = resp2.question_id and resp.sheet_id = resp2.sheet_id));
+
+delete an.* from answer_2_hybrid_graded_comment as an where an.student_response_id IN(
+ SELECT resp.id FROM `student_response` as resp WHERE EXISTS( SELECT * FROM `student_response` as resp2 WHERE resp.id <> resp2.id and resp.question_id = resp2.question_id and resp.sheet_id = resp2.sheet_id));
+
+ DELETE FROM `student_response` WHERE id in (53044,53045,53046,53047,53050,53051,53052,53053,53054,53055,53056,53057,53058,53059,53061,53062,53063,53064,53065,53066,53067,53068,53106,53107,53108,53109,53110,53111,53112,53113,53114,53115,53117,53118,53119,53120,53121,53122,53124,53125,53126,53127,53128,53129,53130,53131,53133,53134,53135,53136,53184,53185,53240,53241,53242,53243,53244,53245,53248,53249,53250,53251);

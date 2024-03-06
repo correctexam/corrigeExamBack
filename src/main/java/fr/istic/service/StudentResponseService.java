@@ -2,6 +2,7 @@ package fr.istic.service;
 
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.StudentResponse;
+import fr.istic.domain.User;
 import fr.istic.service.customdto.StudentResponseNote;
 import fr.istic.service.dto.StudentResponseDTO;
 import fr.istic.service.mapper.StudentResponseMapper;
@@ -12,6 +13,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -29,15 +31,15 @@ public class StudentResponseService {
     Answer2HybridGradedCommentService answer2HybridGradedCommentService;
 
     @Transactional
-    public StudentResponseDTO persistOrUpdate(StudentResponseDTO studentResponseDTO) {
+    public StudentResponseDTO persistOrUpdate(StudentResponseDTO studentResponseDTO, User updatedBy) {
         log.debug("Request to save StudentResponse : {}", studentResponseDTO);
         long l = 0;
         if (studentResponseDTO.sheetId != null && studentResponseDTO.questionId != null) {
-            l = StudentResponse.findStudentResponsesbysheetIdAndquestionId(studentResponseDTO.sheetId,Collections.singletonList( studentResponseDTO.questionId) ).count();
+            l = StudentResponse.findStudentResponsesbysheetIdAndquestionId(studentResponseDTO.sheetId,studentResponseDTO.questionId ).count();
 
         }
         if (l>0) {
-            StudentResponse sr = StudentResponse.findStudentResponsesbysheetIdAndquestionId(studentResponseDTO.sheetId,Collections.singletonList(studentResponseDTO.questionId)).firstResult();
+            StudentResponse sr = StudentResponse.findStudentResponsesbysheetIdAndquestionId(studentResponseDTO.sheetId,studentResponseDTO.questionId).firstResult();
             var studentResponse = studentResponseMapper.toEntity(studentResponseDTO);
             sr.quarternote = studentResponse.quarternote;
             sr.star = studentResponse.star;
@@ -48,12 +50,15 @@ public class StudentResponseService {
             sr.gradedcomments.addAll(studentResponse.gradedcomments);
             sr.textcomments.clear();
             sr.textcomments.addAll(studentResponse.textcomments);
+            sr.lastModifiedDate = Instant.now();
+            sr.correctedBy = updatedBy;
             studentResponse = StudentResponse.persistOrUpdate(sr);
             return studentResponseMapper.toDto(sr);
 
         } else{
             var studentResponse = studentResponseMapper.toEntity(studentResponseDTO);
-
+            studentResponse.lastModifiedDate = Instant.now();
+            studentResponse.correctedBy = updatedBy;
             studentResponse = StudentResponse.persistOrUpdate(studentResponse);
             return studentResponseMapper.toDto(studentResponse);
 
@@ -120,7 +125,7 @@ public class StudentResponseService {
      */
     public Paged<StudentResponseDTO> findStudentResponsesbysheetIdAndquestionId(Page page, Long sheetId, List<Long> questionsId) {
         log.debug("Request to get all StudentResponses");
-        return new Paged<>(StudentResponse.findStudentResponsesbysheetIdAndquestionId(sheetId, questionsId).page(page))
+        return new Paged<>(StudentResponse.findStudentResponsesbysheetIdAndquestionsId(sheetId, questionsId).page(page))
             .map(studentResponse -> studentResponseMapper.toDto((StudentResponse) studentResponse));
     }
 

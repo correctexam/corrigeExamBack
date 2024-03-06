@@ -3,6 +3,7 @@ package fr.istic.service.dto;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -24,6 +25,10 @@ public class StudentResponseDTO implements Serializable {
     public String questionNumero;
     public Long sheetId;
     public String sheetName;
+    public String correctedByInfo;
+    public String correctedByMail;
+    public Instant lastModifiedDate;
+
     public Set<TextCommentDTO> textcomments = new HashSet<>();
     public Set<GradedCommentDTO> gradedcomments = new HashSet<>();
 
