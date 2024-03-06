@@ -1,7 +1,6 @@
 package fr.istic.service;
 
 import io.quarkus.panache.common.Page;
-import io.vertx.core.cli.Option;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.User;
 import fr.istic.service.customdto.StudentResponseNote;
@@ -15,7 +14,6 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
