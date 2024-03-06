@@ -1,6 +1,7 @@
 package fr.istic.service;
 
 import io.quarkus.panache.common.Page;
+import io.vertx.core.cli.Option;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.User;
 import fr.istic.service.customdto.StudentResponseNote;
@@ -142,6 +143,18 @@ public class StudentResponseService {
             return Optional.empty();
         }
 
+
+    }
+
+    @Transactional
+    public void updateCorrectedBy(long id,User updatedBy) {
+        Optional<StudentResponse> sr = StudentResponse.findByIdOptional(id);
+        if (sr.isPresent()){
+            StudentResponse sr1 = sr.get();
+            sr1.lastModifiedDate = Instant.now();
+            sr1.correctedBy = updatedBy;
+            StudentResponse.persistOrUpdate(sr1);
+        }
 
     }
 

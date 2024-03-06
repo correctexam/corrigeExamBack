@@ -33,6 +33,7 @@ import fr.istic.service.MailService;
 import fr.istic.service.QuestionService;
 import fr.istic.service.ScanService;
 import fr.istic.service.SecurityService;
+import fr.istic.service.StudentResponseService;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -125,6 +126,10 @@ public class ExtendedAPI {
     final int VALUEFORABJ = -100000;
 
     private final Logger log = LoggerFactory.getLogger(ExtendedAPI.class);
+
+
+    @Inject
+    StudentResponseService studentResponseService;
 
     @Inject
     CourseGroupService courseGroupService;
@@ -669,7 +674,7 @@ public class ExtendedAPI {
 
             } else {
                 if (count > 0 && sheet == null){
-                    mailService.sendEmail("barais@irisa.fr", " FinalResult but no sheet for studentId: " + student.id + ", studentname: " + student.name + ", exam.id: " +ex.id, "[CorrectExam] strange behavior", "olivier.barais@gmail.com");
+                 //   mailService.sendEmail("barais@irisa.fr", " FinalResult but no sheet for studentId: " + student.id + ", studentname: " + student.name + ", exam.id: " +ex.id, "[CorrectExam] strange behavior", "olivier.barais@gmail.com");
                 }
                 if (dto.isMailabi() && dto.getSheetuuid() == null) {
                     String body = dto.getBodyabi();
@@ -2652,6 +2657,7 @@ public class ExtendedAPI {
         if (!securityService.canAccess(ctx, responseId, StudentResponse.class)) {
             return Response.status(403, "Current user cannot access this ressource").build();
         }
+        this.studentResponseService.updateCorrectedBy(responseId,this.securityService.getCurrentLoggedUser(ctx));
         Answer2HybridGradedCommentDTO result = this.answer2HybridGradedCommentService
                 .setStepValueWithResponseIdAndHybridCommentId(responseId, hybridCommentId, stepValue);
         return Response.ok().entity(result).build();
@@ -2669,6 +2675,7 @@ public class ExtendedAPI {
         if (!securityService.canAccess(ctx, responseId, StudentResponse.class)) {
             return Response.status(403, "Current user cannot access this ressource").build();
         }
+        this.studentResponseService.updateCorrectedBy(responseId,this.securityService.getCurrentLoggedUser(ctx));
         Answer2HybridGradedCommentDTO result = this.answer2HybridGradedCommentService
                 .incrementWithResponseIdAndHybridCommentId(responseId, hybridCommentId);
         return Response.ok().entity(result).build();
