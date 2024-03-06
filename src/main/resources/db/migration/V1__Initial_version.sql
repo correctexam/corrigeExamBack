@@ -1,17 +1,16 @@
 -- phpMyAdmin SQL Dump
--- version 5.1.1deb5ubuntu1
+-- version 5.2.1deb1ubuntu1
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost:3306
--- Généré le : jeu. 03 nov. 2022 à 16:51
--- Version du serveur : 8.0.31-0ubuntu0.22.04.1
--- Version de PHP : 8.1.2
+-- Généré le : mer. 06 mars 2024 à 16:04
+-- Version du serveur : 8.0.36-0ubuntu0.23.10.1
+-- Version de PHP : 8.2.10-2ubuntu1
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
-
 
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -20,8 +19,21 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de données : `correctexam`
+-- Base de données : `gradeScopeIstic`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `answer_2_hybrid_graded_comment`
+--
+
+CREATE TABLE `answer_2_hybrid_graded_comment` (
+  `id` bigint NOT NULL,
+  `step_value` int DEFAULT NULL,
+  `hybridcomments_id` bigint DEFAULT NULL,
+  `student_response_id` bigint DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -106,6 +118,26 @@ CREATE TABLE `DATABASECHANGELOG` (
 
 -- --------------------------------------------------------
 
+--
+-- Structure de la table `databasechangelog`
+--
+
+CREATE TABLE `databasechangelog` (
+  `ID` varchar(255) NOT NULL,
+  `AUTHOR` varchar(255) NOT NULL,
+  `FILENAME` varchar(255) NOT NULL,
+  `DATEEXECUTED` datetime NOT NULL,
+  `ORDEREXECUTED` int NOT NULL,
+  `EXECTYPE` varchar(10) NOT NULL,
+  `MD5SUM` varchar(35) DEFAULT NULL,
+  `DESCRIPTION` varchar(255) DEFAULT NULL,
+  `COMMENTS` varchar(255) DEFAULT NULL,
+  `TAG` varchar(255) DEFAULT NULL,
+  `LIQUIBASE` varchar(20) DEFAULT NULL,
+  `CONTEXTS` varchar(255) DEFAULT NULL,
+  `LABELS` varchar(255) DEFAULT NULL,
+  `DEPLOYMENT_ID` varchar(10) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -122,6 +154,18 @@ CREATE TABLE `DATABASECHANGELOGLOCK` (
 
 -- --------------------------------------------------------
 
+--
+-- Structure de la table `databasechangeloglock`
+--
+
+CREATE TABLE `databasechangeloglock` (
+  `ID` int NOT NULL,
+  `LOCKED` bit(1) NOT NULL,
+  `LOCKGRANTED` datetime DEFAULT NULL,
+  `LOCKEDBY` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
 
 --
 -- Structure de la table `exam`
@@ -163,7 +207,8 @@ CREATE TABLE `final_result` (
   `id` bigint NOT NULL,
   `note` int DEFAULT NULL,
   `student_id` bigint DEFAULT NULL,
-  `exam_id` bigint DEFAULT NULL
+  `exam_id` bigint DEFAULT NULL,
+  `frozen` bit(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -184,20 +229,28 @@ CREATE TABLE `graded_comment` (
 -- --------------------------------------------------------
 
 --
+-- Structure de la table `hybrid_graded_comment`
+--
+
+CREATE TABLE `hybrid_graded_comment` (
+  `id` bigint NOT NULL,
+  `description` longtext,
+  `grade` int DEFAULT NULL,
+  `relative` bit(1) DEFAULT NULL,
+  `step` int DEFAULT NULL,
+  `text` varchar(255) DEFAULT NULL,
+  `question_id` bigint DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Structure de la table `jhi_authority`
 --
 
 CREATE TABLE `jhi_authority` (
   `name` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Déchargement des données de la table `jhi_authority`
---
-
-INSERT INTO `jhi_authority` (`name`) VALUES
-('ROLE_ADMIN'),
-('ROLE_USER');
 
 -- --------------------------------------------------------
 
@@ -266,17 +319,6 @@ CREATE TABLE `jhi_user` (
   `last_modified_date` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
---
--- Déchargement des données de la table `jhi_user`
---
-
-INSERT INTO `jhi_user` (`id`, `login`, `password_hash`, `first_name`, `last_name`, `email`, `image_url`, `activated`, `lang_key`, `activation_key`, `reset_key`, `created_by`, `created_date`, `reset_date`, `last_modified_by`, `last_modified_date`) VALUES
-(1, 'system', '$2a$10$mE.qmcV0mFU5NcKh73TZx.z4ueI/.bDWbj0T1BYyqP481kGGarKLG', 'System', 'System', 'system@localhost', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL),
-(2, 'anonymoususer', '$2a$10$j8S5d7Sr7.8VTOYNviDPOeWX8KcYILUVJBsYV83Y5NtECayypx9lO', 'Anonymous', 'User', 'anonymous@localhost', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL),
-(3, 'admin', '$2a$10$gSAhZrxMllrbgj/kkK9UceBPpChGWJA7SYIb1Mqo.n5aNLq1/oRrC', 'Administrator', 'Administrator', 'admin@localhost', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL),
-(4, 'user', '$2a$10$VEjxo0jq2YG9Rbk2HmX9S.k1uZBGYUHdUcid3g/vfiEl7lwWgOH/K', 'User', 'User', 'user@localhost', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL),
-(5, 'barais', '$2a$10$VEjxo0jq2YG9Rbk2HmX9S.k1uZBGYUHdUcid3g/vfiEl7lwWgOH/K', 'Barais', 'Olivier', 'barais@irisa.fr', '', b'1', 'fr', NULL, '8nSajYN5u5HEwkMEEbOR', 'system', NULL, '2022-10-03 08:33:25', 'system', NULL);
-
 -- --------------------------------------------------------
 
 --
@@ -287,18 +329,6 @@ CREATE TABLE `jhi_user_authority` (
   `user_id` bigint NOT NULL,
   `authority_name` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Déchargement des données de la table `jhi_user_authority`
---
-
-INSERT INTO `jhi_user_authority` (`user_id`, `authority_name`) VALUES
-(1, 'ROLE_ADMIN'),
-(3, 'ROLE_ADMIN'),
-(1, 'ROLE_USER'),
-(3, 'ROLE_USER'),
-(4, 'ROLE_USER'),
-(5, 'ROLE_USER');
 
 -- --------------------------------------------------------
 
@@ -316,7 +346,8 @@ CREATE TABLE `question` (
   `grade_type` varchar(255) DEFAULT NULL,
   `zone_id` bigint DEFAULT NULL,
   `type_id` bigint DEFAULT NULL,
-  `exam_id` bigint DEFAULT NULL
+  `exam_id` bigint DEFAULT NULL,
+  `defaultpoint` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -331,14 +362,6 @@ CREATE TABLE `question_type` (
   `endpoint` varchar(255) DEFAULT NULL,
   `js_function` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Déchargement des données de la table `question_type`
---
-
-INSERT INTO `question_type` (`id`, `algo_name`, `endpoint`, `js_function`) VALUES
-(2, 'manual', '', ''),
-(3, 'QCM', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -391,7 +414,9 @@ CREATE TABLE `student_response` (
   `star` bit(1) DEFAULT NULL,
   `worststar` bit(1) DEFAULT b'0',
   `question_id` bigint DEFAULT NULL,
-  `sheet_id` bigint DEFAULT NULL
+  `sheet_id` bigint DEFAULT NULL,
+  `lastmodified` datetime(6) DEFAULT NULL,
+  `correctedby_id` bigint DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -465,6 +490,14 @@ CREATE TABLE `zone` (
 --
 
 --
+-- Index pour la table `answer_2_hybrid_graded_comment`
+--
+ALTER TABLE `answer_2_hybrid_graded_comment`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `UniqueHybridcommentsIdAndStudentResponseId` (`student_response_id`,`hybridcomments_id`),
+  ADD KEY `FK9ijm3itpjwpgf534m94df8dt6` (`hybridcomments_id`);
+
+--
 -- Index pour la table `comments`
 --
 ALTER TABLE `comments`
@@ -505,6 +538,12 @@ ALTER TABLE `DATABASECHANGELOGLOCK`
   ADD PRIMARY KEY (`ID`);
 
 --
+-- Index pour la table `databasechangeloglock`
+--
+ALTER TABLE `databasechangeloglock`
+  ADD PRIMARY KEY (`ID`);
+
+--
 -- Index pour la table `exam`
 --
 ALTER TABLE `exam`
@@ -529,6 +568,7 @@ ALTER TABLE `exam_sheet`
 --
 ALTER TABLE `final_result`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `cannot ahve two finalresult for the same student and same exam` (`student_id`,`exam_id`),
   ADD KEY `fk_final_result_student_id` (`student_id`),
   ADD KEY `fk_final_result_exam_id` (`exam_id`);
 
@@ -538,6 +578,13 @@ ALTER TABLE `final_result`
 ALTER TABLE `graded_comment`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_graded_comment_question_id` (`question_id`);
+
+--
+-- Index pour la table `hybrid_graded_comment`
+--
+ALTER TABLE `hybrid_graded_comment`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `FKrrl2y7dngtnqlklwt0scsy8jq` (`question_id`);
 
 --
 -- Index pour la table `jhi_authority`
@@ -619,14 +666,17 @@ ALTER TABLE `student_exam_sheets`
 --
 ALTER TABLE `student_response`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `question_id` (`question_id`,`sheet_id`),
   ADD KEY `fk_student_response_question_id` (`question_id`),
-  ADD KEY `fk_student_response_sheet_id` (`sheet_id`);
+  ADD KEY `fk_student_response_sheet_id` (`sheet_id`),
+  ADD KEY `FKinrpshecm7c6aiqo6000ju87c` (`correctedby_id`);
 
 --
 -- Index pour la table `student_response_gradedcomments`
 --
 ALTER TABLE `student_response_gradedcomments`
   ADD PRIMARY KEY (`student_response_id`,`gradedcomments_id`),
+  ADD UNIQUE KEY `gradedcomments_id` (`gradedcomments_id`,`student_response_id`),
   ADD KEY `fk_student_response_gradedcomments_gradedcomments_id` (`gradedcomments_id`);
 
 --
@@ -658,6 +708,12 @@ ALTER TABLE `zone`
 --
 -- AUTO_INCREMENT pour les tables déchargées
 --
+
+--
+-- AUTO_INCREMENT pour la table `answer_2_hybrid_graded_comment`
+--
+ALTER TABLE `answer_2_hybrid_graded_comment`
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `comments`
@@ -702,6 +758,12 @@ ALTER TABLE `graded_comment`
   MODIFY `id` bigint NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT pour la table `hybrid_graded_comment`
+--
+ALTER TABLE `hybrid_graded_comment`
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT pour la table `jhi_date_time_wrapper`
 --
 ALTER TABLE `jhi_date_time_wrapper`
@@ -717,7 +779,7 @@ ALTER TABLE `jhi_persistent_audit_event`
 -- AUTO_INCREMENT pour la table `jhi_user`
 --
 ALTER TABLE `jhi_user`
-  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `question`
@@ -729,7 +791,7 @@ ALTER TABLE `question`
 -- AUTO_INCREMENT pour la table `question_type`
 --
 ALTER TABLE `question_type`
-  MODIFY `id` bigint NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT pour la table `scan`
@@ -770,6 +832,13 @@ ALTER TABLE `zone`
 --
 -- Contraintes pour les tables déchargées
 --
+
+--
+-- Contraintes pour la table `answer_2_hybrid_graded_comment`
+--
+ALTER TABLE `answer_2_hybrid_graded_comment`
+  ADD CONSTRAINT `FK9ijm3itpjwpgf534m94df8dt6` FOREIGN KEY (`hybridcomments_id`) REFERENCES `hybrid_graded_comment` (`id`),
+  ADD CONSTRAINT `FKqxflsw40s622dtyt99himou2k` FOREIGN KEY (`student_response_id`) REFERENCES `student_response` (`id`);
 
 --
 -- Contraintes pour la table `comments`
@@ -829,6 +898,12 @@ ALTER TABLE `graded_comment`
   ADD CONSTRAINT `fk_graded_comment_question_id` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`);
 
 --
+-- Contraintes pour la table `hybrid_graded_comment`
+--
+ALTER TABLE `hybrid_graded_comment`
+  ADD CONSTRAINT `FKrrl2y7dngtnqlklwt0scsy8jq` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`);
+
+--
 -- Contraintes pour la table `jhi_persistent_audit_evt_data`
 --
 ALTER TABLE `jhi_persistent_audit_evt_data`
@@ -861,7 +936,8 @@ ALTER TABLE `student_exam_sheets`
 --
 ALTER TABLE `student_response`
   ADD CONSTRAINT `fk_student_response_question_id` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`),
-  ADD CONSTRAINT `fk_student_response_sheet_id` FOREIGN KEY (`sheet_id`) REFERENCES `exam_sheet` (`id`);
+  ADD CONSTRAINT `fk_student_response_sheet_id` FOREIGN KEY (`sheet_id`) REFERENCES `exam_sheet` (`id`),
+  ADD CONSTRAINT `FKinrpshecm7c6aiqo6000ju87c` FOREIGN KEY (`correctedby_id`) REFERENCES `jhi_user` (`id`);
 
 --
 -- Contraintes pour la table `student_response_gradedcomments`
@@ -884,9 +960,38 @@ ALTER TABLE `text_comment`
   ADD CONSTRAINT `fk_text_comment_question_id` FOREIGN KEY (`question_id`) REFERENCES `question` (`id`);
 COMMIT;
 
- ALTER TABLE `final_result` ADD UNIQUE `UniqueStudentIdAndExamId` (`student_id`, `exam_id`);
-COMMIT;
-
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+INSERT INTO `jhi_user` (`id`, `login`, `password_hash`, `first_name`, `last_name`, `email`, `image_url`, `activated`, `lang_key`, `activation_key`, `reset_key`, `created_by`, `created_date`, `reset_date`, `last_modified_by`, `last_modified_date`) VALUES
+(1, 'system', '$2a$10$mE.qmcV0mFU5NcKh73TZx.z4ueI/.bDWbj0T1BYyqP481kGGarKLG', 'System', 'System', 'system@localhost', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL),
+(2, 'anonymoususer', '$2a$10$j8S5d7Sr7.8VTOYNviDPOeWX8KcYILUVJBsYV83Y5NtECayypx9lO', 'Anonymous', 'User', 'anonymous@localhost', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL),
+(3, 'admin', '$2a$10$gSAhZrxMllrbgj/kkK9UceBPpChGWJA7SYIb1Mqo.n5aNLq1/oRrC', 'Administrator', 'Administrator', 'admin@localhost', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL),
+(4, 'user', '$2a$10$VEjxo0jq2YG9Rbk2HmX9S.k1uZBGYUHdUcid3g/vfiEl7lwWgOH/K', 'User', 'User', 'user@localhost', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL),
+
+-- --------------------------------------------------------
+
+--
+-- Déchargement des données de la table `jhi_authority`
+--
+
+INSERT INTO `jhi_authority` (`name`) VALUES
+('ROLE_ADMIN'),
+('ROLE_USER');
+--
+-- Déchargement des données de la table `jhi_user_authority`
+--
+
+INSERT INTO `jhi_user_authority` (`user_id`, `authority_name`) VALUES
+(1, 'ROLE_ADMIN'),
+(3, 'ROLE_ADMIN'),
+(1, 'ROLE_USER'),
+(3, 'ROLE_USER'),
+(4, 'ROLE_USER'),
+
+COMMIT;
+
+
+

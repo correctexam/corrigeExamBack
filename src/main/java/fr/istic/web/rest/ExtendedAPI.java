@@ -91,6 +91,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.text.DecimalFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
@@ -2000,6 +2001,10 @@ public class ExtendedAPI {
             final List<StudentResponse> responsesForQ = _responsesForQ.stream()
                     .filter(r -> r.sheet != null && r.sheet.pagemin != -1 && r.sheet.pagemax != -1)
                     .collect(Collectors.toList());
+                    /*  log.error(quest.numero + " " + responsesForQ.size());
+                    if (quest.numero == 9){
+                        responsesForQ.forEach(e-> log.error(""+ e.id +" "+e.sheet.id + " " + e.question.id));
+                    }*/
             // Getting the ID of the sheets that have an answer for this question
             responsesForQ.sort(new ComparatorImplementation());
             QuestionStateDTO qs = q.get(quest.numero.longValue());
@@ -2682,6 +2687,7 @@ public class ExtendedAPI {
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access this ressource").build();
         }
+        User correctedBy =securityService.getCurrentLoggedUser(ctx);
 
         Question question = Question.findById(qid);
         // ZoneSameCommentDTO dto = new ZoneSameCommentDTO();
@@ -2766,9 +2772,15 @@ public class ExtendedAPI {
                     stToUpdate.textcomments.addAll(textcomments.values().stream()
                             .filter(gs2 -> answerdtotempalate.textComments.contains(gs2.id))
                             .collect(Collectors.toList()));
+                            stToUpdate.lastModifiedDate = Instant.now();
+                            stToUpdate.correctedBy = correctedBy;
+
                     StudentResponse.persist(stToUpdate);
 
                 } else if (question.gradeType == GradeType.HYBRID) {
+                    stToUpdate.lastModifiedDate = Instant.now();
+                    stToUpdate.correctedBy = correctedBy;
+
                     StudentResponse.persist(stToUpdate);
                     Answer2HybridGradedComment.findAllAnswerHybridGradedCommentByAnswerId(
                             answerdtotempalate.studentResponseId).list().forEach(an1 -> {
@@ -2785,6 +2797,9 @@ public class ExtendedAPI {
                     stToUpdate.gradedcomments.addAll(gradedcomments.values().stream()
                             .filter(gs2 -> answerdtotempalate.gradedComments.contains(gs2.id))
                             .collect(Collectors.toList()));
+
+                            stToUpdate.lastModifiedDate = Instant.now();
+                            stToUpdate.correctedBy =correctedBy;
                     StudentResponse.persist(stToUpdate);
 
                 }

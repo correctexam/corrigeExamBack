@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,6 +38,10 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
 
     @Column(name = "worststar")
     public Boolean worststar;
+
+    @Column(name = "lastmodified")
+    public Instant lastModifiedDate = Instant.now();
+
 
     @OneToMany(mappedBy = "studentResponse", cascade = {CascadeType.REMOVE})
     public Set<Comments> comments = new HashSet<>();
@@ -72,6 +77,13 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     public ExamSheet getCSheet(){
         return sheet;
     }
+
+    @ManyToOne
+    @JoinColumn(name = "correctedby_id")
+    @JsonbTransient
+    public User correctedBy;
+
+
 
 
     @ManyToOne
@@ -221,9 +233,15 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     }
 
 
-    public static PanacheQuery<StudentResponse> findStudentResponsesbysheetIdAndquestionId( long sheetId, List<Long> questionsId) {
+    public static PanacheQuery<StudentResponse> findStudentResponsesbysheetIdAndquestionsId( long sheetId, List<Long> questionsId) {
         return find("select sr from StudentResponse sr where sr.sheet.id =?1 and question.id in ?2", sheetId, questionsId);
     }
+
+    public static PanacheQuery<StudentResponse> findStudentResponsesbysheetIdAndquestionId( long sheetId, Long questionId) {
+        return find("select sr from StudentResponse sr where sr.sheet.id =?1 and question.id = ?2", sheetId, questionId);
+    }
+
+
     public static PanacheQuery<StudentResponse> findStudentResponsesbysheetId( long sheetId) {
         return find("select sr from StudentResponse sr where sr.sheet.id =?1 ", sheetId );
     }

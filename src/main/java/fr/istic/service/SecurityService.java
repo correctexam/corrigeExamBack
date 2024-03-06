@@ -102,6 +102,22 @@ public class SecurityService {
     }
 
 
+    public User getCurrentLoggedUser(SecurityContext ctx){
+        if (ctx.getUserPrincipal() == null ) return null;
+        var userLogin = Optional
+            .ofNullable(ctx.getUserPrincipal().getName());
+        if (!userLogin.isPresent()){
+            throw new AccountResourceException("Current user login not found");
+        }
+        var user = User.findOneByLogin(userLogin.get());
+        if (!user.isPresent()) {
+            throw new AccountResourceException("User could not be found");
+        }else {
+            return user.get();
+        }
+
+
+    }
 
 
 
