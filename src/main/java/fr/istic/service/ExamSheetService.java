@@ -15,7 +15,6 @@ import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -85,7 +84,6 @@ public class ExamSheetService {
      public Paged<ExamSheetDTO> findOrCreateExamSheetByPageMinAndPageMax(Page page, Long scanId, Integer pagemin,
             Integer pagemax) throws Exception {
                   long p = ExamSheet.findExamSheetByScanAndPageminAndPagemax(scanId,pagemin,pagemax).count();
-                  log.error("page " +p);
                     if (p==0){
                         ExamSheetDTO dto = new ExamSheetDTO();
                         dto.scanId = scanId;
@@ -122,7 +120,6 @@ public class ExamSheetService {
                     }
                 }
             nbrpage =   ExamSheet.findExamSheetByScanWithoutMinusOne(scanId).count();
-            log.error("nbrpage " + nbrpage);
             if (nbrpage == pageInScan/pageInTemplate){
                     return new Paged<>(ExamSheet.findExamSheetByScan(scanId).page(page))
                 .map(examSheet -> examSheetMapper.toDto((ExamSheet) examSheet));
