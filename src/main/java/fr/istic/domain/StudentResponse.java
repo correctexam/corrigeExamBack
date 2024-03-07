@@ -175,6 +175,8 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
             entity.comments = studentResponse.comments;
             entity.question = studentResponse.question;
             entity.sheet = studentResponse.sheet;
+            entity.correctedBy = studentResponse.correctedBy;
+            entity.lastModifiedDate = studentResponse.lastModifiedDate;
 
             var ts  = studentResponse.textcomments.stream().map(te -> te.id).collect(Collectors.toList());
             entity.textcomments.removeIf(t -> !ts.contains(t.id));

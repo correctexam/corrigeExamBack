@@ -2,6 +2,7 @@ package fr.istic.service.dto;
 
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 
@@ -36,6 +37,7 @@ public class QuestionDTO implements Serializable {
     public String typeAlgoName;
     public Long examId;
     public String examName;
+    public boolean randomHorizontalCorrection;
 
     @Override
     public boolean equals(Object o) {

@@ -51,6 +51,9 @@ public class Question extends PanacheEntityBase implements Serializable {
     @Column(name = "defaultpoint")
     public Integer defaultpoint;
 
+    @Column(name = "randomhorizontalcorrection")
+    public Boolean randomHorizontalCorrection;
+
 
     @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(unique = true)
@@ -136,6 +139,7 @@ public class Question extends PanacheEntityBase implements Serializable {
             entity.hybridcomments = question.hybridcomments;
             entity.type = question.type;
             entity.exam = question.exam;
+            entity.randomHorizontalCorrection = question.randomHorizontalCorrection;
         }
         return entity;
     }
