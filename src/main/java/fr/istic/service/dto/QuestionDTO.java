@@ -37,7 +37,7 @@ public class QuestionDTO implements Serializable {
     public String typeAlgoName;
     public Long examId;
     public String examName;
-    public boolean randomHorizontalCorrection;
+    public Boolean randomHorizontalCorrection;
 
     @Override
     public boolean equals(Object o) {
