@@ -96,29 +96,6 @@ CREATE TABLE `course_prof` (
 -- --------------------------------------------------------
 
 --
--- Structure de la table `DATABASECHANGELOG`
---
-
-CREATE TABLE `DATABASECHANGELOG` (
-  `ID` varchar(255) NOT NULL,
-  `AUTHOR` varchar(255) NOT NULL,
-  `FILENAME` varchar(255) NOT NULL,
-  `DATEEXECUTED` datetime NOT NULL,
-  `ORDEREXECUTED` int NOT NULL,
-  `EXECTYPE` varchar(10) NOT NULL,
-  `MD5SUM` varchar(35) DEFAULT NULL,
-  `DESCRIPTION` varchar(255) DEFAULT NULL,
-  `COMMENTS` varchar(255) DEFAULT NULL,
-  `TAG` varchar(255) DEFAULT NULL,
-  `LIQUIBASE` varchar(20) DEFAULT NULL,
-  `CONTEXTS` varchar(255) DEFAULT NULL,
-  `LABELS` varchar(255) DEFAULT NULL,
-  `DEPLOYMENT_ID` varchar(10) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- --------------------------------------------------------
-
---
 -- Structure de la table `databasechangelog`
 --
 
@@ -141,16 +118,6 @@ CREATE TABLE `databasechangelog` (
 
 -- --------------------------------------------------------
 
---
--- Structure de la table `DATABASECHANGELOGLOCK`
---
-
-CREATE TABLE `DATABASECHANGELOGLOCK` (
-  `ID` int NOT NULL,
-  `LOCKED` bit(1) NOT NULL,
-  `LOCKGRANTED` datetime DEFAULT NULL,
-  `LOCKEDBY` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -531,11 +498,6 @@ ALTER TABLE `course_prof`
   ADD PRIMARY KEY (`course_id`,`prof_id`),
   ADD KEY `fk_course_prof_prof_id` (`prof_id`);
 
---
--- Index pour la table `DATABASECHANGELOGLOCK`
---
-ALTER TABLE `DATABASECHANGELOGLOCK`
-  ADD PRIMARY KEY (`ID`);
 
 --
 -- Index pour la table `databasechangeloglock`
@@ -969,7 +931,7 @@ INSERT INTO `jhi_user` (`id`, `login`, `password_hash`, `first_name`, `last_name
 (1, 'system', '$2a$10$mE.qmcV0mFU5NcKh73TZx.z4ueI/.bDWbj0T1BYyqP481kGGarKLG', 'System', 'System', 'system@localhost', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL),
 (2, 'anonymoususer', '$2a$10$j8S5d7Sr7.8VTOYNviDPOeWX8KcYILUVJBsYV83Y5NtECayypx9lO', 'Anonymous', 'User', 'anonymous@localhost', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL),
 (3, 'admin', '$2a$10$gSAhZrxMllrbgj/kkK9UceBPpChGWJA7SYIb1Mqo.n5aNLq1/oRrC', 'Administrator', 'Administrator', 'admin@localhost', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL),
-(4, 'user', '$2a$10$VEjxo0jq2YG9Rbk2HmX9S.k1uZBGYUHdUcid3g/vfiEl7lwWgOH/K', 'User', 'User', 'user@localhost', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL),
+(4, 'user', '$2a$10$VEjxo0jq2YG9Rbk2HmX9S.k1uZBGYUHdUcid3g/vfiEl7lwWgOH/K', 'User', 'User', 'user@localhost', '', b'1', 'fr', NULL, NULL, 'system', NULL, NULL, 'system', NULL);
 
 -- --------------------------------------------------------
 
@@ -989,7 +951,10 @@ INSERT INTO `jhi_user_authority` (`user_id`, `authority_name`) VALUES
 (3, 'ROLE_ADMIN'),
 (1, 'ROLE_USER'),
 (3, 'ROLE_USER'),
-(4, 'ROLE_USER'),
+(4, 'ROLE_USER');
+
+alter table question add column randomhorizontalcorrection bit default 0;
+
 
 COMMIT;
 
