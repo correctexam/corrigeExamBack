@@ -122,6 +122,11 @@ ALTER TABLE `gradeScopeIstic`.`answer_2_hybrid_graded_comment` ADD UNIQUE `Uniqu
 
 ALTER TABLE `student_response` ADD UNIQUE(`question_id`, `sheet_id`);
 
+@Table(
+   name = "product_serial_group_mask", 
+   uniqueConstraints = {@UniqueConstraint(columnNames = {"mask", "group"})}
+)
+
 alter table student_response add column lastmodified datetime(6);
 alter table student_response add column correctedby_id bigint;
 alter table student_response add constraint FKinrpshecm7c6aiqo6000ju87c foreign key (correctedby_id) references jhi_user (id);

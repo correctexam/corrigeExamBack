@@ -5,7 +5,6 @@ import fr.istic.service.AuthenticationService;
 import fr.istic.service.UserService;
 import io.quarkus.security.runtime.QuarkusSecurityIdentity;
 
-import org.eclipse.microprofile.config.inject.ConfigProperties;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +17,8 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
-
+import io.quarkus.arc.profile.IfBuildProfile;
+@IfBuildProfile("shib")
 @Path("/api/shib")
 @RequestScoped
 public class ShibAuth {

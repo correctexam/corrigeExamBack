@@ -19,7 +19,9 @@ import java.util.Optional;
  * A StudentResponse.
  */
 @Entity
-@Table(name = "student_response")
+@Table(name = "student_response",
+uniqueConstraints = {@UniqueConstraint(columnNames = {"question_id", "sheet_id"})}
+)
 @Cacheable
 @RegisterForReflection
 public class StudentResponse extends PanacheEntityBase implements Serializable {

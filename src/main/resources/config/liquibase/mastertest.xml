@@ -49,6 +49,7 @@
     <include file="config/liquibase/changelog/20231127165535_update_entity_FinalResult.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20231207074851_added_entity_constraints_Student.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20231207074905_added_entity_constraints_Answer2HybridGradedComment.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20240310074905_added_upgrade41.4.xml" relativeToChangelogFile="false"/>
 
     <!-- jhipster-needle-liquibase-add-constraints-changelog - JHipster will add liquibase constraints changelogs here -->
     <!-- jhipster-needle-liquibase-add-incremental-changelog - JHipster will add incremental liquibase changelogs here -->

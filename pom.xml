@@ -9,7 +9,7 @@
     <name>CorrectExam</name>
     <properties>
         <archunit-junit5.version>1.2.1</archunit-junit5.version>
-        <cas.version>3.6.4</cas.version>
+        <cas.version>3.8.2</cas.version>
         <checkstyle.version>8.27</checkstyle.version>
         <git-commit-id-plugin.version>4.0.0</git-commit-id-plugin.version>
         <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
@@ -40,9 +40,9 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.testresult.directory>${project.build.directory}/test-results</project.testresult.directory>
         <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
-        <quarkus-plugin.version>3.6.4</quarkus-plugin.version>
+        <quarkus-plugin.version>3.8.1</quarkus-plugin.version>
         <quarkus.logManager>org.jboss.logmanager.LogManager</quarkus.logManager>
-        <quarkus.platform.version>3.6.4</quarkus.platform.version>
+        <quarkus.platform.version>3.8.2</quarkus.platform.version>
         <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
     </properties>
     <dependencyManagement>
@@ -59,6 +59,7 @@
     <dependencies>
 
 
+
        <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
@@ -68,7 +69,6 @@
 <dependency>
     <groupId>io.quarkus</groupId>
     <artifactId>quarkus-awt</artifactId>
-    <version>3.6.4</version>
 </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.camel.quarkus/camel-quarkus-pdf -->
 <!--<dependency>
@@ -81,12 +81,8 @@
 <dependency>
     <groupId>io.quarkiverse.minio</groupId>
     <artifactId>quarkus-minio</artifactId>
-    <version>3.3.1</version>
+    <version>3.7.1</version>
 </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-undertow</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -231,6 +227,8 @@
             <artifactId>quarkus-jdbc-sqlite</artifactId>
             <version>3.0.7</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
+
         <!--<dependency>
             <groupId>org.jasig.cas.client</groupId>
             <artifactId>cas-client-core</artifactId>
@@ -300,35 +298,6 @@
                         </includeOnlyProperties>
                     </configuration>
                 </plugin>
-<!--                <plugin>
-                    <groupId>org.jacoco</groupId>
-                    <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>${jacoco-maven-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>instrument-ut</id>
-                            <goals>
-                                <goal>instrument</goal>
-                            </goals>
-                        </execution>
-                        <execution>
-                            <id>restore-ut</id>
-                            <goals>
-                                <goal>restore-instrumented-classes</goal>
-                            </goals>
-                        </execution>
-                        <execution>
-                            <id>report-ut</id>
-                            <goals>
-                                <goal>report</goal>
-                            </goals>
-                            <configuration>
-                                <dataFile>${jacoco.utReportFile}</dataFile>
-                                <outputDirectory>${jacoco.utReportFolder}</outputDirectory>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>-->
                 <plugin>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>${maven-javadoc-plugin.version}</version>
@@ -521,6 +490,15 @@
             </dependencies>
         </profile>
         <profile>
+            <id>shib</id>
+            <dependencies>
+                <dependency>
+                    <groupId>io.quarkus</groupId>
+                    <artifactId>quarkus-undertow</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
             <id>prod</id>
             <build>
                 <plugins>
@@ -620,7 +598,7 @@
             </dependencies>
             <build>
                 <plugins>
-                    <plugin>
+                   <!-- <plugin>
                         <groupId>org.cyclonedx</groupId>
                         <artifactId>cyclonedx-maven-plugin</artifactId>
                         <configuration>
@@ -647,7 +625,7 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>
+                    </plugin>-->
                     <plugin>
                         <artifactId>maven-clean-plugin</artifactId>
                         <executions>

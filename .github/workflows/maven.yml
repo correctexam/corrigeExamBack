@@ -21,7 +21,7 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Build with Maven
-      run: mvn -B package --file pom.xml -Pnative
+      run: mvn -B package --file pom.xml -Pnative,shib
   #  - name: Build the Docker image
   #    run: docker build -f src/main/docker/Dockerfile.native -t barais/grade-scope-istic .
     - name: Set up Docker Buildx
