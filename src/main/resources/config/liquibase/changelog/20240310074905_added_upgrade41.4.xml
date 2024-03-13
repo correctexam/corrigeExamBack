@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <!--
+        Added the constraints for entity Answer2HybridGradedComment.
+    -->
+    <changeSet author="Olivier Barais" id="20240310165535-1">
+        <addUniqueConstraint catalogName="gradeScopeIstic" tableName="answer_2_hybrid_graded_comment" columnNames="student_response_id, hybridcomments_id" constraintName="UniqueHybridcommentsIdAndStudentResponseId" schemaName="public" validate="true"/>
+    </changeSet>
+    <changeSet author="Olivier Barais" id="20240310165535-2">
+        <addUniqueConstraint catalogName="gradeScopeIstic" tableName="student_response" columnNames="question_id, sheet_id" constraintName="UniqueSRquestionIdAndSheetId" schemaName="public" validate="true"/>
+    </changeSet>
+
+    <!-- alter table student_response add column lastmodified datetime(6);
+alter table student_response add column correctedby_id bigint;
+alter table student_response add constraint FKinrpshecm7c6aiqo6000ju87c foreign key (correctedby_id) references jhi_user (id);
+-->
+
+    <changeSet id="20240310165535-3" author="Olivier Barais">
+
+        <addColumn tableName="student_response">
+            <column name="lastmodified" type="timestamp">
+                <constraints nullable="true" />
+            </column>
+        </addColumn>
+
+
+        <addColumn tableName="student_response">
+            <column name="correctedby_id" type="bigint">
+                <constraints nullable="true" />
+            </column>
+        </addColumn>
+
+        <addForeignKeyConstraint baseColumnNames="correctedby_id" baseTableName="student_response" constraintName="fk_studentresponse_user_id" referencedColumnNames="id" referencedTableName="jhi_user"/>
+
+    </changeSet>
+    <!--
+    alter table question add column randomhorizontalcorrection bit default 0;
+
+-->
+    <changeSet id="20240310165535-4" author="Olivier Barais">
+        <addColumn tableName="question">
+            <column name="randomhorizontalcorrection" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="true" />
+            </column>
+        </addColumn>
+
+    </changeSet>
+
+</databaseChangeLog>

@@ -101,6 +101,7 @@ public class QuestionResource {
             return Response.status(403, "Current user cannot access to this ressource").build();
         };
         var result = questionService.persistOrUpdate(questionDTO);
+
         var response = Response.ok().entity(result);
         HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, questionDTO.id.toString())
                 .forEach(response::header);

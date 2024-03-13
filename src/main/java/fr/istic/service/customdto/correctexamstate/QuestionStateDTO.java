@@ -1,5 +1,7 @@
 package fr.istic.service.customdto.correctexamstate;
 
+import java.util.List;
+
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
@@ -11,6 +13,13 @@ public class QuestionStateDTO {
 
     private long answeredSheets;
     private long firstUnmarkedSheet;
+    private List<Integer> unmarkedSheetIndex;
+    private boolean randomHorizontalCorrection;
+
+
+
+
+
 
     public long getId() {
         return id;
@@ -50,5 +59,22 @@ public class QuestionStateDTO {
 
     public void setFirstUnmarkedSheet(long value) {
         this.firstUnmarkedSheet = value;
+    }
+
+
+    public List<Integer> getUnmarkedSheetIndex() {
+        return unmarkedSheetIndex;
+    }
+
+    public void setUnmarkedSheetIndex(List<Integer> unmarkedSheetIndex) {
+        this.unmarkedSheetIndex = unmarkedSheetIndex;
+    }
+
+    public boolean isRandomHorizontalCorrection() {
+        return randomHorizontalCorrection;
+    }
+
+    public void setRandomHorizontalCorrection(boolean randomHorizontalCorrection) {
+        this.randomHorizontalCorrection = randomHorizontalCorrection;
     }
 }

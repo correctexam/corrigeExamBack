@@ -25,6 +25,10 @@
             <column name="exam_id" type="bigint">
                 <constraints nullable="true" />
             </column>
+
+            <column name="frozen" type="boolean">
+                <constraints nullable="true" />
+            </column>
             <!-- jhipster-needle-liquibase-add-column - JHipster will add columns here -->
         </createTable>
     </changeSet>

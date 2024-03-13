@@ -13,7 +13,9 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
  * A Answer2HybridGradedComment.
  */
 @Entity
-@Table(name = "answer_2_hybrid_graded_comment")
+@Table(name = "answer_2_hybrid_graded_comment",
+   uniqueConstraints = {@UniqueConstraint(columnNames = {"student_response_id", "hybridcomments_id"})}
+)
 @Cacheable
 @RegisterForReflection
 public class Answer2HybridGradedComment extends PanacheEntityBase implements Serializable {

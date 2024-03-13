@@ -105,6 +105,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -2013,6 +2014,15 @@ public class ExtendedAPI {
             // Getting the ID of the sheets that have an answer for this question
             responsesForQ.sort(new ComparatorImplementation());
             QuestionStateDTO qs = q.get(quest.numero.longValue());
+            qs.setRandomHorizontalCorrection(quest.randomHorizontalCorrection);
+            List<Integer> uncorrected = new ArrayList<>();
+            List<Integer> pageminsCorrected = responsesForQ.stream().map(e-> e.sheet.pagemin).collect(Collectors.toList());
+            for (int i=0;i<sheets.size();i++){
+                if (!pageminsCorrected.contains(sheets.get(i).pagemin)){
+                    uncorrected.add(i);
+                }
+            }
+            qs.setUnmarkedSheetIndex(uncorrected);
             if (responsesForQ.size() > 0 && responsesForQ.get(0).sheet.pagemin == 0) {
                 if (responsesForQ.size() == 1) {
                     qs.setFirstUnmarkedSheet(Long.valueOf(responsesForQ.get(0).sheet.pagemax + 1));
