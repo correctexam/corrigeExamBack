@@ -486,7 +486,7 @@ public class ExtendedAPI {
                         // resp.persistOrUpdate();
                         finalnote = finalnote + (resp.quarternote / 4);
 
-                    } else if ("QCM".equals(resp.question.type.algoName) && resp.question.step > 0) {
+                    } else if ("QCM".equals(resp.question.type.algoName) && resp.question.step !=null && resp.question.step > 0) {
                         int currentNote = 0;
                         for (var g : resp.gradedcomments) {
                             if (g.description.startsWith("correct")) {
@@ -2014,7 +2014,11 @@ public class ExtendedAPI {
             // Getting the ID of the sheets that have an answer for this question
             responsesForQ.sort(new ComparatorImplementation());
             QuestionStateDTO qs = q.get(quest.numero.longValue());
-            qs.setRandomHorizontalCorrection(quest.randomHorizontalCorrection);
+            if (quest.randomHorizontalCorrection != null){
+                qs.setRandomHorizontalCorrection(quest.randomHorizontalCorrection);
+            } else {
+                qs.setRandomHorizontalCorrection(false);
+            }
             List<Integer> uncorrected = new ArrayList<>();
             List<Integer> pageminsCorrected = responsesForQ.stream().map(e-> e.sheet.pagemin).collect(Collectors.toList());
             for (int i=0;i<sheets.size();i++){
