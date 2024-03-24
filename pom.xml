@@ -489,6 +489,20 @@
             </dependencies>
         </profile>
         <profile>
+            <id>teste2e</id>
+            <properties>
+                <quarkus.profile>teste2e</quarkus.profile>
+                <liquibase.scope>compile</liquibase.scope>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>io.quarkus</groupId>
+                    <artifactId>quarkus-jdbc-h2</artifactId>
+                </dependency>
+
+            </dependencies>
+        </profile>
+        <profile>
             <id>shib</id>
             <dependencies>
                 <dependency>
