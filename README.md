@@ -112,6 +112,8 @@ ALTER TABLE `gradeScopeIstic`.`final_result` ADD UNIQUE `UniqueStudentIdAndExamI
 
 create table answer_2_hybrid_graded_comment (id bigint not null auto_increment, step_value integer, hybridcomments_id bigint, student_response_id bigint, primary key (id)) engine=InnoDB;
 create table hybrid_graded_comment (id bigint not null auto_increment, description longtext, grade integer, relative bit, step integer, text varchar(255), question_id bigint, primary key (id)) engine=InnoDB;
+
+
 alter table final_result add column frozen bit;
 alter table question add column defaultpoint integer;
 alter table answer_2_hybrid_graded_comment add constraint FK9ijm3itpjwpgf534m94df8dt6 foreign key (hybridcomments_id) references hybrid_graded_comment (id);
@@ -122,10 +124,6 @@ ALTER TABLE `gradeScopeIstic`.`answer_2_hybrid_graded_comment` ADD UNIQUE `Uniqu
 
 ALTER TABLE `student_response` ADD UNIQUE(`question_id`, `sheet_id`);
 
-@Table(
-   name = "product_serial_group_mask", 
-   uniqueConstraints = {@UniqueConstraint(columnNames = {"mask", "group"})}
-)
 
 alter table student_response add column lastmodified datetime(6);
 alter table student_response add column correctedby_id bigint;
