@@ -119,6 +119,10 @@ public class Zone extends PanacheEntityBase implements Serializable {
         return find("select e from Exam e join e.course.profs as u where (e.firstnamezone.id =?1 or e.idzone.id =?1 or e.namezone.id =?1)  and u.login =?2", zoneId, login);
     }
 
+    public static PanacheQuery<StudentResponse> getNumberOfStudentResponse4Zone(Long zoneid) {
+        return find("select sr from StudentResponse sr where sr.question.zone.id=?1", zoneid);
+    }
+
 
 
 
