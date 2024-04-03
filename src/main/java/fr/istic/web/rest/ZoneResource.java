@@ -13,6 +13,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.istic.domain.Exam;
 import fr.istic.domain.Zone;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.Paged;
@@ -164,6 +165,32 @@ public class ZoneResource {
         var response = Response.ok().entity(zoneDTOs);
         return response.build();
     }
+
+    @GET
+    @Path("/studentAnswer/{id}")
+    public Response getNumberOfStudentResponse4Zone(@PathParam("id") Long zoneid, @Context SecurityContext ctx) {
+        log.debug("REST request to get studentAnswer for Zone : {}", zoneid);
+        if (!securityService.canAccess(ctx, zoneid, Zone.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        long l = zoneService.getNumberOfStudentResponse4Zone(zoneid);
+        var response = Response.ok().entity(l);
+        return response.build();
+    }
+
+    @GET
+    @Path("/studentAnswer4exam/{examid}")
+    public Response getNumberOfStudentResponse4Exam(@PathParam("examid") Long examid, @Context SecurityContext ctx) {
+        log.debug("REST request to get studentAnswer for Zone : {}", examid);
+        if (!securityService.canAccess(ctx, examid, Exam.class  )){
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        long l = zoneService.getNumberOfStudentResponse4Exam(examid);
+        var response = Response.ok().entity(l);
+        return response.build();
+    }
+
+
 
 
     /**

@@ -3,6 +3,7 @@ package fr.istic.service;
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.Exam;
 import fr.istic.domain.Question;
+import fr.istic.domain.StudentResponse;
 import fr.istic.domain.Zone;
 import fr.istic.service.customdto.ResizeZoneDTO;
 import fr.istic.service.dto.ZoneDTO;
@@ -196,6 +197,14 @@ public class ZoneService {
 
         }
         return resp;
+    }
+
+    public long getNumberOfStudentResponse4Zone(Long zoneid) {
+        return Zone.getNumberOfStudentResponse4Zone(zoneid).count();
+    }
+
+    public long getNumberOfStudentResponse4Exam(Long examid) {
+        return StudentResponse.getAll4ExamId(examid).count();
     }
 
 
