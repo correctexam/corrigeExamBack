@@ -54,6 +54,16 @@ public class Question extends PanacheEntityBase implements Serializable {
     @Column(name = "randomhorizontalcorrection")
     public Boolean randomHorizontalCorrection;
 
+    @Column(name = "canexceedthemax")
+    public Boolean canExceedTheMax;
+
+    @Column(name = "canbenegative")
+    public Boolean canBeNegative;
+
+    @Column(name = "mustbeignoreinglobalscale")
+    public Boolean mustBeIgnoreInGlobalScale;
+
+
 
     @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(unique = true)
@@ -140,6 +150,9 @@ public class Question extends PanacheEntityBase implements Serializable {
             entity.type = question.type;
             entity.exam = question.exam;
             entity.randomHorizontalCorrection = question.randomHorizontalCorrection;
+            entity.canBeNegative = question.canBeNegative;
+            entity.canExceedTheMax = question.canExceedTheMax;
+            entity.mustBeIgnoreInGlobalScale  =question.mustBeIgnoreInGlobalScale;
         }
         return entity;
     }
