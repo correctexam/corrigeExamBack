@@ -955,6 +955,12 @@ INSERT INTO `jhi_user_authority` (`user_id`, `authority_name`) VALUES
 
 alter table question add column randomhorizontalcorrection bit default 0;
 
+alter table question add column canexceedthemax bit(1) NOT NULL  default 0;
+
+alter table question add column canbenegative bit(1) NOT NULL  default 0;
+
+alter table question add column mustbeignoreinglobalscale bit(1) NOT NULL  default 0;
+
 
 COMMIT;
 

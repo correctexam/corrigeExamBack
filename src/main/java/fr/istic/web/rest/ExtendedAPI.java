@@ -2242,10 +2242,10 @@ public class ExtendedAPI {
 
         currentNote = ((point * pourcentage) / 400.0) + absoluteNote2Add;
 
-        if (currentNote > point) {
+        if (currentNote > point && !resp.question.canExceedTheMax) {
 //            log.error("currentNote " + currentNote + " " + point + " " + resp.question.numero);
             currentNote = point;
-        } else if (currentNote < 0) {
+        } else if (currentNote < 0 && !resp.question.canBeNegative) {
             currentNote = 0;
         }
        // log.error("question " + resp.question.numero+ " currentNote " + Double.valueOf(currentNote /4));
