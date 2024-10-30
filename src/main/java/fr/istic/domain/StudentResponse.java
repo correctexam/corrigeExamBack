@@ -109,6 +109,15 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     @JsonbTransient
     public Set<GradedComment> gradedcomments = new HashSet<>();
 
+    @ManyToMany
+    @JoinTable(
+        name = "student_response_predictions",
+        joinColumns = @JoinColumn(name = "student_response_id", referencedColumnName = "id"),
+        inverseJoinColumns = @JoinColumn(name = "predictions_id", referencedColumnName = "id"))
+    @JsonbTransient
+    public Set<Prediction> predictions = new HashSet<>();
+
+
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
 
     @Override
@@ -273,7 +282,9 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         return find("select distinct sr from StudentResponse sr join fetch sr.hybridcommentsValues ah join fetch ah.hybridcomments h2 where sr.question.id = ?1  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1",questionId );
     }
 
-
+    public static PanacheQuery<StudentResponse> findAllByPredictionsIds(Long predictionId) {
+        return find("select sr from StudentResponse sr join sr.predictions p where p.id = ?1", predictionId);
+    }
 
 
     public static PanacheQuery<StudentResponse> findAllByGradedCommentsIds( long gradedCommentid) {

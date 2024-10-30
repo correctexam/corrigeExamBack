@@ -150,9 +150,9 @@ if __name__ == "__main__":
         print("No image path provided")
         sys.exit(1)
 
-    print(f"Loading model from dan_rimes_page.pt")
-    print(f"Nombre de GPU disponibles: {torch.cuda.device_count()}")
-    print(f"Nom du GPU utilisé : {torch.cuda.get_device_name(0)}")
+    #print(f"Loading model from dan_rimes_page.pt")
+    #print(f"Nombre de GPU disponibles: {torch.cuda.device_count()}")
+    #print(f"Nom du GPU utilisé : {torch.cuda.get_device_name(0)}")
 
     model_path = "dan_rimes_page.pt"
     predict(model_path, img_paths)
