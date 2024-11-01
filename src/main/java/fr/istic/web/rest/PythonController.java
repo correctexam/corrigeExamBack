@@ -1,6 +1,8 @@
 package fr.istic.web.rest;
 
+import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -18,13 +20,19 @@ import java.util.Base64;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import fr.istic.service.PredictionService;
+import fr.istic.service.dto.PredictionDTO;
+
 /**
- * REST controller to run a Python script
+ * REST controller to run a Python script and store predictions
  */
 @Path("/api")
 public class PythonController {
 
     private final Logger log = LoggerFactory.getLogger(PythonController.class);
+
+    @Inject
+    PredictionService predictionService;  // Inject the prediction service
 
     @POST
     @Path("/run-dan")
@@ -37,21 +45,21 @@ public class PythonController {
     
         try {
             log.info("Lancement du script Python...");
-    
+
             // Retrieve the base64-encoded image data
             String base64Data = requestData.containsKey("imagePath") ? requestData.get("imagePath").toString() : "";
             if (base64Data.contains(",")) {
                 base64Data = base64Data.split(",")[1]; // Remove "data:image/png;base64," prefix
             }
-    
+
             // Decode base64 and save it as an image file
             byte[] imageBytes = Base64.getDecoder().decode(base64Data);
             String tempImagePath = "/tmp/uploaded_image.png";
             Files.write(Paths.get(tempImagePath), imageBytes);
-            
+
             // Define the path to the Python script
             String scriptPath = "/home/xpinar/correctExamDAN/corrigeExamBackDAN/src/main/resources/DAN_script/run_dan.py";
-    
+
             // Check if the script file exists
             File scriptFile = new File(scriptPath);
             if (!scriptFile.exists()) {
@@ -60,12 +68,12 @@ public class PythonController {
                         .entity(Map.of("error", "Le fichier script Python est introuvable: " + scriptPath))
                         .build();
             }
-    
+
             // Command to run the Python script with the image path as argument
             ProcessBuilder pb = new ProcessBuilder("python3", scriptFile.getAbsolutePath(), tempImagePath);
             pb.directory(scriptFile.getParentFile());  // Set working directory
             Process process = pb.start();
-    
+
             // Read the Python script's standard output
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line;
@@ -73,7 +81,7 @@ public class PythonController {
                 output.append(line).append("\n");
                 log.info("Sortie Python: " + line);
             }
-    
+
             // Read any errors from the Python script
             BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
             String errorLine;
@@ -81,16 +89,31 @@ public class PythonController {
                 errorOutput.append(errorLine).append("\n");
                 log.error("Erreur/Avertissement Python: " + errorLine);
             }
-    
+
             // Wait for the process to finish
             int exitCode = process.waitFor();
             log.info("Processus terminé avec code : " + exitCode);
-    
+
             // Build the response JSON
             response.put("exitCode", exitCode);
             response.put("output", output.toString());
     
             if (exitCode == 0) {
+                // Parse the prediction result from the script output
+                String predictionText = output.toString().trim();
+
+                // Store the prediction using the PredictionService
+                PredictionDTO predictionDTO = new PredictionDTO();
+                predictionDTO.text = predictionText;
+                predictionDTO.zonegeneratedid = "ZoneID123";  // Use a meaningful identifier if needed
+                predictionDTO.jsonData = predictionText;  // Store the prediction text as JSON
+
+                // Persist the prediction using the prediction service
+                PredictionDTO savedPrediction = predictionService.persistOrUpdate(predictionDTO);
+
+                // Build the response JSON with stored prediction details
+                response.put("exitCode", exitCode);
+                response.put("prediction", savedPrediction);
                 if (errorOutput.length() > 0) {
                     // If there are warnings
                     response.put("warnings", errorOutput.toString());
@@ -103,7 +126,7 @@ public class PythonController {
                         .entity(response)
                         .build();
             }
-    
+
         } catch (Exception e) {
             log.error("Erreur lors de l'exécution du script Python", e);
             response.put("error", "Erreur lors de l'exécution du script Python: " + e.getMessage());
@@ -112,4 +135,23 @@ public class PythonController {
                     .build();
         }
     }
-}    
+
+    
+    @POST
+    @Path("/predictions")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response storePrediction(PredictionDTO predictionDTO) {
+        log.info("Received PredictionDTO: {}", predictionDTO);
+        try {
+            // Store the prediction using the prediction service
+            PredictionDTO savedPrediction = predictionService.persistOrUpdate(predictionDTO);
+            return Response.ok(savedPrediction).build();
+        } catch (Exception e) {
+            log.error("Error storing prediction", e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", "Error storing prediction: " + e.getMessage()))
+                    .build();
+        }
+    }
+}
