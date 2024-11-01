@@ -11,6 +11,8 @@ from OCR.document_OCR.dan.trainer_dan import Manager
 from basic.utils import pad_images
 from basic.metric_manager import keep_all_but_tokens
 
+import requests
+import json
 
 class FakeDataset:
     def __init__(self, charset):
@@ -141,6 +143,33 @@ def predict(model_path, img_paths):
     prediction = [keep_all_but_tokens(x, layout_tokens) for x in prediction]
     print(prediction)
 
+    # Send the prediction to the backend
+    send_prediction_to_backend(prediction)
+
+
+def send_prediction_to_backend(prediction):
+    # Prepare the prediction data to send to backend
+    prediction_data = {
+        "text": prediction,  #`prediction` contains the text output of DAN
+        "zonegeneratedid": "ZoneID123",  # You can update this based on the context
+        "jsonData": json.dumps(prediction)  # Store the prediction as JSON if needed
+    }
+
+    # API endpoint of the backend
+    api_url = "http://localhost:8080/api/predictions"
+
+    # Make POST request to send the prediction data to the backend
+    try:
+        response = requests.post(api_url, json=prediction_data)
+
+        # Check response status
+        if response.status_code == 201:
+            print("Prediction successfully stored:", response.json())
+        else:
+            print("Failed to store prediction:", response.status_code, response.text)
+    except requests.exceptions.RequestException as e:
+        print(f"Error occurred while sending prediction to backend: {e}")
+
 
 if __name__ == "__main__":
     # Retrieve the image path from command line argument
@@ -149,10 +178,6 @@ if __name__ == "__main__":
     else:
         print("No image path provided")
         sys.exit(1)
-
-    #print(f"Loading model from dan_rimes_page.pt")
-    #print(f"Nombre de GPU disponibles: {torch.cuda.device_count()}")
-    #print(f"Nom du GPU utilisé : {torch.cuda.get_device_name(0)}")
 
     model_path = "dan_rimes_page.pt"
     predict(model_path, img_paths)
