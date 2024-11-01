@@ -144,31 +144,31 @@ def predict(model_path, img_paths):
     print(prediction)
 
     # Send the prediction to the backend
-    send_prediction_to_backend(prediction)
+    #send_prediction_to_backend(prediction)
 
 
-def send_prediction_to_backend(prediction):
-    # Prepare the prediction data to send to backend
-    prediction_data = {
-        "text": prediction,  #`prediction` contains the text output of DAN
-        "zonegeneratedid": "ZoneID123",  # You can update this based on the context
-        "jsonData": json.dumps(prediction)  # Store the prediction as JSON if needed
-    }
+# def send_prediction_to_backend(prediction):
+#     # Prepare the prediction data to send to backend
+#     prediction_data = {
+#         "text": prediction,  #`prediction` contains the text output of DAN
+#         "zonegeneratedid": "ZoneID123",  # You can update this based on the context
+#         "jsonData": json.dumps(prediction)  # Store the prediction as JSON if needed
+#     }
 
-    # API endpoint of the backend
-    api_url = "http://localhost:8080/api/predictions"
+#     # API endpoint of the backend
+#     api_url = "http://localhost:8080/api/predictions"
 
-    # Make POST request to send the prediction data to the backend
-    try:
-        response = requests.post(api_url, json=prediction_data)
+#     # Make POST request to send the prediction data to the backend
+#     try:
+#         response = requests.post(api_url, json=prediction_data)
 
-        # Check response status
-        if response.status_code == 201:
-            print("Prediction successfully stored:", response.json())
-        else:
-            print("Failed to store prediction:", response.status_code, response.text)
-    except requests.exceptions.RequestException as e:
-        print(f"Error occurred while sending prediction to backend: {e}")
+#         # Check response status
+#         if response.status_code == 201:
+#             print("Prediction successfully stored:", response.json())
+#         else:
+#             print("Failed to store prediction:", response.status_code, response.text)
+#     except requests.exceptions.RequestException as e:
+#         print(f"Error occurred while sending prediction to backend: {e}")
 
 
 if __name__ == "__main__":

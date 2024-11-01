@@ -109,13 +109,14 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     @JsonbTransient
     public Set<GradedComment> gradedcomments = new HashSet<>();
 
-    @ManyToMany
-    @JoinTable(
-        name = "student_response_predictions",
-        joinColumns = @JoinColumn(name = "student_response_id", referencedColumnName = "id"),
-        inverseJoinColumns = @JoinColumn(name = "predictions_id", referencedColumnName = "id"))
-    @JsonbTransient
-    public Set<Prediction> predictions = new HashSet<>();
+@ManyToMany
+@JoinTable(
+    name = "student_response_predictions",
+    joinColumns = @JoinColumn(name = "student_response_id", referencedColumnName = "id"),
+    inverseJoinColumns = @JoinColumn(name = "predictions_id", referencedColumnName = "id"))
+@JsonbTransient
+public Set<Prediction> predictions = new HashSet<>();
+
 
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
