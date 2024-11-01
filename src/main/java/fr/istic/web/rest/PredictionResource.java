@@ -110,14 +110,30 @@ public class PredictionResource {
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response deletePrediction(@PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to delete Prediction : {}", id);
-        if (!securityService.canAccess(ctx, id, Prediction.class)) {
-            return Response.status(403, "Current user cannot access to this resource").build();
+        try {
+            // Security check
+            if (!securityService.canAccess(ctx, id, Prediction.class)) {
+                log.error("User is not authorized to delete Prediction with id: {}", id);
+                return Response.status(403, "Current user cannot access this resource").build();
+            }
+
+            // Attempt deletion
+            predictionService.delete(id);
+            log.info("Prediction with id {} deleted successfully", id);
+        } catch (Exception e) {
+            log.error("Failed to delete Prediction with id {}: {}", id, e.getMessage(), e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Failed to delete Prediction with id: " + id + ". Error: " + e.getMessage())
+                    .build();
         }
-        predictionService.delete(id);
+
+        // If successful
         var response = Response.noContent();
         HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()).forEach(response::header);
         return response.build();
     }
+
+    
 
     /**
      * {@code GET  /predictions} : get all the predictions.
