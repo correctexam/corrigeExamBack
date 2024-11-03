@@ -26,6 +26,10 @@ public class PredictionDTO implements Serializable {
 
     public Long questionId;
 
+    public Long studentId;
+
+    public String examId;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -52,6 +56,8 @@ public class PredictionDTO implements Serializable {
             ", zonegeneratedid='" + zonegeneratedid + "'" +
             ", questionNumber='" + questionNumber + "'" +
             ", questionId=" + questionId +
+            ", studentId=" + studentId +
+            ", examId=" + examId +
             "}";
     }
 }
