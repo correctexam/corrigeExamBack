@@ -39,6 +39,13 @@ public class Prediction extends PanacheEntityBase implements Serializable {
     @Column(name = "question_number")
     public String questionNumber;
 
+    @Column(name = "student_id")
+    public String studentId;
+
+    @Column(name = "exam_id")
+    public Long examId;
+
+
     @ManyToOne
     @JoinColumn(name = "question_id")
     @JsonbTransient
@@ -74,6 +81,8 @@ public class Prediction extends PanacheEntityBase implements Serializable {
             ", jsonData='" + jsonData + "'" +
             ", zonegeneratedid='" + zonegeneratedid + "'" +
             ", questionNumber='" + questionNumber + "'" +
+            ", examId='" + examId + "'" +
+            ", studentId='" + studentId + "'" +
             "}";
     }
 
