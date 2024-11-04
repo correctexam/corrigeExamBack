@@ -114,6 +114,7 @@ public Response runPythonScript(Map<String, Object> requestData) {
         } else {
             // If there are errors
             response.put("error", errorOutput.toString());
+<<<<<<< HEAD
 =======
     @Path("/run-dan")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -196,6 +197,8 @@ public Response runPythonScript(Map<String, Object> requestData) {
             log.error("Erreur lors de l'exécution du script Python", e);
             response.put("error", "Erreur lors de l'exécution du script Python: " + e.getMessage());
 >>>>>>> 696cce3 (change hardcoded path to relative path)
+=======
+>>>>>>> 9426bbe (Modif de python controller)
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(response)
                     .build();
@@ -210,7 +213,12 @@ public Response runPythonScript(Map<String, Object> requestData) {
     }
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 }
 =======
 >>>>>>> 696cce3 (change hardcoded path to relative path)
+=======
+
+}
+>>>>>>> 9426bbe (Modif de python controller)
