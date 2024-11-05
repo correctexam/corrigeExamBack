@@ -142,6 +142,7 @@ public class PredictionResource {
      * @return the {@link Response} with status {@code 200 (OK)} and the list of predictions in body.
      */
     @GET
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response getAllPredictions(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of Predictions");
         var page = pageRequest.toPage();
@@ -160,7 +161,9 @@ public class PredictionResource {
                 var user = User.findOneByLogin(userLogin.get());
                 if (!user.isPresent()) {
                     throw new AccountResourceException("User could not be found");
-                } else if (user.get().authorities.size() >= 1 && user.get().authorities.stream().anyMatch(e1 -> e1.equals(new Authority("ROLE_ADMIN")))) {
+                
+                } else if (user.get().authorities.size() >= 1 && user.get().authorities.stream().anyMatch(e1 -> e1.equals(new Authority("ROLE_USER")))) {
+                    //Ici j'ai modif l'autorisation de Admin -> User, je sais pas si c'est bien ou pas mais voila ca me permet mon ajout
                     result = predictionService.findAll(page);
                 } else {
                     return Response.status(403, "Current user cannot access to this resource").build();
