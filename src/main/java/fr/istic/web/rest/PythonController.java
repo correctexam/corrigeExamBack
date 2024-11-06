@@ -32,9 +32,10 @@ public class PythonController {
     private final Logger log = LoggerFactory.getLogger(PythonController.class);
 
     @Inject
-    PredictionService predictionService;  // Inject the prediction service
+    PredictionService predictionService; // Inject the prediction service
 
     @POST
+<<<<<<< HEAD
 <<<<<<< HEAD
 @Path("/run-dan")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -43,73 +44,25 @@ public Response runPythonScript(Map<String, Object> requestData) {
     Map<String, Object> response = new HashMap<>();
     StringBuilder output = new StringBuilder();
     StringBuilder errorOutput = new StringBuilder();
+=======
+    @Path("/run-dan")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response runPythonScript(Map<String, Object> requestData) {
+        Map<String, Object> response = new HashMap<>();
+        StringBuilder output = new StringBuilder();
+        StringBuilder errorOutput = new StringBuilder();
+>>>>>>> a7b9fdb (hotfix)
 
-    try {
-        log.info("Lancement du script Python...");
+        try {
+            log.info("Lancement du script Python...");
 
-        // Retrieve the base64-encoded image data
-        String base64Data = requestData.containsKey("imagePath") ? requestData.get("imagePath").toString() : "";
-        if (base64Data.contains(",")) {
-            base64Data = base64Data.split(",")[1]; // Remove "data:image/png;base64," prefix
-        }
-
-        // Decode base64 and save it as an image file
-        byte[] imageBytes = Base64.getDecoder().decode(base64Data);
-        String tempImagePath = "/tmp/uploaded_image.png";
-        Files.write(Paths.get(tempImagePath), imageBytes);
-
-        // Define the path to the Python script
-        String scriptPath = "/home/xpinar/correctExamDAN/corrigeExamBackDAN/src/main/resources/DAN_script/run_dan.py";
-
-        // Check if the script file exists
-        File scriptFile = new File(scriptPath);
-        if (!scriptFile.exists()) {
-            log.error("Le fichier script Python est introuvable: " + scriptPath);
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(Map.of("error", "Le fichier script Python est introuvable: " + scriptPath))
-                    .build();
-        }
-
-        // Command to run the Python script with the image path as argument
-        ProcessBuilder pb = new ProcessBuilder("python3", scriptFile.getAbsolutePath(), tempImagePath);
-        pb.directory(scriptFile.getParentFile());  // Set working directory
-        Process process = pb.start();
-
-        // Read the Python script's standard output
-        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            output.append(line).append("\n");
-            log.info("Sortie Python: " + line);
-        }
-
-        // Read any errors from the Python script
-        BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-        String errorLine;
-        while ((errorLine = errorReader.readLine()) != null) {
-            errorOutput.append(errorLine).append("\n");
-            log.error("Erreur/Avertissement Python: " + errorLine);
-        }
-
-        // Wait for the process to finish
-        int exitCode = process.waitFor();
-        log.info("Processus terminé avec code : " + exitCode);
-
-        // Build the response JSON
-        response.put("exitCode", exitCode);
-        response.put("output", output.toString());
-
-        if (exitCode == 0) {
-            // Parse the prediction result from the script output
-            String predictionText = output.toString().trim();
- 
-            // Just include the prediction result in the response without storing it
-            response.put("prediction", predictionText);        
-
-            if (errorOutput.length() > 0) {
-                // If there are warnings
-                response.put("warnings", errorOutput.toString());
+            // Retrieve the base64-encoded image data
+            String base64Data = requestData.containsKey("imagePath") ? requestData.get("imagePath").toString() : "";
+            if (base64Data.contains(",")) {
+                base64Data = base64Data.split(",")[1]; // Remove "data:image/png;base64," prefix
             }
+<<<<<<< HEAD
             return Response.ok(response).build();
         } else {
             // If there are errors
@@ -132,6 +85,8 @@ public Response runPythonScript(Map<String, Object> requestData) {
             if (base64Data.contains(",")) {
                 base64Data = base64Data.split(",")[1]; // Remove "data:image/png;base64," prefix
             }
+=======
+>>>>>>> a7b9fdb (hotfix)
 
             // Decode base64 and save it as an image file
             byte[] imageBytes = Base64.getDecoder().decode(base64Data);
@@ -180,6 +135,15 @@ public Response runPythonScript(Map<String, Object> requestData) {
             response.put("output", output.toString());
 
             if (exitCode == 0) {
+<<<<<<< HEAD
+=======
+                // Parse the prediction result from the script output
+                String predictionText = output.toString().trim();
+
+                // Just include the prediction result in the response without storing it
+                response.put("prediction", predictionText);
+
+>>>>>>> a7b9fdb (hotfix)
                 if (errorOutput.length() > 0) {
                     // If there are warnings
                     response.put("warnings", errorOutput.toString());
@@ -196,21 +160,18 @@ public Response runPythonScript(Map<String, Object> requestData) {
         } catch (Exception e) {
             log.error("Erreur lors de l'exécution du script Python", e);
             response.put("error", "Erreur lors de l'exécution du script Python: " + e.getMessage());
+<<<<<<< HEAD
 >>>>>>> 696cce3 (change hardcoded path to relative path)
 =======
 >>>>>>> 9426bbe (Modif de python controller)
+=======
+>>>>>>> a7b9fdb (hotfix)
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(response)
                     .build();
         }
-
-    } catch (Exception e) {
-        log.error("Erreur lors de l'exécution du script Python", e);
-        response.put("error", "Erreur lors de l'exécution du script Python: " + e.getMessage());
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(response)
-                .build();
     }
+<<<<<<< HEAD
 }
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -222,3 +183,7 @@ public Response runPythonScript(Map<String, Object> requestData) {
 
 }
 >>>>>>> 9426bbe (Modif de python controller)
+=======
+
+}
+>>>>>>> a7b9fdb (hotfix)
