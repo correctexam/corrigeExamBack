@@ -11,9 +11,6 @@ from OCR.document_OCR.dan.trainer_dan import Manager
 from basic.utils import pad_images
 from basic.metric_manager import keep_all_but_tokens
 
-import requests
-import json
-
 class FakeDataset:
     def __init__(self, charset):
         self.charset = charset
@@ -22,7 +19,6 @@ class FakeDataset:
             "start": len(self.charset) + 1,
             "pad": len(self.charset) + 2,
         }
-
 
 def get_params(weight_path):
     return {
@@ -94,22 +90,29 @@ def get_params(weight_path):
         },
     }
 
-
 def predict(model_path, img_paths):
-    # Check if a GPU is available
+    # Check if a GPU is available and use CPU as fallback
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     params = get_params(model_path)
 
-    # Load the model to the appropriate device
-    checkpoint = torch.load(model_path, map_location=device)
-    charset = checkpoint["charset"]
-
+    # Load the model
+    try:
+        checkpoint = torch.load(model_path, map_location=device)
+    except Exception as e:
+        print(f"Error loading model: {e}")
+        return
+    
+    charset = checkpoint.get("charset")
+    if charset is None:
+        print("Charset not found in model checkpoint")
+        return
+    
     manager = Manager(params)
     manager.params["model_params"]["vocab_size"] = len(charset)
     manager.load_model()
 
-    # Move models to the correct device (GPU if available)
+    # Move models to the correct device
     for model_name in manager.models.keys():
         manager.models[model_name] = manager.models[model_name].to(device)
         manager.models[model_name].eval()
@@ -117,10 +120,17 @@ def predict(model_path, img_paths):
     manager.dataset = FakeDataset(charset)
 
     # Format images
-    imgs = [np.array(Image.open(img_path)) for img_path in img_paths]
-    imgs = [np.expand_dims(img, axis=2) if len(img.shape) == 2 else img for img in imgs]
-    imgs = [np.concatenate([img, img, img], axis=2) if img.shape[2] == 1 else img for img in imgs]
-    imgs = [img[:, :, :3] if img.shape[2] == 4 else img for img in imgs]  # Ensure only 3 channels
+    imgs = []
+    for img_path in img_paths:
+        try:
+            img = np.array(Image.open(img_path))
+            img = np.expand_dims(img, axis=2) if len(img.shape) == 2 else img
+            img = np.concatenate([img, img, img], axis=2) if img.shape[2] == 1 else img
+            img = img[:, :, :3] if img.shape[2] == 4 else img  # Ensure only 3 channels
+            imgs.append(img)
+        except Exception as e:
+            print(f"Error loading image {img_path}: {e}")
+            return
 
     shapes = [img.shape[:2] for img in imgs]
     reduced_shapes = [[shape[0] // 32, shape[1] // 8] for shape in shapes]
@@ -143,38 +153,10 @@ def predict(model_path, img_paths):
     prediction = [keep_all_but_tokens(x, layout_tokens) for x in prediction]
     print(prediction)
 
-    # Send the prediction to the backend
-    #send_prediction_to_backend(prediction)
-
-
-# def send_prediction_to_backend(prediction):
-#     # Prepare the prediction data to send to backend
-#     prediction_data = {
-#         "text": prediction,  #`prediction` contains the text output of DAN
-#         "zonegeneratedid": "ZoneID123",  # You can update this based on the context
-#         "jsonData": json.dumps(prediction)  # Store the prediction as JSON if needed
-#     }
-
-#     # API endpoint of the backend
-#     api_url = "http://localhost:8080/api/predictions"
-
-#     # Make POST request to send the prediction data to the backend
-#     try:
-#         response = requests.post(api_url, json=prediction_data)
-
-#         # Check response status
-#         if response.status_code == 201:
-#             print("Prediction successfully stored:", response.json())
-#         else:
-#             print("Failed to store prediction:", response.status_code, response.text)
-#     except requests.exceptions.RequestException as e:
-#         print(f"Error occurred while sending prediction to backend: {e}")
-
-
 if __name__ == "__main__":
-    # Retrieve the image path from command line argument
+    torch.cuda.empty_cache()
     if len(sys.argv) > 1:
-        img_paths = [sys.argv[1]]  # Get image path from command line argument
+        img_paths = [sys.argv[1]]
     else:
         print("No image path provided")
         sys.exit(1)
