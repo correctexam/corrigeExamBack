@@ -23,6 +23,16 @@ services:
       file: mysql.yml
       service:  correctexam-mysql
 
+  correctexam-es:
+    extends:
+      file: es.yml
+      service: correctexam-es
+
+  correctexam-kibana:
+    extends:
+      file: es.yml
+      service: correctexam-kibana
+
   front:
     image: barais/correctexam-front
     build:
@@ -62,3 +72,6 @@ services:
       - 9010:9000
       - 9090:9090
     command: server /data --console-address ":9090"
+
+networks:
+  elastic:
