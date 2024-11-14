@@ -62,8 +62,8 @@ def get_params(weight_path):
             "valid_batch_size": 4,
             "use_ddp": False,
             "ddp_port": "20027",
-            "use_amp": True,
-            "nb_gpu": torch.cuda.device_count(),
+            "use_amp": False,  # Disable AMP for CPU
+            "nb_gpu": 0,  # Set number of GPUs to 0
             "ddp_rank": 0,
             "lr_schedulers": None,
             "eval_on_valid": True,
@@ -71,7 +71,7 @@ def get_params(weight_path):
             "focus_metric": "cer",
             "expected_metric_value": "low",
             "eval_metrics": ["cer", "wer", "map_cer"],
-            "force_cpu": False,
+            "force_cpu": True,  # Force CPU
             "max_char_prediction": 3000,
             "teacher_forcing_scheduler": {
                 "min_error_rate": 0.2,
@@ -91,8 +91,8 @@ def get_params(weight_path):
     }
 
 def predict(model_path, img_paths):
-    # Check if a GPU is available and use CPU as fallback
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Set device to CPU
+    device = torch.device("cpu")
 
     params = get_params(model_path)
 
@@ -154,7 +154,6 @@ def predict(model_path, img_paths):
     print(prediction)
 
 if __name__ == "__main__":
-    torch.cuda.empty_cache()
     if len(sys.argv) > 1:
         img_paths = [sys.argv[1]]
     else:
