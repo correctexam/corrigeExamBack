@@ -45,6 +45,9 @@ public class Prediction extends PanacheEntityBase implements Serializable {
     @Column(name = "exam_id")
     public Long examId;
 
+    @Column(name = "image_data")
+    public String imageData;
+
 
     @ManyToOne
     @JoinColumn(name = "question_id")
@@ -83,6 +86,7 @@ public class Prediction extends PanacheEntityBase implements Serializable {
             ", questionNumber='" + questionNumber + "'" +
             ", examId='" + examId + "'" +
             ", studentId='" + studentId + "'" +
+            ", imageData='" + imageData + "'" +
             "}";
     }
 

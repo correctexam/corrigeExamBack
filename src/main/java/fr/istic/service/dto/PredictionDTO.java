@@ -30,6 +30,8 @@ public class PredictionDTO implements Serializable {
 
     public String examId;
 
+    public String imageData;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -58,6 +60,7 @@ public class PredictionDTO implements Serializable {
             ", questionId=" + questionId +
             ", studentId=" + studentId +
             ", examId=" + examId +
+            ", imageData=" + imageData +
             "}";
     }
 }
