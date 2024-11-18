@@ -29,7 +29,9 @@ logging.basicConfig(
 app = Flask(__name__)
 
 # Load the model at server startup
-device = torch.device("cpu")
+#device = torch.device("cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 model_path = "src/main/resources/DAN_script/dan_rimes_page.pt"
 manager = None
 
@@ -86,7 +88,7 @@ def get_params(weight_path):
             "use_ddp": False,
             "ddp_port": "20027",
             "use_amp": False,  # Disable AMP for CPU
-            "nb_gpu": 0,  # Set number of GPUs to 0
+            "nb_gpu": 1,  # Set number of GPUs to 0
             "ddp_rank": 0,
             "lr_schedulers": None,
             "eval_on_valid": True,
@@ -94,7 +96,7 @@ def get_params(weight_path):
             "focus_metric": "cer",
             "expected_metric_value": "low",
             "eval_metrics": ["cer", "wer", "map_cer"],
-            "force_cpu": True,  # Force CPU
+            "force_cpu": False,  # Force CPU
             "max_char_prediction": 3000,
             "teacher_forcing_scheduler": {
                 "min_error_rate": 0.2,
@@ -129,6 +131,7 @@ def load_model():
         manager.models[model_name].eval()
 
     manager.dataset = FakeDataset(charset)
+    logging.info(f"Using device: {device}")
 
 @app.route('/predict', methods=['POST'])
 def predict():
