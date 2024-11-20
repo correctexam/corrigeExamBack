@@ -87,7 +87,6 @@ public class PredictionResource {
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updatePrediction(PredictionDTO predictionDTO, @Context SecurityContext ctx) {
         log.debug("REST request to update Prediction : {}", predictionDTO);
-        System.out.println("Checking access for user with roles: " + ctx.getUserPrincipal() + ", on prediction id: " + predictionDTO.id);
         if (predictionDTO.id == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
