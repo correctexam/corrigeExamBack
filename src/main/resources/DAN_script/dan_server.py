@@ -1,3 +1,12 @@
+import base64
+import io
+from flask import Flask, logging, request, jsonify
+import torch
+from PIL import Image
+import numpy as np
+from OCR.document_OCR.dan.trainer_dan import Manager
+from basic.utils import pad_images
+
 import os.path
 import sys
 import torch
@@ -10,6 +19,21 @@ from OCR.document_OCR.dan.models_dan import GlobalHTADecoder
 from OCR.document_OCR.dan.trainer_dan import Manager
 from basic.utils import pad_images
 from basic.metric_manager import keep_all_but_tokens
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG,  # Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+app = Flask(__name__)
+
+# Load the model at server startup
+#device = torch.device("cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+model_path = "src/main/resources/DAN_script/dan_rimes_page.pt"
+manager = None
 
 class FakeDataset:
     def __init__(self, charset):
@@ -19,6 +43,7 @@ class FakeDataset:
             "start": len(self.charset) + 1,
             "pad": len(self.charset) + 2,
         }
+
 
 def get_params(weight_path):
     return {
@@ -63,7 +88,7 @@ def get_params(weight_path):
             "use_ddp": False,
             "ddp_port": "20027",
             "use_amp": False,  # Disable AMP for CPU
-            "nb_gpu": 0,  # Set number of GPUs to 0
+            "nb_gpu": 1,  # Set number of GPUs to 0
             "ddp_rank": 0,
             "lr_schedulers": None,
             "eval_on_valid": True,
@@ -71,7 +96,7 @@ def get_params(weight_path):
             "focus_metric": "cer",
             "expected_metric_value": "low",
             "eval_metrics": ["cer", "wer", "map_cer"],
-            "force_cpu": True,  # Force CPU
+            "force_cpu": False,  # Force CPU
             "max_char_prediction": 3000,
             "teacher_forcing_scheduler": {
                 "min_error_rate": 0.2,
@@ -90,75 +115,70 @@ def get_params(weight_path):
         },
     }
 
-def predict(model_path, img_paths):
-    # Set device to CPU
-    device = torch.device("cpu")
 
+def load_model():
+    global manager
     params = get_params(model_path)
-
-    # Load the model
-    try:
-        checkpoint = torch.load(model_path, map_location=device)
-    except Exception as e:
-        print(f"Error loading model: {e}")
-        return
-    
+    checkpoint = torch.load(model_path, map_location=device)
     charset = checkpoint.get("charset")
-    if charset is None:
-        print("Charset not found in model checkpoint")
-        return
-    
     manager = Manager(params)
     manager.params["model_params"]["vocab_size"] = len(charset)
     manager.load_model()
 
-    # Move models to the correct device
+    # Move models to device
     for model_name in manager.models.keys():
         manager.models[model_name] = manager.models[model_name].to(device)
         manager.models[model_name].eval()
 
     manager.dataset = FakeDataset(charset)
+    logging.info(f"Using device: {device}")
 
-    # Format images
-    imgs = []
-    for img_path in img_paths:
-        try:
-            img = np.array(Image.open(img_path))
-            img = np.expand_dims(img, axis=2) if len(img.shape) == 2 else img
-            img = np.concatenate([img, img, img], axis=2) if img.shape[2] == 1 else img
-            img = img[:, :, :3] if img.shape[2] == 4 else img  # Ensure only 3 channels
-            imgs.append(img)
-        except Exception as e:
-            print(f"Error loading image {img_path}: {e}")
-            return
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        # Receive the image path from the request
+        data = request.json
+        img_path = data.get('imagePath', None)
+        if not img_path:
+            logging.error("No 'imagePath' field in the request")
+            return jsonify({"error": "No image path provided"}), 400
 
-    shapes = [img.shape[:2] for img in imgs]
-    reduced_shapes = [[shape[0] // 32, shape[1] // 8] for shape in shapes]
-    imgs_positions = [([0, shape[0]], [0, shape[1]]) for shape in shapes]
-    imgs = pad_images(imgs, padding_value=0, padding_mode="br")
-    imgs = torch.tensor(imgs).float().permute(0, 3, 1, 2).to(device)
+        if not os.path.exists(img_path):
+            logging.error(f"Image file does not exist: {img_path}")
+            return jsonify({"error": f"Image file not found at path: {img_path}"}), 400
 
-    batch_data = {
-        "imgs": imgs,
-        "imgs_reduced_shape": reduced_shapes,
-        "imgs_position": imgs_positions,
-        "raw_labels": None,
-    }
+        # Load the image
+        logging.debug(f"Loading image from: {img_path}")
+        img = np.array(Image.open(img_path))
+        img = np.expand_dims(img, axis=2) if len(img.shape) == 2 else img
+        img = np.concatenate([img, img, img], axis=2) if img.shape[2] == 1 else img
+        img = img[:, :, :3] if img.shape[2] == 4 else img  # Ensure only 3 channels
 
-    with torch.no_grad():
-        res = manager.evaluate_batch(batch_data, metric_names=[])
+        # Preprocess the image
+        imgs = pad_images([img], padding_value=0, padding_mode="br")
+        imgs = torch.tensor(imgs).float().permute(0, 3, 1, 2).to(device)
 
-    prediction = res["str_x"]
-    layout_tokens = "".join(['Ⓑ', 'Ⓞ', 'Ⓟ', 'Ⓡ', 'Ⓢ', 'Ⓦ', 'Ⓨ', "Ⓐ", "Ⓝ", 'ⓑ', 'ⓞ', 'ⓟ', 'ⓡ', 'ⓢ', 'ⓦ', 'ⓨ', "ⓐ", "ⓝ"])
-    prediction = [keep_all_but_tokens(x, layout_tokens) for x in prediction]
-    print(prediction)
+        batch_data = {
+            "imgs": imgs,
+            "imgs_reduced_shape": [[img.shape[0] // 32, img.shape[1] // 8]],
+            "imgs_position": [([0, img.shape[0]], [0, img.shape[1]])],
+            "raw_labels": None,
+        }
 
-if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        img_paths = [sys.argv[1]]
-    else:
-        print("No image path provided")
-        sys.exit(1)
+        # Perform inference
+        with torch.no_grad():
+            res = manager.evaluate_batch(batch_data, metric_names=[])
 
-    model_path = "dan_rimes_page.pt"
-    predict(model_path, img_paths)
+        prediction = res["str_x"]
+        layout_tokens = "".join(['Ⓑ', 'Ⓞ', 'Ⓟ', 'Ⓡ', 'Ⓢ', 'Ⓦ', 'Ⓨ', "Ⓐ", "Ⓝ", 'ⓑ', 'ⓞ', 'ⓟ', 'ⓡ', 'ⓢ', 'ⓦ', 'ⓨ', "ⓐ", "ⓝ"])
+        prediction = [keep_all_but_tokens(x, layout_tokens) for x in prediction]
+        logging.debug(f"Cleaned Prediction result: {prediction}")
+        return jsonify({"prediction": prediction})
+    except Exception as e:
+        logging.error(f"Error in prediction: {e}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
+if __name__ == '__main__':
+    load_model()
+    app.run(host='0.0.0.0', port=5000)
