@@ -330,6 +330,8 @@ CREATE TABLE `question_type` (
   `js_function` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+INSERT INTO question_type (algo_name, endpoint, js_function) VALUES ('manuscrit', '', '');
+
 -- --------------------------------------------------------
 
 --
@@ -385,6 +387,19 @@ CREATE TABLE `student_response` (
   `lastmodified` datetime(6) DEFAULT NULL,
   `correctedby_id` bigint DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+--
+-- Structure de la table `student_response_predictions`
+--
+
+CREATE TABLE student_response_predictions (
+    student_response_id BIGINT(20) NOT NULL,
+    predictions_id BIGINT(20) NOT NULL,
+    PRIMARY KEY (student_response_id, predictions_id),
+    FOREIGN KEY (student_response_id) REFERENCES student_response(id),
+    FOREIGN KEY (predictions_id) REFERENCES prediction(id)
+);
 
 -- --------------------------------------------------------
 
@@ -451,6 +466,24 @@ CREATE TABLE `zone` (
   `width` int DEFAULT NULL,
   `height` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Structure de la table `prediction`
+--
+
+CREATE TABLE IF NOT EXISTS prediction (
+    id BIGINT(20) AUTO_INCREMENT PRIMARY KEY,
+    json_data TEXT NOT NULL,
+    question_id VARCHAR(255),
+    question_number INT,
+    text TEXT,
+    zonegeneratedid VARCHAR(255),
+    student_id VARCHAR(255),
+    exam_id VARCHAR(255),
+    image_data LONGTEXT
+);
+
+-- --------------------------------------------------------
 
 --
 -- Index pour les tables déchargées
