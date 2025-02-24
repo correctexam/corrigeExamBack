@@ -3,6 +3,7 @@ package fr.istic.service;
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.ExamSheet;
 import fr.istic.domain.Student;
+import fr.istic.domain.StudentResponse;
 import fr.istic.service.dto.ExamSheetDTO;
 import fr.istic.service.mapper.ExamSheetMapper;
 import org.slf4j.Logger;
@@ -121,7 +122,12 @@ public class ExamSheetService {
                 }
                 for (ExamSheet e: ExamSheet.findExamSheetByScanWithoutMinusOne(scanId).list()){
                     if (e.pagemax>=pageInScan){
-                        e.delete();
+                        if (StudentResponse.findStudentResponsesbysheetId(e.id).count()==0){
+                            e.delete();
+                        }else{
+                            e.pagemin=-1;
+                            e.pagemax=-1;
+                        }
                     }
                 }
             nbrpage =   ExamSheet.findExamSheetByScanWithoutMinusOne(scanId).count();
