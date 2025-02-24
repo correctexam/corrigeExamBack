@@ -140,3 +140,15 @@ To stop it and remove the container, run:
 [running tests page]: https://www.jhipster.tech/documentation-archive/v6.10.5/running-tests/
 [code quality page]: https://www.jhipster.tech/documentation-archive/v6.10.5/code-quality/
 [setting up continuous integration]: https://www.jhipster.tech/documentation-archive/v6.10.5/setting-up-ci/
+
+
+
+-- upgrade database script
+
+create table prediction (id bigint not null auto_increment, exam_id bigint, image_data varchar(255), json_data tinytext, question_number varchar(255), student_id varchar(255), text varchar(255), zonegeneratedid varchar(255), question_id bigint, primary key (id));
+
+create table student_response_predictions (student_response_id bigint not null, predictions_id bigint not null, primary key (student_response_id, predictions_id)) engine=InnoDB;
+
+alter table prediction add constraint FK1xsmwx00gk7213kwfeah9lcjx foreign key (question_id) references question (id);
+alter table student_response_predictions add constraint FKk3026vuyloiu4anjjgqqp8jv5 foreign key (predictions_id) references prediction (id);
+alter table student_response_predictions add constraint FKjhp22karkkgxptm1y9s4pg36i foreign key (student_response_id) references student_response (id);
