@@ -7,19 +7,19 @@ import base64
 def refine_extract_lines(image_path):
     # Load the image
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    
+
     # Binarize the image
     _, binary_img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    
+
     # Calculate the horizontal projection
     horizontal_projection = np.sum(binary_img, axis=1)
-    
+
     # Find line boundaries with filtering
     threshold = np.max(horizontal_projection) * 0.05  # Ignore very low-projection areas
     line_boundaries = []
     in_line = False
     start = 0
-    
+
     for i, value in enumerate(horizontal_projection):
         if value > threshold and not in_line:  # Start of a new line
             start = i
@@ -39,7 +39,7 @@ def refine_extract_lines(image_path):
             merged_boundaries[-1] = (merged_boundaries[-1][0], end)
         else:
             merged_boundaries.append((start, end))
-    
+
     # Extract the lines
     refined_lines = []
     for start, end in merged_boundaries:
@@ -50,16 +50,16 @@ def refine_extract_lines(image_path):
         pad = 8 # Padding for cleaner cuts
         line_img = img[max(0, start-pad):min(img.shape[0], end+pad), :]
         refined_lines.append(line_img)
-    
+
     return refined_lines
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(json.dumps({"error": "No image path provided"}))
         sys.exit(1)
-    
+
     image_path = sys.argv[1]
-    
+
     try:
         # Process the image and extract refined lines
         refined_lines = refine_extract_lines(image_path)
@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
         # Output the result as JSON
         print(json.dumps({"refinedLines": base64_lines}))
-    
+
     except Exception as e:
         # Handle errors and output them as JSON
         print(json.dumps({"error": str(e)}))

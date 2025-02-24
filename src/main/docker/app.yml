@@ -23,15 +23,17 @@ services:
       file: mysql.yml
       service:  correctexam-mysql
 
-  correctexam-es:
-    extends:
-      file: es.yml
-      service: correctexam-es
+#To activate to setup rag
 
-  correctexam-kibana:
-    extends:
-      file: es.yml
-      service: correctexam-kibana
+#  correctexam-es:
+#    extends:
+#      file: es.yml
+#      service: correctexam-es
+
+#  correctexam-kibana:
+#    extends:
+#      file: es.yml
+#      service: correctexam-kibana
 
   front:
     image: barais/correctexam-front
@@ -71,15 +73,14 @@ services:
       - 9010:9000
       - 9090:9090
     command: server /data --console-address ":9090"
-<<<<<<< HEAD
   mail:
     image: barais/smtprelay
     restart: always
     volumes:
       -  ./exampleconf/smtprelay.ini:/app/smtprelay.ini:ro
       -  ./tmp:/tmp:rw
-=======
 
-networks:
-  elastic:
->>>>>>> d19d8e0 (Chunking, Embedding and ES CLient in  python with example scripts)
+# To activate to setup rag
+
+#networks:
+#  elastic:
