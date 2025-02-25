@@ -109,13 +109,6 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     @JsonbTransient
     public Set<GradedComment> gradedcomments = new HashSet<>();
 
-@ManyToMany
-@JoinTable(
-    name = "student_response_predictions",
-    joinColumns = @JoinColumn(name = "student_response_id", referencedColumnName = "id"),
-    inverseJoinColumns = @JoinColumn(name = "predictions_id", referencedColumnName = "id"))
-@JsonbTransient
-public Set<Prediction> predictions = new HashSet<>();
 
 
 
@@ -284,7 +277,7 @@ public Set<Prediction> predictions = new HashSet<>();
     }
 
     public static PanacheQuery<StudentResponse> findAllByPredictionsIds(Long predictionId) {
-        return find("select sr from StudentResponse sr join sr.predictions p where p.id = ?1", predictionId);
+        return find("select sr from StudentResponse sr  where sr.prediction.id = ?1", predictionId);
     }
 
 

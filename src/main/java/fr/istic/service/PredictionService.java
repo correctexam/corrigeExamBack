@@ -47,17 +47,24 @@ public class PredictionService {
     public void delete(Long id) {
         log.debug("Request to delete Prediction : {}", id);
         Prediction.findByIdOptional(id).ifPresent(prediction -> {
-            // Find all student responses associated with this prediction
-            List<StudentResponse> studentResponses = StudentResponse.findAllByPredictionsIds(id).list();
-            // Remove the prediction from each associated student response
-            studentResponses.forEach(sr -> {
-                sr.predictions.remove(prediction);
-                StudentResponse.update(sr);
-            });
             // Delete the prediction entity
             prediction.delete();
         });
     }
+
+
+        /**
+     * Delete the Prediction by ID.
+     *
+     * @param id the ID of the entity.
+     */
+    @Transactional
+    public void deleteByQuestionId(Long questionId) {
+        log.debug("Request to delete Prediction for question  {}", questionId);
+        Prediction.deleteByQId(questionId);
+    }
+
+
 
     /**
      * Get one Prediction by ID.

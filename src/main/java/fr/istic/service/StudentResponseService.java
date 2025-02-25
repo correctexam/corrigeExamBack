@@ -128,6 +128,19 @@ public class StudentResponseService {
             .map(studentResponse -> studentResponseMapper.toDto((StudentResponse) studentResponse));
     }
 
+            /**
+     * Get all the studentResponses.
+     * @param page the pagination information.
+     * @return the list of entities.
+     */
+    public Paged<StudentResponseDTO>     findStudentResponsesbyQuestionId
+    (Page page, Long questionId) {
+        log.debug("Request to get all StudentResponses");
+        return new Paged<>(StudentResponse.findAllByQuestionId(questionId).page(page))
+            .map(studentResponse -> studentResponseMapper.toDto((StudentResponse) studentResponse));
+    }
+
+
     @Transactional
     public Optional<StudentResponseDTO> partialeNoteUpdate(StudentResponseNote notedto, Long id)  {
         log.debug("Request to patch partialeNoteUpdate " + id);

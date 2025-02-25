@@ -133,7 +133,41 @@ public class PredictionResource {
         return response.build();
     }
 
-    
+
+        /**
+     * {@code DELETE  /predictions/question/:questionId} : delete the "id" prediction.
+     *
+     * @param id the questionId of the question associated to prediction to delete.
+     * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
+     */
+    @DELETE
+    @Path("/question/{questionId}")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    public Response deletePredictionByQuestionId(@PathParam("questionId") Long id, @Context SecurityContext ctx) {
+        log.debug("REST request to delete Prediction : {}", id);
+        try {
+            // Security check
+            if (!securityService.canAccess(ctx, id, Prediction.class)) {
+                log.error("User is not authorized to delete Prediction with id: {}", id);
+                return Response.status(403, "Current user cannot access this resource").build();
+            }
+
+            // Attempt deletion
+            predictionService.deleteByQuestionId(id);
+            log.info("Prediction with id {} deleted successfully", id);
+        } catch (Exception e) {
+            log.error("Failed to delete Prediction with id {}: {}", id, e.getMessage(), e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity("Failed to delete Prediction with id: " + id + ". Error: " + e.getMessage())
+                    .build();
+        }
+
+        // If successful
+        var response = Response.noContent();
+        HeaderUtil.createEntityDeletionAlert(applicationName, true, ENTITY_NAME, id.toString()).forEach(response::header);
+        return response.build();
+    }
+
 
     /**
      * {@code GET  /predictions} : get all the predictions.
@@ -161,7 +195,7 @@ public class PredictionResource {
                 var user = User.findOneByLogin(userLogin.get());
                 if (!user.isPresent()) {
                     throw new AccountResourceException("User could not be found");
-                
+
                 } else if (user.get().authorities.size() >= 1 && user.get().authorities.stream().anyMatch(e1 -> e1.equals(new Authority("ROLE_USER")))) {
                     //Ici j'ai modif l'autorisation de Admin -> User, je sais pas si c'est bien ou pas mais voila ca me permet mon ajout
                     result = predictionService.findAll(page);

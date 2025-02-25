@@ -145,28 +145,13 @@ To stop it and remove the container, run:
 
 -- upgrade database script
 
-CREATE TABLE IF NOT EXISTS prediction (
-    id BIGINT(20) AUTO_INCREMENT PRIMARY KEY,
-    json_data TEXT NOT NULL,
-    question_id bigint DEFAULT NULL,
-    question_number INT,
-    text TEXT,
-    zonegeneratedid VARCHAR(255),
-    student_id VARCHAR(255),
-    exam_id bigint DEFAULT NULL,
-    image_data LONGTEXT
-);
 
-CREATE TABLE student_response_predictions (
-    student_response_id BIGINT(20) NOT NULL,
-    predictions_id BIGINT(20) NOT NULL,
-    PRIMARY KEY (student_response_id, predictions_id),
-    FOREIGN KEY (student_response_id) REFERENCES student_response(id),
-    FOREIGN KEY (predictions_id) REFERENCES prediction(id)
-);
+create table prediction (id bigint not null auto_increment, json_data tinytext, confidence float(53), question_number varchar(255), text varchar(2048), question_id bigint, sheet_id bigint, primary key (id));
+
+alter table prediction add constraint UK_hcb8dgib5y74wy2ybesjvxybg unique (sheet_id);
+
 
 
 alter table prediction add constraint FK1xsmwx00gk7213kwfeah9lcjx foreign key (question_id) references question (id);
-alter table student_response_predictions add constraint FKk3026vuyloiu4anjjgqqp8jv5 foreign key (predictions_id) references prediction (id);
-alter table student_response_predictions add constraint FKjhp22karkkgxptm1y9s4pg36i foreign key (student_response_id) references student_response (id);
-INSERT INTO question_type (algo_name, endpoint, js_function) VALUES ('manuscrit', '', '');
+alter table prediction add constraint FK8nv2hkm3mhxll6be9mwj5402t foreign key (sheet_id) references exam_sheet (id);
+

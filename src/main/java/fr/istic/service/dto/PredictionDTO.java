@@ -2,9 +2,6 @@ package fr.istic.service.dto;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.io.Serializable;
-import java.util.Objects;
-
-import fr.istic.domain.Prediction;
 import jakarta.persistence.Lob;
 
 /**
@@ -20,17 +17,14 @@ public class PredictionDTO implements Serializable {
     @Lob
     public String jsonData;
 
-    public String zonegeneratedid;
-
     public String questionNumber;
 
     public Long questionId;
 
-    public Long studentId;
+    public Long sheetId;
 
-    public String examId;
+    public Double predictionconfidence;
 
-    public String imageData;
 
     @Override
     public boolean equals(Object o) {
@@ -55,12 +49,10 @@ public class PredictionDTO implements Serializable {
             "id=" + id +
             ", text='" + text + "'" +
             ", jsonData='" + jsonData + "'" +
-            ", zonegeneratedid='" + zonegeneratedid + "'" +
+            ", predictionconfidence='" + predictionconfidence + "'" +
             ", questionNumber='" + questionNumber + "'" +
             ", questionId=" + questionId +
-            ", studentId=" + studentId +
-            ", examId=" + examId +
-            ", imageData=" + imageData +
+            ", sheetId=" + sheetId +
             "}";
     }
 }

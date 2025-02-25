@@ -98,6 +98,10 @@ public class ExamSheetService {
             }
 
 
+    public Paged<ExamSheetDTO> findExamSheetByExamId(Page page, Long examId) throws Exception {
+        return new Paged<>(ExamSheet.getAll4ExamId(examId).page(page))
+            .map(examSheet -> examSheetMapper.toDto((ExamSheet) examSheet));
+    }
 
     public Paged<ExamSheetDTO> findOrCreateExamSheetByName(Page page, Long scanId, Integer pageInTemplate,
             Integer pageInScan) throws Exception {
