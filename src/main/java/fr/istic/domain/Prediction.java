@@ -44,7 +44,7 @@ public class Prediction extends PanacheEntityBase implements Serializable {
     @JsonbTransient
     public Question question;
 
-    @OneToOne()
+    @ManyToOne
     @JoinColumn(name = "sheet_id")
     @JsonbTransient
     public ExamSheet sheet;
