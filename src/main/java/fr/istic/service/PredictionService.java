@@ -3,6 +3,8 @@ package fr.istic.service;
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.Prediction;
+import fr.istic.service.customdto.EntityId;
+import fr.istic.service.customdto.PredictionsIdsDto;
 import fr.istic.service.dto.PredictionDTO;
 import fr.istic.service.mapper.PredictionMapper;
 import org.slf4j.Logger;
@@ -14,6 +16,7 @@ import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 @Transactional
@@ -101,5 +104,12 @@ public class PredictionService {
         log.debug("Request to get all Predictions by Question ID");
         return new Paged<>(Prediction.findByQuestionId(questionId).page(page))
             .map(prediction -> predictionMapper.toDto((Prediction) prediction));
+    }
+
+    public List<Long> findPredictionWithoutStudentResponse(PredictionsIdsDto predictionIdsDTO){
+        List<EntityId> ids = StudentResponse.getAllforQuestionNoAndExamId(predictionIdsDTO.getExamId(), predictionIdsDTO.getNumero()).list();
+        List<Long> idsList = ids.stream().map(EntityId::getId).collect(Collectors.toList());
+        return predictionIdsDTO.getPredictionsids().stream().filter(id -> !idsList.contains(id)).collect(Collectors.toList());
+
     }
 }

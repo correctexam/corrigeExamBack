@@ -20,6 +20,7 @@ import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.Paged;
 import fr.istic.service.SecurityService;
+import fr.istic.service.customdto.PredictionsIdsDto;
 import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
@@ -73,6 +74,20 @@ public class PredictionResource {
         var response = Response.created(fromPath(uriInfo.getPath()).path(result.id.toString()).build()).entity(result);
         HeaderUtil.createEntityCreationAlert(applicationName, true, ENTITY_NAME, result.id.toString()).forEach(response::header);
         return response.build();
+    }
+
+    @POST
+    @Path("/findPredictionWithoutStudentResponse")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    public Response findPredictionWithoutStudentResponse(PredictionsIdsDto predictionIdsDTO, @Context UriInfo uriInfo) {
+        log.debug("REST request to save Prediction : {}", predictionIdsDTO);
+        if (predictionIdsDTO.getPredictionsids().size()==0) {
+            throw new BadRequestAlertException("Please provide a list of prediction ids", ENTITY_NAME, "idnull");
+        }
+        List<Long> res = predictionService.findPredictionWithoutStudentResponse(predictionIdsDTO);
+        PredictionsIdsDto dto = new PredictionsIdsDto();
+        dto.setPredictionsids(res);
+        return Response.ok(dto).build();
     }
 
     /**

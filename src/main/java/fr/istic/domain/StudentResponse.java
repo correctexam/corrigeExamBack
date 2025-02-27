@@ -13,6 +13,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import fr.istic.service.customdto.EntityId;
+
 import java.util.Optional;
 
 /**
@@ -266,6 +269,11 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     public static PanacheQuery<ExamSheet> getBestAnswerforQuestionNoAndExamId( long examId, int questionNo) {
         return find("select distinct sr.sheet from StudentResponse sr where sr.question.numero = ?2 and  sr.question.exam.id = ?1 and sr.star = true  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1",examId,questionNo );
     }
+
+    public static PanacheQuery<EntityId>  getAllforQuestionNoAndExamId( long examId, int questionNo) {
+        return find("select distinct sr.sheet.id from StudentResponse sr where sr.question.numero = ?2 and  sr.question.exam.id = ?1  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1",examId,questionNo ).project(EntityId.class);
+    }
+
 
 
     public static PanacheQuery<StudentResponse> findAllByQuestionId( long questionId) {

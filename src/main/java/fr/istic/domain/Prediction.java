@@ -8,6 +8,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -129,5 +130,9 @@ public class Prediction extends PanacheEntityBase implements Serializable {
 
     public static PanacheQuery<Prediction> canAccess(long predictionId, String login) {
         return find("select pr from Prediction pr join pr.question.exam.course.profs as u where pr.id = ?1 and u.login = ?2", predictionId, login);
+    }
+
+    public static PanacheQuery<Prediction> findPredictionWithoutStudentResponse(List<Long> predictionIds) {
+        return find("select pr from Prediction pr where pr.id in ?1 and pr.question.studentResponse is null", predictionIds);
     }
 }
