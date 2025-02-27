@@ -22,6 +22,8 @@ public class PredictionDTO implements Serializable {
     public Long questionId;
 
     public Long sheetId;
+    public Long sheetPageMin;
+    public Long sheetPageMax;
 
     public Double predictionconfidence;
 

@@ -13,6 +13,8 @@ public interface PredictionMapper extends EntityMapper<PredictionDTO, Prediction
 
     @Mapping(source = "question.id", target = "questionId")
     @Mapping(source = "sheet.id", target = "sheetId")
+    @Mapping(source = "sheet.pagemin", target = "sheetPageMin")
+    @Mapping(source = "sheet.pagemax", target = "sheetPageMax")
     PredictionDTO toDto(Prediction prediction);
 
     @Mapping(source = "questionId", target = "question")
