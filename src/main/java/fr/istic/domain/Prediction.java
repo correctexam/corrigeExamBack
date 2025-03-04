@@ -4,12 +4,11 @@ import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import jakarta.json.bind.annotation.JsonbTransient;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import jakarta.persistence.*;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -33,20 +32,12 @@ public class Prediction extends PanacheEntityBase implements Serializable {
     @Column(name = "json_data")
     public String jsonData;
 
-    @Column(name = "zonegeneratedid")
-    public String zonegeneratedid;
-
     @Column(name = "question_number")
     public String questionNumber;
 
-    @Column(name = "student_id")
-    public String studentId;
+    @Column(name = "confidence")
+    public double predictionconfidence;
 
-    @Column(name = "exam_id")
-    public Long examId;
-
-    @Column(name = "image_data")
-    public String imageData;
 
 
     @ManyToOne
@@ -54,9 +45,10 @@ public class Prediction extends PanacheEntityBase implements Serializable {
     @JsonbTransient
     public Question question;
 
-    @ManyToMany(mappedBy = "predictions")
+    @ManyToOne
+    @JoinColumn(name = "sheet_id")
     @JsonbTransient
-    public Set<StudentResponse> studentResponses = new HashSet<>();
+    public ExamSheet sheet;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
 
@@ -82,11 +74,8 @@ public class Prediction extends PanacheEntityBase implements Serializable {
             "id=" + id +
             ", text='" + text + "'" +
             ", jsonData='" + jsonData + "'" +
-            ", zonegeneratedid='" + zonegeneratedid + "'" +
+            ", predictionconfidence='" + predictionconfidence + "'" +
             ", questionNumber='" + questionNumber + "'" +
-            ", examId='" + examId + "'" +
-            ", studentId='" + studentId + "'" +
-            ", imageData='" + imageData + "'" +
             "}";
     }
 
@@ -106,10 +95,10 @@ public class Prediction extends PanacheEntityBase implements Serializable {
         if (entity != null) {
             entity.text = prediction.text;
             entity.jsonData = prediction.jsonData;
-            entity.zonegeneratedid = prediction.zonegeneratedid;
+            entity.predictionconfidence = prediction.predictionconfidence;
             entity.questionNumber = prediction.questionNumber;
             entity.question = prediction.question;
-            entity.studentResponses = prediction.studentResponses;
+            entity.sheet = prediction.sheet;
         }
         return entity;
     }
@@ -134,7 +123,16 @@ public class Prediction extends PanacheEntityBase implements Serializable {
         return delete("delete from Prediction pr where pr.question.id in ?1", qids);
     }
 
+    public static long deleteByQId(Long qid) {
+        return delete("delete from Prediction pr where pr.question.id = ?1", qid);
+    }
+
+
     public static PanacheQuery<Prediction> canAccess(long predictionId, String login) {
         return find("select pr from Prediction pr join pr.question.exam.course.profs as u where pr.id = ?1 and u.login = ?2", predictionId, login);
+    }
+
+    public static PanacheQuery<Prediction> findPredictionWithoutStudentResponse(List<Long> predictionIds) {
+        return find("select pr from Prediction pr where pr.id in ?1 and pr.question.studentResponse is null", predictionIds);
     }
 }

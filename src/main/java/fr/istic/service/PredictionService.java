@@ -3,6 +3,8 @@ package fr.istic.service;
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.Prediction;
+import fr.istic.service.customdto.EntityId;
+import fr.istic.service.customdto.PredictionsIdsDto;
 import fr.istic.service.dto.PredictionDTO;
 import fr.istic.service.mapper.PredictionMapper;
 import org.slf4j.Logger;
@@ -14,6 +16,7 @@ import jakarta.transaction.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 @Transactional
@@ -47,17 +50,24 @@ public class PredictionService {
     public void delete(Long id) {
         log.debug("Request to delete Prediction : {}", id);
         Prediction.findByIdOptional(id).ifPresent(prediction -> {
-            // Find all student responses associated with this prediction
-            List<StudentResponse> studentResponses = StudentResponse.findAllByPredictionsIds(id).list();
-            // Remove the prediction from each associated student response
-            studentResponses.forEach(sr -> {
-                sr.predictions.remove(prediction);
-                StudentResponse.update(sr);
-            });
             // Delete the prediction entity
             prediction.delete();
         });
     }
+
+
+        /**
+     * Delete the Prediction by ID.
+     *
+     * @param id the ID of the entity.
+     */
+    @Transactional
+    public void deleteByQuestionId(Long questionId) {
+        log.debug("Request to delete Prediction for question  {}", questionId);
+        Prediction.deleteByQId(questionId);
+    }
+
+
 
     /**
      * Get one Prediction by ID.
@@ -94,5 +104,12 @@ public class PredictionService {
         log.debug("Request to get all Predictions by Question ID");
         return new Paged<>(Prediction.findByQuestionId(questionId).page(page))
             .map(prediction -> predictionMapper.toDto((Prediction) prediction));
+    }
+
+    public List<Long> findPredictionWithoutStudentResponse(PredictionsIdsDto predictionIdsDTO){
+        List<EntityId> ids = StudentResponse.getAllforQuestionNoAndExamId(predictionIdsDTO.getExamId(), predictionIdsDTO.getNumero()).list();
+        List<Long> idsList = ids.stream().map(EntityId::getId).collect(Collectors.toList());
+        return predictionIdsDTO.getPredictionsids().stream().filter(id -> !idsList.contains(id)).collect(Collectors.toList());
+
     }
 }

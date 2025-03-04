@@ -13,6 +13,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import fr.istic.service.customdto.EntityId;
+
 import java.util.Optional;
 
 /**
@@ -109,13 +112,6 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     @JsonbTransient
     public Set<GradedComment> gradedcomments = new HashSet<>();
 
-@ManyToMany
-@JoinTable(
-    name = "student_response_predictions",
-    joinColumns = @JoinColumn(name = "student_response_id", referencedColumnName = "id"),
-    inverseJoinColumns = @JoinColumn(name = "predictions_id", referencedColumnName = "id"))
-@JsonbTransient
-public Set<Prediction> predictions = new HashSet<>();
 
 
 
@@ -274,6 +270,11 @@ public Set<Prediction> predictions = new HashSet<>();
         return find("select distinct sr.sheet from StudentResponse sr where sr.question.numero = ?2 and  sr.question.exam.id = ?1 and sr.star = true  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1",examId,questionNo );
     }
 
+    public static PanacheQuery<EntityId>  getAllforQuestionNoAndExamId( long examId, int questionNo) {
+        return find("select distinct sr.sheet.id from StudentResponse sr where sr.question.numero = ?2 and  sr.question.exam.id = ?1  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1",examId,questionNo ).project(EntityId.class);
+    }
+
+
 
     public static PanacheQuery<StudentResponse> findAllByQuestionId( long questionId) {
         return find("select distinct sr from StudentResponse sr where sr.question.id = ?1  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1",questionId );
@@ -284,7 +285,7 @@ public Set<Prediction> predictions = new HashSet<>();
     }
 
     public static PanacheQuery<StudentResponse> findAllByPredictionsIds(Long predictionId) {
-        return find("select sr from StudentResponse sr join sr.predictions p where p.id = ?1", predictionId);
+        return find("select sr from StudentResponse sr  where sr.prediction.id = ?1", predictionId);
     }
 
 

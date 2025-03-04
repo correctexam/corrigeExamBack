@@ -8,14 +8,17 @@ import org.mapstruct.*;
 /**
  * Mapper for the entity {@link Prediction} and its DTO {@link PredictionDTO}.
  */
-@Mapper(componentModel = "jakarta", uses = {QuestionMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
+@Mapper(componentModel = "jakarta", uses = {QuestionMapper.class, ExamSheetMapper.class}, injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface PredictionMapper extends EntityMapper<PredictionDTO, Prediction> {
 
     @Mapping(source = "question.id", target = "questionId")
+    @Mapping(source = "sheet.id", target = "sheetId")
+    @Mapping(source = "sheet.pagemin", target = "sheetPageMin")
+    @Mapping(source = "sheet.pagemax", target = "sheetPageMax")
     PredictionDTO toDto(Prediction prediction);
 
     @Mapping(source = "questionId", target = "question")
-    @Mapping(target = "studentResponses", ignore = true)
+    @Mapping(source = "sheetId", target = "sheet")
     Prediction toEntity(PredictionDTO predictionDTO);
 
     default Prediction fromId(Long id) {

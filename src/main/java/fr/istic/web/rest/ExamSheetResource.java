@@ -199,6 +199,7 @@ public class ExamSheetResource {
                         int nbreFeuilleParCopie = Integer
                                 .valueOf("" + ((List) param.get("nbreFeuilleParCopie")).get(0));
                         int numberPagesInScan = Integer.valueOf("" + ((List) param.get("numberPagesInScan")).get(0));
+
                         if (nbreFeuilleParCopie > 0 && numberPagesInScan > 0
                                 && numberPagesInScan % nbreFeuilleParCopie == 0) {
                             try {
@@ -236,6 +237,21 @@ public class ExamSheetResource {
                                     + pagemax + " " + scanId.get(0));
                         }
                     }
+                    else if (param.containsKey("examId")) {
+                        List examId = (List) param.get("examId");
+                            try {
+                                result = examSheetService.findExamSheetByExamId(page,
+                                        Long.valueOf("" + examId.get(0)));
+                            } catch (NumberFormatException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            } catch (Exception e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            }
+
+                    }
+
 
                     else {
                         result = examSheetService.findAll(page);

@@ -245,6 +245,12 @@ public class ImportExportService {
                 questionJ.addProperty("libelle", question.libelle);
                 questionJ.addProperty("gradeType", question.gradeType.name());
                 questionJ.addProperty("type", question.type.algoName);
+                questionJ.addProperty("randomHorizontalCorrection", question.randomHorizontalCorrection);
+                questionJ.addProperty("canExceedTheMax", question.canExceedTheMax);
+                questionJ.addProperty("canBeNegative", question.canBeNegative);
+                questionJ.addProperty("mustBeIgnoreInGlobalScale", question.mustBeIgnoreInGlobalScale);
+
+
                 if (question.zone != null) {
 
                     Zone zone = Zone.findById(question.zone.id);
@@ -1008,6 +1014,29 @@ public class ImportExportService {
                             .findQuestionTypebyAlgoName(gr.getAsJsonObject().get("type").getAsString())
                             .firstResult();
                 }
+                if (gr.getAsJsonObject().get("randomHorizontalCorrection") != null) {
+                    question.randomHorizontalCorrection = gr.getAsJsonObject().get("randomHorizontalCorrection").getAsBoolean();
+                } else {
+                    question.randomHorizontalCorrection =false;
+                }
+                if (gr.getAsJsonObject().get("canExceedTheMax") != null) {
+                    question.canExceedTheMax = gr.getAsJsonObject().get("canExceedTheMax").getAsBoolean();
+                } else {
+                    question.canExceedTheMax =false;
+                }
+                if (gr.getAsJsonObject().get("canBeNegative") != null) {
+                    question.canBeNegative = gr.getAsJsonObject().get("canBeNegative").getAsBoolean();
+                } else {
+                    question.canBeNegative =false;
+                }
+                if (gr.getAsJsonObject().get("mustBeIgnoreInGlobalScale") != null) {
+                    question.mustBeIgnoreInGlobalScale = gr.getAsJsonObject().get("mustBeIgnoreInGlobalScale").getAsBoolean();
+                } else {
+                    question.mustBeIgnoreInGlobalScale =false;
+                }
+
+
+
                 question.persistAndFlush();
                 uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), question.id);
             });

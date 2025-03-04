@@ -16,6 +16,8 @@ public interface StudentResponseMapper extends EntityMapper<StudentResponseDTO, 
     @Mapping(source = "question.numero", target = "questionNumero")
     @Mapping(source = "sheet.id", target = "sheetId")
     @Mapping(source = "sheet.name", target = "sheetName")
+    @Mapping(source = "sheet.pagemin", target = "sheetPageMin")
+    @Mapping(source = "sheet.pagemin", target = "sheetPageMax")
     @Mapping(source = "quarternote", target = "note", qualifiedByName = "quarternote2note")
     @Mapping(source = "correctedBy", target = "correctedByInfo", qualifiedByName = "correctedByTranslation")
     @Mapping(source = "correctedBy", target = "correctedByMail", qualifiedByName = "correctedByTranslationMail")

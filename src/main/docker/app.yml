@@ -23,15 +23,17 @@ services:
       file: mysql.yml
       service:  correctexam-mysql
 
-  correctexam-es:
-    extends:
-      file: es.yml
-      service: correctexam-es
+#To activate to setup rag
 
-  correctexam-kibana:
-    extends:
-      file: es.yml
-      service: correctexam-kibana
+#  correctexam-es:
+#    extends:
+#      file: es.yml
+#      service: correctexam-es
+
+#  correctexam-kibana:
+#    extends:
+#      file: es.yml
+#      service: correctexam-kibana
 
   front:
     image: barais/correctexam-front
@@ -57,7 +59,6 @@ services:
     command: bin/maildev --base-pathname /maildev -w 1080 -s 25
     ports:
       - 1080
-      - 25
 
   minio:
     image: quay.io/minio/minio
@@ -72,6 +73,14 @@ services:
       - 9010:9000
       - 9090:9090
     command: server /data --console-address ":9090"
+  mail:
+    image: barais/smtprelay
+    restart: always
+    volumes:
+      -  ./exampleconf/smtprelay.ini:/app/smtprelay.ini:ro
+      -  ./tmp:/tmp:rw
 
-networks:
-  elastic:
+# To activate to setup rag
+
+#networks:
+#  elastic:

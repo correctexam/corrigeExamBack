@@ -25,6 +25,8 @@ public class StudentResponseDTO implements Serializable {
     public String questionNumero;
     public Long sheetId;
     public String sheetName;
+    public Integer sheetPageMin;
+    public Integer sheetPageMax;
     public String correctedByInfo;
     public String correctedByMail;
     public Instant lastModifiedDate;
@@ -60,6 +62,8 @@ public class StudentResponseDTO implements Serializable {
             ", questionNumero='" + questionNumero + "'" +
             ", sheetId=" + sheetId +
             ", sheetName='" + sheetName + "'" +
+            ", sheetPageMin='" + sheetPageMin + "'" +
+            ", sheetPageMax='" + sheetPageMax + "'" +
             ", textcomments='" + textcomments + "'" +
             ", gradedcomments='" + gradedcomments + "'" +
             "}";
