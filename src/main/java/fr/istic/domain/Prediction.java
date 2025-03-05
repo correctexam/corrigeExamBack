@@ -133,6 +133,15 @@ public class Prediction extends PanacheEntityBase implements Serializable {
     }
 
     public static PanacheQuery<Prediction> findPredictionWithoutStudentResponse(List<Long> predictionIds) {
-        return find("select pr from Prediction pr where pr.id in ?1 and pr.question.studentResponse is null", predictionIds);
+
+
+        return find("select  sr from StudentResponse as sr,  from Prediction pr join pr.question.exam.question as q1 join q1.studentresponses as sr where q1.numero = pr.question.numero  and sr.sheet. in ?1 and pr.question.studentResponse is null", predictionIds);
     }
+
+    public static PanacheQuery<Prediction> findStudentResponseWithoutStudentResponse(List<Long> predictionIds) {
+
+
+        return find("select  sr from StudentResponse as sr,  from Prediction pr join pr.question.exam.question as q1 join q1.studentresponses as sr where q1.numero = pr.question.numero  and sr.sheet. in ?1 and pr.question.studentResponse is null", predictionIds);
+    }
+
 }

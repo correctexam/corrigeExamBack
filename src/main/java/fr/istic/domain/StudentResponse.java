@@ -334,6 +334,9 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     public static PanacheQuery<StudentResponse> getAllStudentResponseWithExamIdNumeroAndSheetId(long examId, int numero, long sheetid) {
         return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone left join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1 and sr.question.numero = ?2 and sheet.id = ?3  and  sheet.pagemin <> -1 and sheet.pagemax <> -1",examId,numero,sheetid);
     }
+    public static PanacheQuery<StudentResponse> getAllStudentResponseWithExamIdNumeroAndSheetsId(long examId, int numero, List<Long> sheetsid) {
+        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone left join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1 and sr.question.numero = ?2 and sheet.id in ?3  and  sheet.pagemin <> -1 and sheet.pagemax <> -1",examId,numero,sheetsid);
+    }
 
 
     public static PanacheQuery<StudentResponse> getAllStudentResponseWithexamId(long examId) {

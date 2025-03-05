@@ -4,6 +4,7 @@ import static jakarta.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.domain.Authority;
 import fr.istic.domain.ExamSheet;
+import fr.istic.domain.StudentResponse;
 import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.ExamSheetService;
@@ -12,6 +13,7 @@ import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
 import fr.istic.web.util.ResponseUtil;
 import fr.istic.service.dto.ExamSheetDTO;
+import fr.istic.service.dto.StudentResponseDTO;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
@@ -136,6 +138,157 @@ public class ExamSheetResource {
         }
     }
 
+    @PUT
+    @Path("/toggletcomments/{examid}/{commentid}/{numero}/{checked}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response toggleTcomments(@PathParam("examid") Long examid, @PathParam("commentid") Long commentid,
+            @PathParam("numero") int numero, @PathParam("checked") boolean checked, List<Long> sheetsId,
+            @Context SecurityContext ctx) {
+
+        if (ctx.getUserPrincipal().getName() != null) {
+
+            var userLogin = Optional
+                    .ofNullable(ctx.getUserPrincipal().getName());
+            if (!userLogin.isPresent()) {
+                throw new AccountResourceException("Current user login not found");
+            }
+            var user = User.findOneByLogin(userLogin.get());
+            if (user.isPresent()) {
+
+                if (commentid == null || commentid <= 0) {
+                    throw new BadRequestAlertException("Invalid commentid id", ENTITY_NAME, "idnull");
+                }
+
+                for (Long id : sheetsId) {
+                    if (!securityService.canAccess(ctx, id, ExamSheet.class)) {
+                        return Response.status(403, "Current user cannot access to this ressource").build();
+                    }
+                }
+
+                List<StudentResponseDTO> result = null;
+                try {
+                    result = examSheetService.toggleTcomments(commentid, examid, numero, checked, sheetsId, user.get());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (result != null) {
+                    var response = Response.ok().entity(result);
+                    return response.build();
+                } else {
+                    var response = Response.noContent();
+                    return response.build();
+
+                }
+            }else {
+                return Response.status(403, "Current user cannot access to this ressource").build();
+            }
+
+        } else {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+    }
+
+    @PUT
+    @Path("/togglegcomments/{examid}/{commentid}/{numero}/{checked}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response toggleGcomments(@PathParam("examid") Long examid, @PathParam("commentid") Long commentid,
+            @PathParam("numero") int numero, @PathParam("checked") boolean checked, List<Long> sheetsId,
+            @Context SecurityContext ctx) {
+
+        if (ctx.getUserPrincipal().getName() != null) {
+
+            var userLogin = Optional
+                    .ofNullable(ctx.getUserPrincipal().getName());
+            if (!userLogin.isPresent()) {
+                throw new AccountResourceException("Current user login not found");
+            }
+            var user = User.findOneByLogin(userLogin.get());
+            if (user.isPresent()) {
+
+                if (commentid == null || commentid <= 0) {
+                    throw new BadRequestAlertException("Invalid commentid id", ENTITY_NAME, "idnull");
+                }
+
+                for (Long id : sheetsId) {
+                    if (!securityService.canAccess(ctx, id, ExamSheet.class)) {
+                        return Response.status(403, "Current user cannot access to this ressource").build();
+                    }
+                }
+
+                List<StudentResponseDTO> result = null;
+                try {
+                    result = examSheetService.toggleGcomments(commentid, examid, numero, checked, sheetsId, user.get());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (result != null) {
+                    var response = Response.ok().entity(result);
+                    return response.build();
+                } else {
+                    var response = Response.noContent();
+                    return response.build();
+
+                }
+            }else {
+                return Response.status(403, "Current user cannot access to this ressource").build();
+            }
+
+        } else {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+    }
+
+    @PUT
+    @Path("/togglehcomments/{examid}/{commentid}/{numero}/{step}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response toggleHcomments(@PathParam("examid") Long examid, @PathParam("commentid") Long commentid,
+            @PathParam("numero") int numero, @PathParam("step") int step, List<Long> sheetsId,
+            @Context SecurityContext ctx) {
+
+        if (ctx.getUserPrincipal().getName() != null) {
+
+            var userLogin = Optional
+                    .ofNullable(ctx.getUserPrincipal().getName());
+            if (!userLogin.isPresent()) {
+                throw new AccountResourceException("Current user login not found");
+            }
+            var user = User.findOneByLogin(userLogin.get());
+            if (user.isPresent()) {
+
+                if (commentid == null || commentid <= 0) {
+                    throw new BadRequestAlertException("Invalid commentid id", ENTITY_NAME, "idnull");
+                }
+
+                for (Long id : sheetsId) {
+                    if (!securityService.canAccess(ctx, id, ExamSheet.class)) {
+                        return Response.status(403, "Current user cannot access to this ressource").build();
+                    }
+                }
+
+                List<StudentResponseDTO> result = null;
+                try {
+                    result = examSheetService.toggleHcomments(commentid, examid, numero, step, sheetsId, user.get());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (result != null) {
+                    var response = Response.ok().entity(result);
+                    return response.build();
+                } else {
+                    var response = Response.noContent();
+                    return response.build();
+
+                }
+            }else {
+                return Response.status(403, "Current user cannot access to this ressource").build();
+            }
+
+        } else {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+    }
+
+
     /**
      * {@code DELETE  /exam-sheets/:id} : delete the "id" examSheet.
      *
@@ -236,22 +389,20 @@ public class ExamSheetResource {
                             log.error("query sheets but with inconsistency in pages min and max " + pagemin + " "
                                     + pagemax + " " + scanId.get(0));
                         }
-                    }
-                    else if (param.containsKey("examId")) {
+                    } else if (param.containsKey("examId")) {
                         List examId = (List) param.get("examId");
-                            try {
-                                result = examSheetService.findExamSheetByExamId(page,
-                                        Long.valueOf("" + examId.get(0)));
-                            } catch (NumberFormatException e) {
-                                // TODO Auto-generated catch block
-                                e.printStackTrace();
-                            } catch (Exception e) {
-                                // TODO Auto-generated catch block
-                                e.printStackTrace();
-                            }
+                        try {
+                            result = examSheetService.findExamSheetByExamId(page,
+                                    Long.valueOf("" + examId.get(0)));
+                        } catch (NumberFormatException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        } catch (Exception e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
 
                     }
-
 
                     else {
                         result = examSheetService.findAll(page);
