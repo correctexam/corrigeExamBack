@@ -14,6 +14,8 @@ public interface ExamMapper extends EntityMapper<ExamDTO, Exam> {
 
     @Mapping(source = "template.id", target = "templateId")
     @Mapping(source = "template.name", target = "templateName")
+    @Mapping(source = "template.mark", target = "templateMark")
+    @Mapping(source = "template.caseBoxName", target = "templateNameBoxCase")
     @Mapping(source = "idzone.id", target = "idzoneId")
     @Mapping(source = "namezone.id", target = "namezoneId")
     @Mapping(source = "firstnamezone.id", target = "firstnamezoneId")

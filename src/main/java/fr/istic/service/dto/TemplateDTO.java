@@ -20,6 +20,9 @@ public class TemplateDTO implements Serializable {
 
     public Boolean mark;
 
+    public Boolean caseBoxName;
+
+
     public Boolean autoMapStudentCopyToList;
 
 
@@ -46,6 +49,7 @@ public class TemplateDTO implements Serializable {
             "id=" + id +
             ", name='" + name + "'" +
             ", mark='" + mark + "'" +
+            ", caseBoxName='" + caseBoxName + "'" +
             ", autoMapStudentCopyToList='" + autoMapStudentCopyToList + "'" +
             "}";
     }

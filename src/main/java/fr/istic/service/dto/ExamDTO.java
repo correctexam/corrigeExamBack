@@ -19,6 +19,8 @@ public class ExamDTO implements Serializable {
 
     public Long templateId;
     public String templateName;
+    public Boolean templateMark;
+    public Boolean templateNameBoxCase;
     public Long idzoneId;
     public Long namezoneId;
     public Long firstnamezoneId;
@@ -52,6 +54,8 @@ public class ExamDTO implements Serializable {
             ", name='" + name + "'" +
             ", templateId=" + templateId +
             ", templateName='" + templateName + "'" +
+            ", templateMark='" + templateMark + "'" +
+            ", templateNameBoxCase='" + templateNameBoxCase + "'" +
             ", idzoneId=" + idzoneId +
             ", namezoneId=" + namezoneId +
             ", firstnamezoneId=" + firstnamezoneId +

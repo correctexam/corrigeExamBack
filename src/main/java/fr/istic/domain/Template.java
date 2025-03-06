@@ -40,6 +40,10 @@ public class Template extends PanacheEntityBase implements Serializable {
     @Column(name = "mark")
     public Boolean mark;
 
+    @Column(name = "casename")
+    public Boolean caseBoxName;
+
+
     @Column(name = "auto_map_student_copy_to_list")
     public Boolean autoMapStudentCopyToList;
 
@@ -73,6 +77,7 @@ public class Template extends PanacheEntityBase implements Serializable {
             ", content='" + content + "'" +
             ", contentContentType='" + contentContentType + "'" +
             ", mark='" + mark + "'" +
+            ", caseBoxName='" + caseBoxName + "'" +
             ", autoMapStudentCopyToList='" + autoMapStudentCopyToList + "'" +
             "}";
     }
@@ -94,6 +99,7 @@ public class Template extends PanacheEntityBase implements Serializable {
             entity.name = template.name;
             entity.content = template.content;
             entity.mark = template.mark;
+            entity.caseBoxName = template.caseBoxName;
             entity.autoMapStudentCopyToList = template.autoMapStudentCopyToList;
             entity.exam = template.exam;
         }
