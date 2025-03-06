@@ -304,9 +304,7 @@ public class ExamSheetService {
 
         List<StudentResponse> response = StudentResponse
                 .getAllStudentResponseWithExamIdNumeroAndSheetsId(examId, numero, sheetsId).list();
-        log.error("size: "+response.size());
         HybridGradedComment comment = HybridGradedComment.findById(commentid);
-        log.error("comment: "+comment.id);
         if (comment == null || step > comment.step || step < 0) {
             throw new UnsupportedOperationException("No comment found or invalid step");
         } else {
@@ -359,6 +357,39 @@ public class ExamSheetService {
 
         List<StudentResponseDTO> resultdto = studentResponseMapper.toDto(response);
         return resultdto;
+    }
+
+    public List<StudentResponseDTO> updateNotes(Long examId, int numero, int step, List<Long> sheetsId, User updatedBy) {
+        List<StudentResponse> response = StudentResponse
+                .getAllStudentResponseWithExamIdNumeroAndSheetsId(examId, numero, sheetsId).list();
+            for (StudentResponse sr : response) {
+                sr.lastModifiedDate = Instant.now();
+                sr.correctedBy = updatedBy;
+                sr.quarternote = 4*step;
+                sr = StudentResponse.persistOrUpdate(sr);
+            }
+
+            List<Long> sheeitidswithsr = response.stream().map(sr -> sr.sheet.id).collect(Collectors.toList());
+            List<Long> sheeitidswithoutsr = sheetsId.stream().filter(s -> !sheeitidswithsr.contains(s))
+                    .collect(Collectors.toList());
+            for (long s : sheeitidswithoutsr) {
+                StudentResponse sr = new StudentResponse();
+                sr.question = Question.findQuestionbyExamIdandnumero(examId, numero).firstResult();
+
+                sr.sheet = ExamSheet.findById(s);
+                sr.worststar = false;
+                sr.star = false;
+                sr.quarternote = 4*step;
+                sr.lastModifiedDate = Instant.now();
+                sr.correctedBy = updatedBy;
+                sr = StudentResponse.persistOrUpdate(sr);
+                response.add(sr);
+            }
+            ;
+
+        List<StudentResponseDTO> resultdto = studentResponseMapper.toDto(response);
+        return resultdto;
+
     }
 
 

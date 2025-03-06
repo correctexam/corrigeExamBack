@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import fr.istic.domain.Authority;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.Prediction;
+import fr.istic.domain.Question;
 import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.Paged;
@@ -162,16 +163,16 @@ public class PredictionResource {
         log.debug("REST request to delete Prediction : {}", id);
         try {
             // Security check
-            if (!securityService.canAccess(ctx, id, Prediction.class)) {
-                log.error("User is not authorized to delete Prediction with id: {}", id);
+            if (!securityService.canAccess(ctx, id, Question.class)) {
+                log.error("User is not authorized to delete Prediction with question id: {}", id);
                 return Response.status(403, "Current user cannot access this resource").build();
             }
 
             // Attempt deletion
             predictionService.deleteByQuestionId(id);
-            log.info("Prediction with id {} deleted successfully", id);
+            log.info("Prediction with question id {} deleted successfully", id);
         } catch (Exception e) {
-            log.error("Failed to delete Prediction with id {}: {}", id, e.getMessage(), e);
+            log.error("Failed to delete Prediction with question id {}: {}", id, e.getMessage(), e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity("Failed to delete Prediction with id: " + id + ". Error: " + e.getMessage())
                     .build();

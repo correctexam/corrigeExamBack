@@ -289,6 +289,57 @@ public class ExamSheetResource {
     }
 
 
+    @PUT
+    @Path("/updatenotes/{examid}/{numero}/{step}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response updateNotes(@PathParam("examid") Long examid,
+            @PathParam("numero") int numero, @PathParam("step") int step, List<Long> sheetsId,
+            @Context SecurityContext ctx) {
+
+        if (ctx.getUserPrincipal().getName() != null) {
+
+            var userLogin = Optional
+                    .ofNullable(ctx.getUserPrincipal().getName());
+            if (!userLogin.isPresent()) {
+                throw new AccountResourceException("Current user login not found");
+            }
+            var user = User.findOneByLogin(userLogin.get());
+            if (user.isPresent()) {
+
+                if (examid == null || examid <= 0) {
+                    throw new BadRequestAlertException("Invalid commentid id", ENTITY_NAME, "idnull");
+                }
+
+                for (Long id : sheetsId) {
+                    if (!securityService.canAccess(ctx, id, ExamSheet.class)) {
+                        return Response.status(403, "Current user cannot access to this ressource").build();
+                    }
+                }
+
+                List<StudentResponseDTO> result = null;
+                try {
+                    result = examSheetService.updateNotes(examid, numero, step, sheetsId, user.get());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (result != null) {
+                    var response = Response.ok().entity(result);
+                    return response.build();
+                } else {
+                    var response = Response.noContent();
+                    return response.build();
+
+                }
+            }else {
+                return Response.status(403, "Current user cannot access to this ressource").build();
+            }
+
+        } else {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+    }
+
+
     /**
      * {@code DELETE  /exam-sheets/:id} : delete the "id" examSheet.
      *
