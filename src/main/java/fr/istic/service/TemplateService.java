@@ -8,6 +8,7 @@ import io.minio.errors.ServerException;
 import io.minio.errors.XmlParserException;
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.Template;
+import fr.istic.service.customdto.TemplateCaseDTO;
 import fr.istic.service.dto.TemplateDTO;
 import fr.istic.service.dto.TemplateDTOContent;
 import fr.istic.service.mapper.TemplateContentMapper;
@@ -153,6 +154,18 @@ public class TemplateService {
         log.debug("Request to get all Templates");
         return new Paged<>(Template.findAll().page(page))
                 .map(template -> templateMapper.toDto((Template) template));
+    }
+    @Transactional
+    public Optional<TemplateDTO> partialUpdate(TemplateCaseDTO tDTO, Long id) {
+        Template t = Template.findById(id);
+        if (t != null){
+        t.caseboxname = tDTO.caseboxname;
+        t = Template.persistOrUpdate(t);
+            TemplateDTO dto = templateMapper.toDto(t);
+            return Optional.of(dto);
+        }
+        return Optional.empty();
+
     }
 
 }
