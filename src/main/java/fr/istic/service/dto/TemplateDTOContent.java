@@ -5,6 +5,9 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.util.Objects;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.Lob;
 
 /**
@@ -27,6 +30,8 @@ public class TemplateDTOContent implements Serializable {
 
     public Boolean autoMapStudentCopyToList;
 
+    @JsonProperty("caseboxname")
+    public Boolean caseboxname;
 
     @Override
     public boolean equals(Object o) {
@@ -50,6 +55,7 @@ public class TemplateDTOContent implements Serializable {
         return "TemplateDTO{" +
             "id=" + id +
             ", name='" + name + "'" +
+            ", caseboxname='" + caseboxname + "'" +
             ", content='" + content + "'" +
             ", mark='" + mark + "'" +
             ", autoMapStudentCopyToList='" + autoMapStudentCopyToList + "'" +
