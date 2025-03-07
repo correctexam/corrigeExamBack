@@ -3,9 +3,12 @@ package fr.istic.web.rest;
 import static jakarta.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.service.TemplateService;
+import fr.istic.service.customdto.StudentResponseNote;
+import fr.istic.service.customdto.TemplateCaseDTO;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
 import fr.istic.web.util.ResponseUtil;
+import fr.istic.service.dto.StudentResponseDTO;
 import fr.istic.service.dto.TemplateDTO;
 import fr.istic.service.dto.TemplateDTOContent;
 
@@ -13,6 +16,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import fr.istic.domain.StudentResponse;
 import fr.istic.domain.Template;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.Paged;
@@ -146,5 +150,22 @@ public class TemplateResource {
         log.debug("REST request to get Template : {}", id);
         Optional<TemplateDTO> templateDTO = templateService.findOne(id);
         return ResponseUtil.wrapOrNotFound(templateDTO);
+    }
+
+    @PATCH
+    @Path(value = "/{id}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response partialUpdateSR(
+            @PathParam(value = "id") final Long id,
+            TemplateCaseDTO tDTO, @Context SecurityContext ctx) {
+        log.debug("REST request to partial update Template partially : {}, {}", id, tDTO);
+
+        if (!securityService.canAccess(ctx, id, Template.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        Optional<TemplateDTO> result = templateService.partialUpdate(tDTO, id);
+        return ResponseUtil.wrapOrNotFound(
+                result,
+                HeaderUtil.createEntityUpdateAlert(applicationName, true, ENTITY_NAME, id.toString()));
     }
 }
