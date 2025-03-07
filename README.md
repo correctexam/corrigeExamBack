@@ -140,3 +140,17 @@ To stop it and remove the container, run:
 [running tests page]: https://www.jhipster.tech/documentation-archive/v6.10.5/running-tests/
 [code quality page]: https://www.jhipster.tech/documentation-archive/v6.10.5/code-quality/
 [setting up continuous integration]: https://www.jhipster.tech/documentation-archive/v6.10.5/setting-up-ci/
+
+
+
+-- upgrade database script
+
+
+create table prediction (id bigint not null auto_increment, json_data tinytext, confidence float(53), question_number varchar(255), text varchar(2048), question_id bigint, sheet_id bigint, primary key (id));
+alter table template add column casename bit DEFAULT 1;
+alter table course add column archived bit not null DEFAULT 0;
+
+
+alter table prediction add constraint FK1xsmwx00gk7213kwfeah9lcjx foreign key (question_id) references question (id);
+alter table prediction add constraint FK8nv2hkm3mhxll6be9mwj5402t foreign key (sheet_id) references exam_sheet (id);
+

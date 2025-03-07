@@ -5,6 +5,8 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * A DTO for the {@link fr.istic.domain.Template} entity.
  */
@@ -18,7 +20,12 @@ public class TemplateDTO implements Serializable {
 
     public String contentContentType;
 
+    @JsonProperty("mark")
     public Boolean mark;
+
+    @JsonProperty("caseboxname")
+    public Boolean caseboxname;
+
 
     public Boolean autoMapStudentCopyToList;
 
@@ -46,6 +53,7 @@ public class TemplateDTO implements Serializable {
             "id=" + id +
             ", name='" + name + "'" +
             ", mark='" + mark + "'" +
+            ", caseboxname='" + caseboxname + "'" +
             ", autoMapStudentCopyToList='" + autoMapStudentCopyToList + "'" +
             "}";
     }

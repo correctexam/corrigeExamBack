@@ -344,7 +344,8 @@ data:
 
     INSERT INTO `question_type` (`id`, `algo_name`, `endpoint`, `js_function`) VALUES
     (2, 'manual', '', ''),
-    (3, 'QCM', NULL, NULL);
+    (3, 'QCM', NULL, NULL),
+    (4, 'manuscrit', '', '');
 
     -- --------------------------------------------------------
 

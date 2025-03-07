@@ -13,6 +13,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import fr.istic.service.customdto.EntityId;
+
 import java.util.Optional;
 
 /**
@@ -108,6 +111,9 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
                inverseJoinColumns = @JoinColumn(name = "gradedcomments_id", referencedColumnName = "id"))
     @JsonbTransient
     public Set<GradedComment> gradedcomments = new HashSet<>();
+
+
+
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
 
@@ -264,6 +270,11 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         return find("select distinct sr.sheet from StudentResponse sr where sr.question.numero = ?2 and  sr.question.exam.id = ?1 and sr.star = true  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1",examId,questionNo );
     }
 
+    public static PanacheQuery<EntityId>  getAllforQuestionNoAndExamId( long examId, int questionNo) {
+        return find("select distinct sr.sheet.id from StudentResponse sr where sr.question.numero = ?2 and  sr.question.exam.id = ?1  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1",examId,questionNo ).project(EntityId.class);
+    }
+
+
 
     public static PanacheQuery<StudentResponse> findAllByQuestionId( long questionId) {
         return find("select distinct sr from StudentResponse sr where sr.question.id = ?1  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1",questionId );
@@ -273,7 +284,9 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
         return find("select distinct sr from StudentResponse sr join fetch sr.hybridcommentsValues ah join fetch ah.hybridcomments h2 where sr.question.id = ?1  and  sr.sheet.pagemin <> -1 and sr.sheet.pagemax <> -1",questionId );
     }
 
-
+    public static PanacheQuery<StudentResponse> findAllByPredictionsIds(Long predictionId) {
+        return find("select sr from StudentResponse sr  where sr.prediction.id = ?1", predictionId);
+    }
 
 
     public static PanacheQuery<StudentResponse> findAllByGradedCommentsIds( long gradedCommentid) {
@@ -320,6 +333,9 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
 
     public static PanacheQuery<StudentResponse> getAllStudentResponseWithExamIdNumeroAndSheetId(long examId, int numero, long sheetid) {
         return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone left join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1 and sr.question.numero = ?2 and sheet.id = ?3  and  sheet.pagemin <> -1 and sheet.pagemax <> -1",examId,numero,sheetid);
+    }
+    public static PanacheQuery<StudentResponse> getAllStudentResponseWithExamIdNumeroAndSheetsId(long examId, int numero, List<Long> sheetsid) {
+        return find("select distinct sr from StudentResponse sr join fetch sr.sheet as sheet  join fetch sr.question as q join fetch q.zone left join fetch sheet.students left join fetch sr.textcomments tc left join fetch  sr.gradedcomments gc where sr.question.exam.id = ?1 and sr.question.numero = ?2 and sheet.id in ?3  and  sheet.pagemin <> -1 and sheet.pagemax <> -1",examId,numero,sheetsid);
     }
 
 

@@ -3,8 +3,6 @@ import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.json.bind.annotation.JsonbTransient;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
@@ -32,6 +30,8 @@ public class Exam extends PanacheEntityBase implements Serializable {
     @NotNull
     @Column(name = "name", nullable = false)
     public String name;
+
+
 
     @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(unique = true)
