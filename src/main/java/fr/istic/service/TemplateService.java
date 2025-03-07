@@ -49,7 +49,7 @@ public class TemplateService {
 
     @Transactional
     public TemplateDTO persistOrUpdate(TemplateDTOContent templateDTO) {
-        log.error("Request to save Template : {}", templateDTO);
+        log.debug("Request to save Template : {}", templateDTO);
         var template = templateContentMapper.toEntity(templateDTO);
 
         if (this.uses3) {
