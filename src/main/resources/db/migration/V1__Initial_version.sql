@@ -388,18 +388,6 @@ CREATE TABLE `student_response` (
   `correctedby_id` bigint DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- --------------------------------------------------------
---
--- Structure de la table `student_response_predictions`
---
-
-CREATE TABLE student_response_predictions (
-    student_response_id BIGINT(20) NOT NULL,
-    predictions_id BIGINT(20) NOT NULL,
-    PRIMARY KEY (student_response_id, predictions_id),
-    FOREIGN KEY (student_response_id) REFERENCES student_response(id),
-    FOREIGN KEY (predictions_id) REFERENCES prediction(id)
-);
 
 -- --------------------------------------------------------
 
@@ -467,21 +455,6 @@ CREATE TABLE `zone` (
   `height` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
---
--- Structure de la table `prediction`
---
-
-CREATE TABLE IF NOT EXISTS prediction (
-    id BIGINT(20) AUTO_INCREMENT PRIMARY KEY,
-    json_data TEXT NOT NULL,
-    question_id VARCHAR(255),
-    question_number INT,
-    text TEXT,
-    zonegeneratedid VARCHAR(255),
-    student_id VARCHAR(255),
-    exam_id VARCHAR(255),
-    image_data LONGTEXT
-);
 
 -- --------------------------------------------------------
 
@@ -993,6 +966,14 @@ alter table question add column canexceedthemax bit(1) NOT NULL  default 0;
 alter table question add column canbenegative bit(1) NOT NULL  default 0;
 
 alter table question add column mustbeignoreinglobalscale bit(1) NOT NULL  default 0;
+
+
+create table prediction (id bigint not null auto_increment, json_data tinytext, confidence float(53), question_number varchar(255), text varchar(2048), question_id bigint, sheet_id bigint, primary key (id));
+alter table template add column casename bit DEFAULT 1;
+alter table course add column archived bit not null DEFAULT 0;
+
+alter table prediction add constraint FK1xsmwx00gk7213kwfeah9lcjx foreign key (question_id) references question (id);
+alter table prediction add constraint FK8nv2hkm3mhxll6be9mwj5402t foreign key (sheet_id) references exam_sheet (id);
 
 
 COMMIT;
