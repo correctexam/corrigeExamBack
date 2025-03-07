@@ -31,6 +31,8 @@ public class Exam extends PanacheEntityBase implements Serializable {
     @Column(name = "name", nullable = false)
     public String name;
 
+
+
     @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(unique = true)
     public Template template;
