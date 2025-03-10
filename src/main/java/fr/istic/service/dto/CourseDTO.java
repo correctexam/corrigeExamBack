@@ -19,7 +19,7 @@ public class CourseDTO implements Serializable {
     @NotNull
     public String name;
 
-    public boolean archived = false;
+    public Boolean archived = false;
 
 
     public Set<UserDTO> profs = new HashSet<>();
