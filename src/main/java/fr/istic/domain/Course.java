@@ -36,7 +36,7 @@ public class Course extends PanacheEntityBase implements Serializable {
 
     @NotNull
     @Column(name = "archived", nullable = false)
-    public boolean archived = false;
+    public Boolean archived = false;
 
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
