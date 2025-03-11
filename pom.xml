@@ -1,7 +1,5 @@
-<?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
-    xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>fr.istic</groupId>
     <artifactId>correctexam</artifactId>
@@ -14,11 +12,11 @@
         <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
         <jacoco.utReportFile>${jacoco.utReportFolder}/test.exec</jacoco.utReportFile>
         <jacoco.utReportFolder>${project.build.directory}/jacoco/test</jacoco.utReportFolder>
-        <java.version>11</java.version>
+        <java.version>17</java.version>
         <junit.itReportFolder>${project.testresult.directory}/integrationTest</junit.itReportFolder>
         <junit.utReportFolder>${project.testresult.directory}/test</junit.utReportFolder>
         <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
-        <mapstruct.version>1.5.3.Final</mapstruct.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
         <maven-checkstyle.version>3.1.0</maven-checkstyle.version>
         <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
@@ -33,15 +31,15 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <maven.version>3.8.1</maven.version>
-        <node.version>v18.12.0</node.version>
-        <npm.version>8.19.2</npm.version>
+        <node.version>v22.14.0</node.version>
+        <npm.version>10.9.2</npm.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.testresult.directory>${project.build.directory}/test-results</project.testresult.directory>
         <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
-        <quarkus-plugin.version>3.8.2</quarkus-plugin.version>
+        <quarkus-plugin.version>3.19.2</quarkus-plugin.version>
         <quarkus.logManager>org.jboss.logmanager.LogManager</quarkus.logManager>
-        <quarkus.platform.version>3.8.2</quarkus.platform.version>
+        <quarkus.platform.version>3.19.2</quarkus.platform.version>
         <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
     </properties>
     <dependencyManagement>
@@ -60,7 +58,7 @@
        <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>3.0.1</version>
+            <version>3.0.4</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/io.quarkus/quarkus-awt -->
 <dependency>
@@ -78,7 +76,13 @@
 <dependency>
     <groupId>io.quarkiverse.minio</groupId>
     <artifactId>quarkus-minio</artifactId>
-    <version>3.7.1</version>
+    <version>3.7.7</version>
+    <exclusions>
+        <exclusion>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcprov-jdk18on</artifactId>
+        </exclusion>
+      </exclusions>
 </dependency>
 
         <dependency>
@@ -112,6 +116,10 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-jdbc-mysql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-security</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -185,19 +193,19 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5-mockito</artifactId>
+
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>5.4.0</version>
-
+                <version>5.5.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-                <version>3.25.1</version>
+            <version>3.25.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -219,11 +227,6 @@
             <classifier>runtime</classifier>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>io.quarkiverse.jdbc</groupId>
-            <artifactId>quarkus-jdbc-sqlite</artifactId>
-            <version>3.0.7</version>
-        </dependency>
         <!-- https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
 
         <!--<dependency>
@@ -233,10 +236,15 @@
         </dependency>-->
         <!-- https://mvnrepository.com/artifact/org.apereo.cas.client/cas-client-core -->
 <dependency>
-    <groupId>org.apereo.cas.client</groupId>
-    <artifactId>cas-client-core</artifactId>
-    <version>4.0.3</version>
+    <groupId>io.quarkiverse.jdbc</groupId>
+    <artifactId>quarkus-jdbc-sqlite</artifactId>
+    <version>3.0.11</version>
 </dependency>
+        <dependency>
+            <groupId>org.apereo.cas.client</groupId>
+            <artifactId>cas-client-core</artifactId>
+            <version>4.0.4</version>
+        </dependency>
 
     </dependencies>
     <build>
@@ -423,6 +431,20 @@
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>4.31.1</version>
+                <configuration>
+        <changeLogFile>config/liquibase/master.xml</changeLogFile>
+        <changeLogDirectory>${project.basedir}/src/main/resources/</changeLogDirectory>
+
+        <url>jdbc:mysql://localhost:3306/gradeScopeIstic</url>
+        <username>tlc</username>
+        <password>tlc</password>
+    </configuration>
+            </plugin>
+
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
