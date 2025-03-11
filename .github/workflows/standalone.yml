@@ -90,7 +90,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
       - name: Download front
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: front
           path: src/main/resources/META-INF/resources/
@@ -153,25 +153,25 @@ jobs:
         #windows-latest,, macos-latest,  ubuntu-latest
     steps:
       - name: Download ubuntu binary
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         if: startsWith(matrix.os, 'ubuntu')
         with:
           name: correctexam.standalone.linux
           path: correctexam.standalone.linux
       - name: Download bom
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         if: startsWith(matrix.os, 'ubuntu')
         with:
           name: correctexam.standalone.bom.back
           path: correctexam.standalone.bom.back
       - name: Download macos binary
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         if: startsWith(matrix.os, 'macos')
         with:
           name: correctexam.standalone.macos
           path: correctexam.standalone.macos
       - name: Download windows binary
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         if: startsWith(matrix.os, 'windows')
         with:
           name: correctexam.standalone.windows
