@@ -61,7 +61,7 @@ jobs:
         run: |
           npm run copy:404
       - name: Upload front
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: front
           path: target/classes/static/
@@ -112,28 +112,28 @@ jobs:
 #        run: cp target/correctexam-1.0.0-SNAPSHOT-runner* distwindows/correctexam-windows-runner.exe
         run: copy target\correctexam-1.0.0-SNAPSHOT-runner* distwindows\correctexam-windows-runner.exe
       - name: Upload binary linux
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: startsWith(matrix.os, 'ubuntu-latest')
         with:
           name: correctexam.standalone.linux
           path: target/correctexam-linux-runner
           retention-days: 1
       - name: Upload sbom
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: startsWith(matrix.os, 'ubuntu-latest')
         with:
           name: correctexam.standalone.bom.back
           path: target/bom.json
           retention-days:
       - name: Upload binary macos
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: startsWith(matrix.os, 'macos')
         with:
           name: correctexam.standalone.macos
           path: target/correctexam-macos-runner
           retention-days: 1
       - name: Upload binary windows
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: startsWith(matrix.os, 'windows')
         with:
           name: correctexam.standalone.windows
