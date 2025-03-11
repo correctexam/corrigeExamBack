@@ -1,4 +1,4 @@
-package fr.istic.service.dto;
+package fr.istic.service.customdto;
 
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -11,23 +11,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * A DTO for the {@link fr.istic.domain.Template} entity.
  */
 @RegisterForReflection
-public class TemplateDTO implements Serializable {
+public class TemplateCaseDTO implements Serializable {
 
     public Long id;
 
-    @NotNull
-    public String name;
 
     public String contentContentType;
-
-    @JsonProperty("mark")
-    public Boolean mark;
 
     @JsonProperty("caseboxname")
     public Boolean caseboxname;
 
-
-    public Boolean autoMapStudentCopyToList;
 
 
     @Override
@@ -35,11 +28,11 @@ public class TemplateDTO implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof TemplateDTO)) {
+        if (!(o instanceof TemplateCaseDTO)) {
             return false;
         }
 
-        return id != null && id.equals(((TemplateDTO) o).id);
+        return id != null && id.equals(((TemplateCaseDTO) o).id);
     }
 
     @Override
@@ -49,12 +42,9 @@ public class TemplateDTO implements Serializable {
 
     @Override
     public String toString() {
-        return "TemplateDTO{" +
+        return "TemplateCaseDTO{" +
             "id=" + id +
-            ", name='" + name + "'" +
-            ", mark='" + mark + "'" +
             ", caseboxname='" + caseboxname + "'" +
-            ", autoMapStudentCopyToList='" + autoMapStudentCopyToList + "'" +
             "}";
     }
 }

@@ -17,6 +17,7 @@ import fr.istic.domain.ExamSheet;
 import fr.istic.domain.FinalResult;
 import fr.istic.domain.GradedComment;
 import fr.istic.domain.HybridGradedComment;
+import fr.istic.domain.Prediction;
 import fr.istic.domain.Question;
 import fr.istic.domain.Scan;
 import fr.istic.domain.Student;
@@ -83,6 +84,8 @@ public class SecurityService {
                 number = HybridGradedComment.canAccess(id, userLogin.get()).count();
             }else if (entity.equals(Answer2HybridGradedComment.class)){
                 number = Answer2HybridGradedComment.canAccess(id, userLogin.get()).count();
+            }else if (entity.equals(Prediction.class)){
+                number = Prediction.canAccess(id, userLogin.get()).count();
             }
              else if (entity.equals(Zone.class)){
                 number = Zone.canAccess1(id, userLogin.get()).count();

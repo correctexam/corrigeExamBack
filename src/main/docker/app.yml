@@ -23,6 +23,18 @@ services:
       file: mysql.yml
       service:  correctexam-mysql
 
+#To activate to setup rag
+
+#  correctexam-es:
+#    extends:
+#      file: es.yml
+#      service: correctexam-es
+
+#  correctexam-kibana:
+#    extends:
+#      file: es.yml
+#      service: correctexam-kibana
+
   front:
     image: barais/correctexam-front
     build:
@@ -67,3 +79,8 @@ services:
     volumes:
       -  ./exampleconf/smtprelay.ini:/app/smtprelay.ini:ro
       -  ./tmp:/tmp:rw
+
+# To activate to setup rag
+
+#networks:
+#  elastic:

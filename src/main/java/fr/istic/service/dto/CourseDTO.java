@@ -19,6 +19,9 @@ public class CourseDTO implements Serializable {
     @NotNull
     public String name;
 
+    public Boolean archived = false;
+
+
     public Set<UserDTO> profs = new HashSet<>();
 
     @Override
@@ -43,6 +46,7 @@ public class CourseDTO implements Serializable {
         return "CourseDTO{" +
             "id=" + id +
             ", name='" + name + "'" +
+            ", archived='" + archived + "'" +
             ", profs='" + profs + "'" +
             "}";
     }

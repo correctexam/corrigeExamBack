@@ -49,6 +49,11 @@ public class ExamSheet extends PanacheEntityBase implements Serializable {
     @JsonbTransient
     public Set<Student> students = new HashSet<>();
 
+
+    @OneToMany(mappedBy = "sheet")
+    @JsonbTransient
+    public Set<Prediction> predictions ;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
 
     @Override

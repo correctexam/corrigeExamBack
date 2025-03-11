@@ -330,6 +330,8 @@ CREATE TABLE `question_type` (
   `js_function` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+INSERT INTO question_type (algo_name, endpoint, js_function) VALUES ('manuscrit', '', '');
+
 -- --------------------------------------------------------
 
 --
@@ -385,6 +387,7 @@ CREATE TABLE `student_response` (
   `lastmodified` datetime(6) DEFAULT NULL,
   `correctedby_id` bigint DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 
 -- --------------------------------------------------------
 
@@ -451,6 +454,9 @@ CREATE TABLE `zone` (
   `width` int DEFAULT NULL,
   `height` int DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- --------------------------------------------------------
 
 --
 -- Index pour les tables déchargées
@@ -960,6 +966,14 @@ alter table question add column canexceedthemax bit(1) NOT NULL  default 0;
 alter table question add column canbenegative bit(1) NOT NULL  default 0;
 
 alter table question add column mustbeignoreinglobalscale bit(1) NOT NULL  default 0;
+
+
+create table prediction (id bigint not null auto_increment, json_data tinytext, confidence float(53), question_number varchar(255), text varchar(2048), question_id bigint, sheet_id bigint, primary key (id));
+alter table template add column casename bit DEFAULT 1;
+alter table course add column archived bit not null DEFAULT 0;
+
+alter table prediction add constraint FK1xsmwx00gk7213kwfeah9lcjx foreign key (question_id) references question (id);
+alter table prediction add constraint FK8nv2hkm3mhxll6be9mwj5402t foreign key (sheet_id) references exam_sheet (id);
 
 
 COMMIT;

@@ -34,6 +34,11 @@ public class Course extends PanacheEntityBase implements Serializable {
     @Column(name = "name", nullable = false)
     public String name;
 
+    @NotNull
+    @Column(name = "archived", nullable = false)
+    public Boolean archived = false;
+
+
     @OneToMany(mappedBy = "course", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     public Set<Exam> exams = new HashSet<>();
@@ -92,6 +97,7 @@ public class Course extends PanacheEntityBase implements Serializable {
         var entity = Course.<Course>findById(course.id);
         if (entity != null) {
             entity.name = course.name;
+            entity.archived = course.archived;
             entity.exams = course.exams;
             entity.groups = course.groups;
             entity.profs = course.profs;

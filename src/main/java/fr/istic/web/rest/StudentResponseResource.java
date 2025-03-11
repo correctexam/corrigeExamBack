@@ -174,7 +174,14 @@ public class StudentResponseResource {
             result = studentResponseService.findStudentResponsesbysheetIdAndquestionId(page,
                     Long.parseLong("" + sheetId.get(0)), Collections.singletonList(
                             Long.parseLong("" + questionId.get(0))));
-        } else {
+        }
+        else if (param.containsKey("questionId")) {
+            List questionId = (List) param.get("questionId");
+
+            result = studentResponseService.findStudentResponsesbyQuestionId(page,
+                            Long.parseLong("" + questionId.get(0)));
+        }
+         else {
             if (ctx.getUserPrincipal().getName() != null) {
 
                 var userLogin = Optional
