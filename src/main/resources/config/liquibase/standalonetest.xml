@@ -1,0 +1,682 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:pro="http://www.liquibase.org/xml/ns/pro" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet author="barais (generated)" id="1741684303750-1">
+        <createTable tableName="answer_2_hybrid_graded_comment">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="step_value" type="INT"/>
+            <column name="hybridcomments_id" type="BIGINT"/>
+            <column name="student_response_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-2">
+        <createTable tableName="comments">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="zonegeneratedid" type="VARCHAR(255)"/>
+            <column name="json_data" type="LONGTEXT"/>
+            <column name="student_response_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-3">
+        <createTable tableName="course">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column defaultValue="0" name="archived" type="BIT(1)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-4">
+        <createTable tableName="course_group">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="group_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="course_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-5">
+        <createTable tableName="course_group_students">
+            <column name="students_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="course_group_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-6">
+        <createTable tableName="course_prof">
+            <column name="prof_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="course_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-7">
+        <createTable tableName="exam">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="template_id" type="BIGINT">
+                <constraints unique="true"/>
+            </column>
+            <column name="idzone_id" type="BIGINT">
+                <constraints unique="true"/>
+            </column>
+            <column name="namezone_id" type="BIGINT">
+                <constraints unique="true"/>
+            </column>
+            <column name="firstnamezone_id" type="BIGINT">
+                <constraints unique="true"/>
+            </column>
+            <column name="notezone_id" type="BIGINT">
+                <constraints unique="true"/>
+            </column>
+            <column name="scanfile_id" type="BIGINT">
+                <constraints unique="true"/>
+            </column>
+            <column name="course_id" type="BIGINT"/>
+            <column defaultValue="0" name="archived" type="BIT(1)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-8">
+        <createTable tableName="exam_sheet">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pagemin" type="INT"/>
+            <column name="pagemax" type="INT"/>
+            <column name="scan_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-9">
+        <createTable tableName="final_result">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="note" type="INT"/>
+            <column name="student_id" type="BIGINT"/>
+            <column name="exam_id" type="BIGINT"/>
+            <column name="frozen" type="BIT(1)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-10">
+        <createTable tableName="graded_comment">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="zonegeneratedid" type="VARCHAR(255)"/>
+            <column name="text" type="VARCHAR(255)"/>
+            <column name="description" type="LONGTEXT"/>
+            <column name="grade" type="INT"/>
+            <column name="question_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-11">
+        <createTable tableName="hybrid_graded_comment">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="description" type="LONGTEXT"/>
+            <column name="grade" type="INT"/>
+            <column name="relative" type="BIT(1)"/>
+            <column name="step" type="INT"/>
+            <column name="text" type="VARCHAR(255)"/>
+            <column name="question_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-12">
+        <createTable tableName="jhi_authority">
+            <column name="name" type="VARCHAR(50)">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-13">
+        <createTable tableName="jhi_date_time_wrapper">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="instant" type="TIMESTAMP(0)"/>
+            <column name="local_date_time" type="TIMESTAMP(0)"/>
+            <column name="offset_date_time" type="TIMESTAMP(0)"/>
+            <column name="zoned_date_time" type="TIMESTAMP(0)"/>
+            <column name="local_time" type="time"/>
+            <column name="offset_time" type="time"/>
+            <column name="local_date" type="date"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-14">
+        <createTable tableName="jhi_persistent_audit_event">
+            <column autoIncrement="true" name="event_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="principal" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_date" type="TIMESTAMP(0)"/>
+            <column name="event_type" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-15">
+        <createTable tableName="jhi_persistent_audit_evt_data">
+            <column name="event_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(150)">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="value" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-16">
+        <createTable tableName="jhi_user">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="login" type="VARCHAR(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password_hash" type="VARCHAR(60)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="first_name" type="VARCHAR(50)"/>
+            <column name="last_name" type="VARCHAR(50)"/>
+            <column name="email" type="VARCHAR(191)">
+                <constraints unique="true"/>
+            </column>
+            <column name="image_url" type="VARCHAR(256)"/>
+            <column name="activated" type="BIT(1)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lang_key" type="VARCHAR(10)"/>
+            <column name="activation_key" type="VARCHAR(20)"/>
+            <column name="reset_key" type="VARCHAR(20)"/>
+            <column name="created_by" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="TIMESTAMP(0)"/>
+            <column name="reset_date" type="TIMESTAMP(0)"/>
+            <column name="last_modified_by" type="VARCHAR(50)"/>
+            <column name="last_modified_date" type="TIMESTAMP(0)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-17">
+        <createTable tableName="jhi_user_authority">
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="authority_name" type="VARCHAR(50)">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-18">
+        <createTable tableName="prediction">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="json_data" type="TINYTEXT"/>
+            <column name="confidence" type="DOUBLE"/>
+            <column name="question_number" type="VARCHAR(255)"/>
+            <column name="text" type="VARCHAR(2048)"/>
+            <column name="question_id" type="BIGINT"/>
+            <column name="sheet_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-19">
+        <createTable tableName="question">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="numero" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="point" type="INT"/>
+            <column name="step" type="INT"/>
+            <column name="valid_expression" type="VARCHAR(255)"/>
+            <column name="libelle" type="VARCHAR(255)"/>
+            <column name="grade_type" type="VARCHAR(255)"/>
+            <column name="zone_id" type="BIGINT">
+                <constraints unique="true"/>
+            </column>
+            <column name="type_id" type="BIGINT"/>
+            <column name="exam_id" type="BIGINT"/>
+            <column name="defaultpoint" type="INT"/>
+            <column defaultValue="0" name="randomhorizontalcorrection" type="BIT(1)"/>
+            <column defaultValue="0" name="canexceedthemax" type="BIT(1)">
+                <constraints nullable="false"/>
+            </column>
+            <column defaultValue="0" name="canbenegative" type="BIT(1)">
+                <constraints nullable="false"/>
+            </column>
+            <column defaultValue="0" name="mustbeignoreinglobalscale" type="BIT(1)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-20">
+        <createTable tableName="question_type">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="algo_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="endpoint" type="VARCHAR(255)"/>
+            <column name="js_function" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-21">
+        <createTable tableName="scan">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="LONGBLOB"/>
+            <column name="content_content_type" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-22">
+        <createTable tableName="student">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="firstname" type="VARCHAR(255)"/>
+            <column name="ine" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="caslogin" type="VARCHAR(255)"/>
+            <column name="mail" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-23">
+        <createTable tableName="student_exam_sheets">
+            <column name="exam_sheets_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="student_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-24">
+        <createTable tableName="student_response">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="note" type="INT"/>
+            <column name="star" type="BIT(1)"/>
+            <column defaultValue="0" name="worststar" type="BIT(1)"/>
+            <column name="question_id" type="BIGINT"/>
+            <column name="sheet_id" type="BIGINT"/>
+            <column name="lastmodified" type="datetime(6)"/>
+            <column name="correctedby_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-25">
+        <createTable tableName="student_response_gradedcomments">
+            <column name="gradedcomments_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="student_response_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-26">
+        <createTable tableName="student_response_textcomments">
+            <column name="textcomments_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="student_response_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-27">
+        <createTable tableName="template">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="LONGBLOB"/>
+            <column name="content_content_type" type="VARCHAR(255)"/>
+            <column name="mark" type="BIT(1)"/>
+            <column name="auto_map_student_copy_to_list" type="BIT(1)"/>
+            <column defaultValue="1" name="casename" type="BIT(1)"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-28">
+        <createTable tableName="text_comment">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="text" type="VARCHAR(255)"/>
+            <column name="description" type="LONGTEXT"/>
+            <column name="zonegeneratedid" type="VARCHAR(255)"/>
+            <column name="question_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-29">
+        <createTable tableName="zone">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="page_number" type="INT"/>
+            <column name="x_init" type="INT"/>
+            <column name="y_init" type="INT"/>
+            <column name="width" type="INT"/>
+            <column name="height" type="INT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-30">
+        <addUniqueConstraint columnNames="student_response_id, hybridcomments_id" constraintName="UniqueHybridcommentsIdAndStudentResponseId" tableName="answer_2_hybrid_graded_comment"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-31">
+        <addUniqueConstraint columnNames="student_id, exam_id" constraintName="cannot ahve two finalresult for the same student and same exam" tableName="final_result"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-32">
+        <addUniqueConstraint columnNames="gradedcomments_id, student_response_id" constraintName="gradedcomments_id" tableName="student_response_gradedcomments"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-33">
+        <addUniqueConstraint columnNames="question_id, sheet_id" constraintName="question_id" tableName="student_response"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-34">
+        <createIndex associatedWith="" indexName="FK1xsmwx00gk7213kwfeah9lcjx" tableName="prediction">
+            <column name="question_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-35">
+        <createIndex associatedWith="" indexName="FK9ijm3itpjwpgf534m94df8dt6" tableName="answer_2_hybrid_graded_comment">
+            <column name="hybridcomments_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-36">
+        <createIndex associatedWith="" indexName="FKinrpshecm7c6aiqo6000ju87c" tableName="student_response">
+            <column name="correctedby_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-37">
+        <createIndex associatedWith="" indexName="FKrrl2y7dngtnqlklwt0scsy8jq" tableName="hybrid_graded_comment">
+            <column name="question_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-38">
+        <createIndex associatedWith="" indexName="UK_hcb8dgib5y74wy2ybesjvxybg" tableName="prediction">
+            <column name="sheet_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-39">
+        <createIndex associatedWith="" indexName="fk_authority_name" tableName="jhi_user_authority">
+            <column name="authority_name"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-40">
+        <createIndex associatedWith="" indexName="fk_comments_student_response_id" tableName="comments">
+            <column name="student_response_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-41">
+        <createIndex associatedWith="" indexName="fk_course_group_course_id" tableName="course_group">
+            <column name="course_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-42">
+        <createIndex associatedWith="" indexName="fk_course_group_students_students_id" tableName="course_group_students">
+            <column name="students_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-43">
+        <createIndex associatedWith="" indexName="fk_course_prof_prof_id" tableName="course_prof">
+            <column name="prof_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-44">
+        <createIndex associatedWith="" indexName="fk_exam_course_id" tableName="exam">
+            <column name="course_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-45">
+        <createIndex associatedWith="" indexName="fk_exam_sheet_scan_id" tableName="exam_sheet">
+            <column name="scan_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-46">
+        <createIndex associatedWith="" indexName="fk_final_result_exam_id" tableName="final_result">
+            <column name="exam_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-47">
+        <createIndex associatedWith="" indexName="fk_final_result_student_id" tableName="final_result">
+            <column name="student_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-48">
+        <createIndex associatedWith="" indexName="fk_graded_comment_question_id" tableName="graded_comment">
+            <column name="question_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-49">
+        <createIndex associatedWith="" indexName="fk_question_exam_id" tableName="question">
+            <column name="exam_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-50">
+        <createIndex associatedWith="" indexName="fk_question_type_id" tableName="question">
+            <column name="type_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-51">
+        <createIndex associatedWith="" indexName="fk_student_exam_sheets_exam_sheets_id" tableName="student_exam_sheets">
+            <column name="exam_sheets_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-52">
+        <createIndex associatedWith="" indexName="fk_student_response_gradedcomments_gradedcomments_id" tableName="student_response_gradedcomments">
+            <column name="gradedcomments_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-53">
+        <createIndex associatedWith="" indexName="fk_student_response_question_id" tableName="student_response">
+            <column name="question_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-54">
+        <createIndex associatedWith="" indexName="fk_student_response_sheet_id" tableName="student_response">
+            <column name="sheet_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-55">
+        <createIndex associatedWith="" indexName="fk_student_response_textcomments_textcomments_id" tableName="student_response_textcomments">
+            <column name="textcomments_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-56">
+        <createIndex associatedWith="" indexName="fk_text_comment_question_id" tableName="text_comment">
+            <column name="question_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-57">
+        <createIndex associatedWith="" indexName="idx_persistent_audit_event" tableName="jhi_persistent_audit_event">
+            <column name="principal"/>
+            <column name="event_date"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-58">
+        <createIndex associatedWith="" indexName="idx_persistent_audit_evt_data" tableName="jhi_persistent_audit_evt_data">
+            <column name="event_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-59">
+        <addForeignKeyConstraint baseColumnNames="question_id" baseTableName="prediction" constraintName="FK1xsmwx00gk7213kwfeah9lcjx" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="question" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-60">
+        <addForeignKeyConstraint baseColumnNames="sheet_id" baseTableName="prediction" constraintName="FK8nv2hkm3mhxll6be9mwj5402t" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="exam_sheet" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-61">
+        <addForeignKeyConstraint baseColumnNames="hybridcomments_id" baseTableName="answer_2_hybrid_graded_comment" constraintName="FK9ijm3itpjwpgf534m94df8dt6" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="hybrid_graded_comment" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-62">
+        <addForeignKeyConstraint baseColumnNames="correctedby_id" baseTableName="student_response" constraintName="FKinrpshecm7c6aiqo6000ju87c" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="jhi_user" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-63">
+        <addForeignKeyConstraint baseColumnNames="student_response_id" baseTableName="answer_2_hybrid_graded_comment" constraintName="FKqxflsw40s622dtyt99himou2k" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="student_response" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-64">
+        <addForeignKeyConstraint baseColumnNames="question_id" baseTableName="hybrid_graded_comment" constraintName="FKrrl2y7dngtnqlklwt0scsy8jq" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="question" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-65">
+        <addForeignKeyConstraint baseColumnNames="authority_name" baseTableName="jhi_user_authority" constraintName="fk_authority_name" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="name" referencedTableName="jhi_authority" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-66">
+        <addForeignKeyConstraint baseColumnNames="student_response_id" baseTableName="comments" constraintName="fk_comments_student_response_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="student_response" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-67">
+        <addForeignKeyConstraint baseColumnNames="course_id" baseTableName="course_group" constraintName="fk_course_group_course_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="course" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-68">
+        <addForeignKeyConstraint baseColumnNames="course_group_id" baseTableName="course_group_students" constraintName="fk_course_group_students_course_group_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="course_group" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-69">
+        <addForeignKeyConstraint baseColumnNames="students_id" baseTableName="course_group_students" constraintName="fk_course_group_students_students_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="student" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-70">
+        <addForeignKeyConstraint baseColumnNames="course_id" baseTableName="course_prof" constraintName="fk_course_prof_course_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="course" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-71">
+        <addForeignKeyConstraint baseColumnNames="prof_id" baseTableName="course_prof" constraintName="fk_course_prof_prof_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="jhi_user" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-72">
+        <addForeignKeyConstraint baseColumnNames="event_id" baseTableName="jhi_persistent_audit_evt_data" constraintName="fk_evt_pers_audit_evt_data" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="event_id" referencedTableName="jhi_persistent_audit_event" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-73">
+        <addForeignKeyConstraint baseColumnNames="course_id" baseTableName="exam" constraintName="fk_exam_course_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="course" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-74">
+        <addForeignKeyConstraint baseColumnNames="firstnamezone_id" baseTableName="exam" constraintName="fk_exam_firstnamezone_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="zone" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-75">
+        <addForeignKeyConstraint baseColumnNames="idzone_id" baseTableName="exam" constraintName="fk_exam_idzone_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="zone" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-76">
+        <addForeignKeyConstraint baseColumnNames="namezone_id" baseTableName="exam" constraintName="fk_exam_namezone_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="zone" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-77">
+        <addForeignKeyConstraint baseColumnNames="notezone_id" baseTableName="exam" constraintName="fk_exam_notezone_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="zone" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-78">
+        <addForeignKeyConstraint baseColumnNames="scanfile_id" baseTableName="exam" constraintName="fk_exam_scanfile_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="scan" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-79">
+        <addForeignKeyConstraint baseColumnNames="scan_id" baseTableName="exam_sheet" constraintName="fk_exam_sheet_scan_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="scan" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-80">
+        <addForeignKeyConstraint baseColumnNames="template_id" baseTableName="exam" constraintName="fk_exam_template_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="template" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-81">
+        <addForeignKeyConstraint baseColumnNames="exam_id" baseTableName="final_result" constraintName="fk_final_result_exam_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="exam" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-82">
+        <addForeignKeyConstraint baseColumnNames="student_id" baseTableName="final_result" constraintName="fk_final_result_student_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="student" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-83">
+        <addForeignKeyConstraint baseColumnNames="question_id" baseTableName="graded_comment" constraintName="fk_graded_comment_question_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="question" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-84">
+        <addForeignKeyConstraint baseColumnNames="exam_id" baseTableName="question" constraintName="fk_question_exam_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="exam" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-85">
+        <addForeignKeyConstraint baseColumnNames="type_id" baseTableName="question" constraintName="fk_question_type_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="question_type" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-86">
+        <addForeignKeyConstraint baseColumnNames="zone_id" baseTableName="question" constraintName="fk_question_zone_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="zone" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-87">
+        <addForeignKeyConstraint baseColumnNames="exam_sheets_id" baseTableName="student_exam_sheets" constraintName="fk_student_exam_sheets_exam_sheets_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="exam_sheet" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-88">
+        <addForeignKeyConstraint baseColumnNames="student_id" baseTableName="student_exam_sheets" constraintName="fk_student_exam_sheets_student_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="student" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-89">
+        <addForeignKeyConstraint baseColumnNames="gradedcomments_id" baseTableName="student_response_gradedcomments" constraintName="fk_student_response_gradedcomments_gradedcomments_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="graded_comment" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-90">
+        <addForeignKeyConstraint baseColumnNames="student_response_id" baseTableName="student_response_gradedcomments" constraintName="fk_student_response_gradedcomments_student_response_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="student_response" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-91">
+        <addForeignKeyConstraint baseColumnNames="question_id" baseTableName="student_response" constraintName="fk_student_response_question_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="question" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-92">
+        <addForeignKeyConstraint baseColumnNames="sheet_id" baseTableName="student_response" constraintName="fk_student_response_sheet_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="exam_sheet" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-93">
+        <addForeignKeyConstraint baseColumnNames="student_response_id" baseTableName="student_response_textcomments" constraintName="fk_student_response_textcomments_student_response_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="student_response" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-94">
+        <addForeignKeyConstraint baseColumnNames="textcomments_id" baseTableName="student_response_textcomments" constraintName="fk_student_response_textcomments_textcomments_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="text_comment" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-95">
+        <addForeignKeyConstraint baseColumnNames="question_id" baseTableName="text_comment" constraintName="fk_text_comment_question_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="question" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-96">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="jhi_user_authority" constraintName="fk_user_id" deferrable="false" initiallyDeferred="false" onDelete="RESTRICT" onUpdate="RESTRICT" referencedColumnNames="id" referencedTableName="jhi_user" validate="true"/>
+    </changeSet>
+    <changeSet author="barais (generated)" id="1741684303750-97">
+            <loadData
+                  file="config/liquibase/data/usertest.csv"
+                  separator=";"
+                  tableName="jhi_user">
+            <column name="activated" type="boolean"/>
+            <column name="created_date" type="timestamp"/>
+        </loadData>
+        <dropDefaultValue tableName="jhi_user" columnName="created_date" columnDataType="datetime"/>
+        <loadData
+                  file="config/liquibase/data/authority.csv"
+                  separator=";"
+                  tableName="jhi_authority">
+            <column name="name" type="string"/>
+        </loadData>
+
+        <loadData
+                  file="config/liquibase/data/user_authoritytest.csv"
+                  separator=";"
+                  tableName="jhi_user_authority">
+            <column name="user_id" type="numeric"/>
+        </loadData>
+        <loadData
+                  file="config/liquibase/data/question_type.csv"
+                  separator=";"
+                  tableName="question_type">
+            <column name="algo_name" type="string"/>
+        </loadData>
+
+    </changeSet>
+</databaseChangeLog>
