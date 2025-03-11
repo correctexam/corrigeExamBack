@@ -154,3 +154,5 @@ alter table course add column archived bit not null DEFAULT 0;
 alter table prediction add constraint FK1xsmwx00gk7213kwfeah9lcjx foreign key (question_id) references question (id);
 alter table prediction add constraint FK8nv2hkm3mhxll6be9mwj5402t foreign key (sheet_id) references exam_sheet (id);
 
+
+./mvnw liquibase:generateChangeLog -Dliquibase.outputChangeLogFile=/tmp/standalone.xml

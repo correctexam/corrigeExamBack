@@ -1,9 +1,9 @@
 package fr.istic.service;
 
-import io.quarkus.runtime.configuration.ProfileManager;
+
 import fr.istic.config.JHipsterInfo;
 import fr.istic.service.dto.ManagementInfoDTO;
-
+import io.quarkus.runtime.LaunchMode;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -27,8 +27,9 @@ public class ManagementInfoService {
             info.activeProfiles.add("api-docs");
 
         }
-        info.activeProfiles.add(ProfileManager.getActiveProfile());
-        info.displayRibbonOnProfiles = ProfileManager.getActiveProfile();
+//         List<String> profiles= ConfigUtils.getProfiles();
+        info.activeProfiles.add(LaunchMode.current().getProfileKey());
+        info.displayRibbonOnProfiles = LaunchMode.current().getProfileKey();
         return info;
     }
 }

@@ -2,8 +2,9 @@ package fr.istic.web.rest;
 
 import fr.istic.web.rest.vm.ConfigPropsVM;
 import fr.istic.web.rest.vm.EnvVM;
+import io.quarkus.runtime.LaunchMode;
+import io.quarkus.runtime.configuration.ConfigUtils;
 import fr.istic.security.AuthoritiesConstants;
-import io.quarkus.runtime.configuration.ProfileManager;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 
@@ -38,7 +39,9 @@ public class JHipsterConfigurationEndpoint {
       .stream(configSources.spliterator(), false)
       .map(configSource -> new EnvVM.PropertySource(configSource.getName(), configSource.getProperties()))
       .collect(Collectors.toList());
+     List<String> profiles= ConfigUtils.getProfiles();
+    // LaunchMode.current().getProfileKey();
 
-    return new EnvVM(List.of(ProfileManager.getActiveProfile()), propertySources);
+    return new EnvVM(profiles, propertySources);
   }
 }

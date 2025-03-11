@@ -87,6 +87,11 @@ public class QuestionResourceTest {
         questionDTO.point = DEFAULT_POINT;
         questionDTO.step = DEFAULT_STEP;
         questionDTO.gradeType = DEFAULT_GRADE_TYPE;
+        questionDTO.canBeNegative = false;
+        questionDTO.canExceedTheMax = false;
+        questionDTO.mustBeIgnoreInGlobalScale = false;
+        questionDTO.randomHorizontalCorrection = false;
+
         return questionDTO;
     }
 
