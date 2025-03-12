@@ -77,7 +77,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest,  ubuntu-latest]
+#        os: [windows-latest, macos-latest,  ubuntu-latest]
+        os: [macos-latest,  ubuntu-latest]
         experimental: [true]
         #windows-latest, macos-latest,  ubuntu-latest
     steps:
@@ -98,19 +99,19 @@ jobs:
       - name: Native build using maven  # https://graalvm.github.io/native-build-tools/latest/maven-plugin.html
         if: startsWith(matrix.os, 'macos') || startsWith(matrix.os, 'ubuntu')
         run: mvn --activate-profiles "native,alone" clean package
-      - name: Native build using maven for windows  # https://graalvm.github.io/native-build-tools/latest/maven-plugin.html
-        if: startsWith(matrix.os, 'windows')
-        run: mvn --activate-profiles "native,alonewindows" clean package -DskipTests
+#      - name: Native build using maven for windows  # https://graalvm.github.io/native-build-tools/latest/maven-plugin.html
+#        if: startsWith(matrix.os, 'windows')
+#        run: mvn --activate-profiles "native,alonewindows" clean package -DskipTests
       - name: rename mac
         if: startsWith(matrix.os, 'macos')
         run: ls -l target/* && mv target/correctexam-1.0.0-SNAPSHOT-runner* target/correctexam-macos-runner
       - name: rename linux
         if: startsWith(matrix.os, 'ubuntu')
         run: ls -l target/* && mv target/correctexam-1.0.0-SNAPSHOT-runner* target/correctexam-linux-runner
-      - name: prepare Windows Folder
-        if: startsWith(matrix.os, 'windows')
+#      - name: prepare Windows Folder
+#        if: startsWith(matrix.os, 'windows')
 #        run: cp target/correctexam-1.0.0-SNAPSHOT-runner* distwindows/correctexam-windows-runner.exe
-        run: copy target\correctexam-1.0.0-SNAPSHOT-runner* distwindows\correctexam-windows-runner.exe
+#        run: copy target\correctexam-1.0.0-SNAPSHOT-runner* distwindows\correctexam-windows-runner.exe
       - name: Upload binary linux
         uses: actions/upload-artifact@v4
         if: startsWith(matrix.os, 'ubuntu-latest')
@@ -118,13 +119,13 @@ jobs:
           name: correctexam.standalone.linux
           path: target/correctexam-linux-runner
           retention-days: 1
-      - name: Upload sbom
-        uses: actions/upload-artifact@v4
-        if: startsWith(matrix.os, 'ubuntu-latest')
-        with:
-          name: correctexam.standalone.bom.back
-          path: target/bom.json
-          retention-days:
+#      - name: Upload sbom
+#        uses: actions/upload-artifact@v4
+#        if: startsWith(matrix.os, 'ubuntu-latest')
+#        with:
+#          name: correctexam.standalone.bom.back
+#          path: target/bom.json
+#          retention-days:
       - name: Upload binary macos
         uses: actions/upload-artifact@v4
         if: startsWith(matrix.os, 'macos')
@@ -132,13 +133,13 @@ jobs:
           name: correctexam.standalone.macos
           path: target/correctexam-macos-runner
           retention-days: 1
-      - name: Upload binary windows
-        uses: actions/upload-artifact@v4
-        if: startsWith(matrix.os, 'windows')
-        with:
-          name: correctexam.standalone.windows
-          path: distwindows
-          retention-days: 1
+#      - name: Upload binary windows
+#        uses: actions/upload-artifact@v4
+#        if: startsWith(matrix.os, 'windows')
+#        with:
+#          name: correctexam.standalone.windows
+#          path: distwindows
+#          retention-days: 1
 
   publish-native-image:
     needs: [build-native-image]
@@ -148,9 +149,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [macos-latest, ubuntu-latest]
+#        os: [windows-latest, macos-latest,  ubuntu-latest]
         experimental: [true]
-        #windows-latest,, macos-latest,  ubuntu-latest
     steps:
       - name: Download ubuntu binary
         uses: actions/download-artifact@v4
@@ -158,24 +159,24 @@ jobs:
         with:
           name: correctexam.standalone.linux
           path: correctexam.standalone.linux
-      - name: Download bom
-        uses: actions/download-artifact@v4
-        if: startsWith(matrix.os, 'ubuntu')
-        with:
-          name: correctexam.standalone.bom.back
-          path: correctexam.standalone.bom.back
+ #     - name: Download bom
+ #       uses: actions/download-artifact@v4
+ #       if: startsWith(matrix.os, 'ubuntu')
+ #       with:
+ #         name: correctexam.standalone.bom.back
+ #         path: correctexam.standalone.bom.back
       - name: Download macos binary
         uses: actions/download-artifact@v4
         if: startsWith(matrix.os, 'macos')
         with:
           name: correctexam.standalone.macos
           path: correctexam.standalone.macos
-      - name: Download windows binary
-        uses: actions/download-artifact@v4
-        if: startsWith(matrix.os, 'windows')
-        with:
-          name: correctexam.standalone.windows
-          path: correctexam.standalone.windows
+#      - name: Download windows binary
+#        uses: actions/download-artifact@v4
+#        if: startsWith(matrix.os, 'windows')
+#        with:
+#          name: correctexam.standalone.windows
+#          path: correctexam.standalone.windows
       - name: Release standalone linux
         uses: softprops/action-gh-release@v1
         if: startsWith(matrix.os, 'ubuntu')
@@ -192,13 +193,13 @@ jobs:
         with:
           files: correctexam.standalone.macos/correctexam-macos-runner
 #          tag_name: v1
-      - name: Release standalone windows
-        uses: softprops/action-gh-release@v1
-        if: startsWith(matrix.os, 'windows')
+#      - name: Release standalone windows
+#        uses: softprops/action-gh-release@v1
+#        if: startsWith(matrix.os, 'windows')
 #        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          files: |
-            correctexam.standalone.windows/*
+#        with:
+#          files: |
+#            correctexam.standalone.windows/*
 #            correctexam.standalone.windows/mydb.mv.db
 #            correctexam.standalone.windows/mydb.trace.db
 #          tag_name: v1
