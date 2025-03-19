@@ -156,3 +156,7 @@ alter table prediction add constraint FK8nv2hkm3mhxll6be9mwj5402t foreign key (s
 
 
 ./mvnw liquibase:generateChangeLog -Dliquibase.outputChangeLogFile=/tmp/standalone.xml
+
+
+1.7
+alter table exam add column nbgrader bit  not null DEFAULT 0;

@@ -31,6 +31,8 @@ public class Exam extends PanacheEntityBase implements Serializable {
     @Column(name = "name", nullable = false)
     public String name;
 
+    @Column(name = "nbgrader")
+    public Boolean nbgrader=true;
 
 
     @OneToOne(cascade = CascadeType.REMOVE)
@@ -107,6 +109,7 @@ public class Exam extends PanacheEntityBase implements Serializable {
         var entity = Exam.<Exam>findById(exam.id);
         if (entity != null) {
             entity.name = exam.name;
+            entity.nbgrader = exam.nbgrader;
             entity.template = exam.template;
             entity.idzone = exam.idzone;
             entity.namezone = exam.namezone;
@@ -207,8 +210,6 @@ public class Exam extends PanacheEntityBase implements Serializable {
         return find("select exam from Exam exam where exam.scanfile.id =?1", scanId);
     }
 
-
-
     public static PanacheQuery<Exam> findExamThatMatchZoneId( long zoneId) {
         // join fetch exam.namezone join fetch exam.firstnamezone  join fetch exam.idzone  join fetch exam.notezone
         return find("select exam from Exam exam where exam.idzone.id =?1 or exam.namezone.id =?1 or exam.firstnamezone.id =?1 or exam.notezone.id =?1", zoneId);
@@ -217,7 +218,5 @@ public class Exam extends PanacheEntityBase implements Serializable {
     public static PanacheQuery<Exam> canAccess( long examId, String login) {
         return find("select exam from Exam exam join exam.course.profs u where exam.id =?1 and u.login =?2", examId, login);
     }
-
-
 
 }
