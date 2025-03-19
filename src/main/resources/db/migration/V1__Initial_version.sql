@@ -141,6 +141,7 @@ CREATE TABLE `databasechangeloglock` (
 CREATE TABLE `exam` (
   `id` bigint NOT NULL,
   `name` varchar(255) NOT NULL,
+  `nbgrader` bit  not null DEFAULT 0,
   `template_id` bigint DEFAULT NULL,
   `idzone_id` bigint DEFAULT NULL,
   `namezone_id` bigint DEFAULT NULL,

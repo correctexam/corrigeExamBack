@@ -72,6 +72,10 @@
             <column name="name" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
+            <column defaultValue="0" name="nbgrader" type="BIT(1)">
+                <constraints nullable="false"/>
+            </column>
+
             <column name="template_id" type="BIGINT">
                 <constraints unique="true"/>
             </column>
