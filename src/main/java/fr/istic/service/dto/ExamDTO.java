@@ -2,6 +2,7 @@ package fr.istic.service.dto;
 
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.util.Objects;
@@ -16,6 +17,9 @@ public class ExamDTO implements Serializable {
 
     @NotNull
     public String name;
+    @Column(name = "nbgrader")
+    public Boolean nbgrader=true;
+
 
     public Long templateId;
     public String templateName;
@@ -52,6 +56,7 @@ public class ExamDTO implements Serializable {
         return "ExamDTO{" +
             "id=" + id +
             ", name='" + name + "'" +
+            ", nbgrader='" + nbgrader + "'" +
             ", templateId=" + templateId +
             ", templateName='" + templateName + "'" +
             ", templateMark='" + templateMark + "'" +

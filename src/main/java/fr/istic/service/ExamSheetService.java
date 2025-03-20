@@ -145,8 +145,8 @@ public class ExamSheetService {
                     if (StudentResponse.findStudentResponsesbysheetId(e.id).count() == 0) {
                         e.delete();
                     } else {
-                        e.pagemin = -1;
-                        e.pagemax = -1;
+                       // e.pagemin = -1;
+                       // e.pagemax = -1;
                     }
                 }
             }

@@ -193,6 +193,7 @@ public class ImportExportService {
 
                 }
                 templateJ.addProperty("mark", template.mark);
+                templateJ.addProperty("caseboxname", template.caseboxname);
                 templates.add(templateJ);
                 templatesUID.put(template.id, templateU);
             }
@@ -884,6 +885,9 @@ public class ImportExportService {
                 }
                 if (gr.getAsJsonObject().get("mark") != null) {
                     template.mark = gr.getAsJsonObject().get("mark").getAsBoolean();
+                }
+                if (gr.getAsJsonObject().get("caseboxname") != null) {
+                    template.caseboxname = gr.getAsJsonObject().get("caseboxname").getAsBoolean();
                 }
                 template.persistAndFlush();
 

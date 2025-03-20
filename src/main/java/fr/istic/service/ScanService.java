@@ -246,7 +246,6 @@ public class ScanService {
 
     public void uploadFile(MultipartFormDataInput input, long examId, boolean merge) {
         Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
-
         List<String> fileNames = new ArrayList<>();
         List<InputPart> inputParts = uploadForm.get("file");
         String fileName = null;
