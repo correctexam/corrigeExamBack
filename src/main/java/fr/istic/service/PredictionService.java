@@ -107,6 +107,9 @@ public class PredictionService {
     }
 
     public List<Long> findPredictionWithoutStudentResponse(PredictionsIdsDto predictionIdsDTO){
+        log.debug("Request to get all Predictions without Student Response" + predictionIdsDTO.getNumero() );
+        // Get all the prediction IDs for the given question number and exam ID
+
         List<EntityId> ids = StudentResponse.getAllforQuestionNoAndExamId(predictionIdsDTO.getExamId(), predictionIdsDTO.getNumero()).list();
         List<Long> idsList = ids.stream().map(EntityId::getId).collect(Collectors.toList());
         return predictionIdsDTO.getPredictionsids().stream().filter(id -> !idsList.contains(id)).collect(Collectors.toList());
