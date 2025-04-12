@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -153,6 +152,7 @@ public class ImportExportService {
             uuidMap.put(examU, exam.id);
             examJ.addProperty("uuid", examU.toString());
             examJ.addProperty("name", exam.name);
+            examJ.addProperty("nbgrader", exam.nbgrader);
             exams.add(examJ);
             examsUID.put(exam.id, examU);
         });
@@ -837,6 +837,7 @@ public class ImportExportService {
             _course.getAsJsonArray("exams").forEach(gr -> {
                 Exam exam = new Exam();
                 exam.name = gr.getAsJsonObject().get("name").getAsString();
+                exam.nbgrader = gr.getAsJsonObject().get("nbgrader").getAsBoolean();
                 exam.persistAndFlush();
                 uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), exam.id);
             });
