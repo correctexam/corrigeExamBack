@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -153,6 +152,7 @@ public class ImportExportService {
             uuidMap.put(examU, exam.id);
             examJ.addProperty("uuid", examU.toString());
             examJ.addProperty("name", exam.name);
+            examJ.addProperty("nbgrader", exam.nbgrader);
             exams.add(examJ);
             examsUID.put(exam.id, examU);
         });
@@ -174,6 +174,7 @@ public class ImportExportService {
                 templateJ.addProperty("name", template.name);
                 templateJ.addProperty("autoMapStudentCopyToList", template.autoMapStudentCopyToList);
                 templateJ.addProperty("contentContentType", template.contentContentType);
+                templateJ.addProperty("caseboxname", template.caseboxname);
                 if (this.uses3) {
                     String fileName = "template/" + +template.id + ".pdf";
                     try {
@@ -837,6 +838,11 @@ public class ImportExportService {
             _course.getAsJsonArray("exams").forEach(gr -> {
                 Exam exam = new Exam();
                 exam.name = gr.getAsJsonObject().get("name").getAsString();
+                if (gr.getAsJsonObject().get("nbgrader") != null){
+                    exam.nbgrader = gr.getAsJsonObject().get("nbgrader").getAsBoolean();
+                } else {
+                    exam.nbgrader = false;
+                }
                 exam.persistAndFlush();
                 uuidId.put(gr.getAsJsonObject().get("uuid").getAsString(), exam.id);
             });
@@ -883,6 +889,12 @@ public class ImportExportService {
                 if (gr.getAsJsonObject().get("contentContentType") != null) {
                     template.contentContentType = gr.getAsJsonObject().get("contentContentType").getAsString();
                 }
+                if (gr.getAsJsonObject().get("caseboxname") != null) {
+                    template.caseboxname = gr.getAsJsonObject().get("caseboxname").getAsBoolean();
+                } else {
+                    template.caseboxname = true;
+                }
+
                 if (gr.getAsJsonObject().get("mark") != null) {
                     template.mark = gr.getAsJsonObject().get("mark").getAsBoolean();
                 }
