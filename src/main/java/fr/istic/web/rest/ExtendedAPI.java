@@ -54,6 +54,7 @@ import fr.istic.service.customdto.ZoneSameCommentDTO;
 import fr.istic.service.customdto.correctexamstate.MarkingExamStateDTO;
 import fr.istic.service.customdto.correctexamstate.QuestionStateDTO;
 import fr.istic.service.customdto.correctexamstate.SheetStateDTO;
+import fr.istic.service.customdto.exportcomments.AnswersWithPredictionDto;
 import fr.istic.service.customdto.exportpdf.ExportPDFDto;
 import fr.istic.service.customdto.exportpdf.Gradedcommentspdf;
 import fr.istic.service.customdto.exportpdf.Hybridcommentspdf;
@@ -1233,6 +1234,23 @@ public class ExtendedAPI {
             return Response.serverError().build();
         }
         return Response.ok().build();
+    }
+
+    @GET
+    @Path("/getallcommentsandprediction4qId/{qId}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getallcommentsandprediction4qId(@PathParam("qId") long qId, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, qId, Question.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+
+        try {
+            AnswersWithPredictionDto dto= questionService.getallcommentsandprediction4qId(qId);
+            return Response.ok(dto).build();
+        } catch (Exception e) {
+            return Response.serverError().build();
+        }
     }
 
     @GET
