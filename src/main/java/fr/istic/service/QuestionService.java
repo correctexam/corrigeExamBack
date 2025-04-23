@@ -2,20 +2,17 @@ package fr.istic.service;
 
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.Answer2HybridGradedComment;
-import fr.istic.domain.Exam;
 import fr.istic.domain.ExamSheet;
 import fr.istic.domain.GradedComment;
 import fr.istic.domain.HybridGradedComment;
 import fr.istic.domain.Question;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.TextComment;
-import fr.istic.domain.Zone;
 import fr.istic.domain.enumeration.GradeType;
 import fr.istic.service.customdto.exportcomments.Answer;
 import fr.istic.service.customdto.exportcomments.AnswersWithPredictionDto;
 import fr.istic.service.customdto.exportcomments.Comment;
 import fr.istic.service.customdto.exportcomments.Prediction;
-import fr.istic.service.dto.ExamDTO;
 import fr.istic.service.dto.QuestionDTO;
 import fr.istic.service.mapper.ExamMapper;
 import fr.istic.service.mapper.QuestionMapper;
@@ -225,8 +222,6 @@ public class QuestionService {
     }
 
     public AnswersWithPredictionDto getallcommentsandprediction4qId(long qId) {
-        log.error("ok");
-        try{
             AnswersWithPredictionDto awp = new AnswersWithPredictionDto();
         Question q = Question.findById(qId);
         awp.setQid(qId);
@@ -266,7 +261,6 @@ public class QuestionService {
                     Comment comment = new Comment();
                     comment.setText(t.text);
                     comment.setDescription(t.description);
-                    log.error(""+q.step);
                     if (!"QCM".equals(q.type.algoName) && q.step > 0) {
                         if (q.gradeType == GradeType.POSITIVE) {
                             comment.setNoteComments(t.gradequarter / 4.0 / q.step);
@@ -286,11 +280,6 @@ public class QuestionService {
             }
         }
         return awp;
-        }catch (Exception e){
-            e.printStackTrace();
-            log.error("error in getallcommentsandprediction4qId", e);
-            return null;
-        }
 
     }
 
@@ -373,7 +362,6 @@ public class QuestionService {
         if (resp.question != null && resp.question.defaultpoint != null) {
             pourcentage = resp.question.defaultpoint.doubleValue() *4;
         }
- //       log.error("default point for question " + resp.question.numero + " " + pourcentage);
 
         for (Answer2HybridGradedComment an2 : resp.hybridcommentsValues) {
             var stepValue = an2.stepValue !=null ? an2.stepValue.doubleValue(): 0.0;
@@ -392,12 +380,10 @@ public class QuestionService {
             }
         }
         var point = resp.question.quarterpoint != null ? resp.question.quarterpoint.doubleValue() : 0.0;
-      //  log.error("point for question " + resp.question.numero + " " + absoluteNote2Add + " " + point + " " + pourcentage);
 
         currentNote = ((point * pourcentage) / 400.0) + absoluteNote2Add;
 
         if (currentNote > point && !resp.question.canExceedTheMax) {
-//            log.error("currentNote " + currentNote + " " + point + " " + resp.question.numero);
             currentNote = point;
         } else if (currentNote < 0 && !resp.question.canBeNegative) {
             currentNote = 0;
@@ -414,7 +400,6 @@ public class QuestionService {
         if (resp.question != null && resp.question.defaultpoint != null) {
             pourcentage = resp.question.defaultpoint.doubleValue() *4;
         }
- //       log.error("default point for question " + resp.question.numero + " " + pourcentage);
 
             var stepValue = an2.stepValue !=null ? an2.stepValue.doubleValue(): 0.0;
             if (stepValue > 0) {

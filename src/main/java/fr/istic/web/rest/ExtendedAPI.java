@@ -1177,6 +1177,7 @@ public class ExtendedAPI {
         try {
             cacheStudentPdfFService.uploadFile(input, examId);
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.serverError().build();
 
         }
@@ -1191,6 +1192,7 @@ public class ExtendedAPI {
         try {
             cacheUploadService.uploadFile(input);
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.serverError().build();
 
         }
@@ -1211,6 +1213,7 @@ public class ExtendedAPI {
         try {
             scanService.uploadFile(input, scanId, false);
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.serverError().build();
 
         }
@@ -1231,6 +1234,7 @@ public class ExtendedAPI {
         try {
             scanService.uploadFile(input, scanId, true);
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.serverError().build();
         }
         return Response.ok().build();
@@ -1249,6 +1253,7 @@ public class ExtendedAPI {
             AnswersWithPredictionDto dto= questionService.getallcommentsandprediction4qId(qId);
             return Response.ok(dto).build();
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.serverError().build();
         }
     }
@@ -1265,6 +1270,7 @@ public class ExtendedAPI {
                     .build();
 
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.serverError().build();
 
         }
@@ -1282,6 +1288,7 @@ public class ExtendedAPI {
                     .build();
 
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.serverError().build();
 
         }
@@ -1320,6 +1327,7 @@ public class ExtendedAPI {
                     .build();
 
         } catch (Exception e) {
+            e.printStackTrace();
             return Response.serverError().build();
 
         }
