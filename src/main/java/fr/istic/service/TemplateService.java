@@ -59,7 +59,12 @@ public class TemplateService {
             template = Template.persistOrUpdate(template);
 
             try {
-                fichierS3Service.putObject("template/" + template.id + ".pdf", bytes, templateDTO.contentContentType);
+                if ("application/zip".equals(templateDTO.contentContentType)){
+                    fichierS3Service.putObject("template/" + template.id + ".zip", bytes, templateDTO.contentContentType);
+
+                }else {
+                    fichierS3Service.putObject("template/" + template.id + ".pdf", bytes, templateDTO.contentContentType);
+                }
             } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException e) {
                 e.printStackTrace();
             }
