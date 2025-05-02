@@ -405,6 +405,7 @@ public class ExamService {
     }
     @Transactional
     public void createNoteBookExamStructure(List<AnswersNoteBook> answersNoteBook, User u) {
+        log.error("ok recu " + answersNoteBook.size());
         Exam e =Exam.findById(answersNoteBook.get(0).getExamId());
 
         Integer maxLength = answersNoteBook.stream().mapToInt(answersNoteBook1 -> answersNoteBook1.getQuestions().size()).max().orElse(0);
@@ -416,7 +417,6 @@ public class ExamService {
             }
         }
 
-        Integer studentIndex = 0;
         Scan scan = new Scan();
         scan.name= e.name  +"Scan";
         scan.contentContentType = "application/zip";
@@ -482,6 +482,7 @@ public class ExamService {
 
         }
 
+        Integer studentIndex = 0;
         for (AnswersNoteBook answerNoteBook : answersNoteBook) {
 
 
@@ -491,7 +492,7 @@ public class ExamService {
             es.name = answerNoteBook.getSheetName();
             scan.sheets.add(es);
             es.scan = scan;
-            es.persistOrUpdate();
+            ExamSheet.persistOrUpdate(es);
             qIndex= 0;
 
             for (QuestionNoteBook qnb : answerNoteBook.getQuestions()) {
@@ -505,6 +506,8 @@ public class ExamService {
                 StudentResponse.persistOrUpdate(sr);
                 Answer2HybridGradedComment answer2HybridGradedComment = new Answer2HybridGradedComment();
                 answer2HybridGradedComment.hybridcomments =hcCaches.get(qIndex);
+                hcCaches.get(qIndex).valueAnswers.add(answer2HybridGradedComment);
+                HybridGradedComment.persistOrUpdate(hcCaches.get(qIndex));
                 answer2HybridGradedComment.studentResponse = sr;
                 if (qnb.getNotemax() >0.0 && qnb.getNote() >0.0){
                     answer2HybridGradedComment.stepValue = decimalToFractionNumerateur(qnb.getNote()/ qnb.getNotemax());
@@ -515,7 +518,9 @@ public class ExamService {
                 StudentResponse.persistOrUpdate(sr);
                 qIndex = qIndex+1;
             }
+            studentIndex = studentIndex + 1;
         }
+
 
     }
 
