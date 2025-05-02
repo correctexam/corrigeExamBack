@@ -486,7 +486,10 @@ public class ExtendedAPI {
                         this.computeNote4Hybrid(resp);
 
                         // resp.persistOrUpdate();
+                        if (resp.quarternote!= null){
+
                         finalnote = finalnote + (resp.quarternote / 4);
+                    }
 
                     } else if ("QCM".equals(resp.question.type.algoName) && resp.question.step !=null && resp.question.step > 0) {
                         int currentNote = 0;
@@ -828,10 +831,17 @@ public class ExtendedAPI {
                                             resp1.quarternote.doubleValue() / 4));
 
                         } else if (GradeType.HYBRID.equals(resp1.question.gradeType)) {
+                            if (resp1.quarternote!= null){
 
                             res.getNotequestions().put(resp1.question.numero,
                                     df.format(
                                             resp1.quarternote.doubleValue() / 400));
+                            } else {
+                                res.getNotequestions().put(resp1.question.numero,
+                                df.format(
+                                        0 / 400));
+
+                            }
                         } else {
                             res.getNotequestions().put(resp1.question.numero,
                                     df.format(
@@ -2276,7 +2286,7 @@ public class ExtendedAPI {
             currentNote = 0;
         }
        // log.error("question " + resp.question.numero+ " currentNote " + Double.valueOf(currentNote /4));
-        if (Double.valueOf(currentNote * 100).intValue() != resp.quarternote) {
+        if (resp.quarternote == null || Double.valueOf(currentNote * 100).intValue() != resp.quarternote) {
             resp.quarternote = Double.valueOf(currentNote * 100).intValue();
             StudentResponse.update(resp);
         }
