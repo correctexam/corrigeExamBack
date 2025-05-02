@@ -51,6 +51,7 @@ import fr.istic.service.customdto.StudentMassDTO;
 import fr.istic.service.customdto.StudentResultDTO;
 import fr.istic.service.customdto.WorstAndBestSolution;
 import fr.istic.service.customdto.ZoneSameCommentDTO;
+import fr.istic.service.customdto.answernotebooks.AnswersNoteBook;
 import fr.istic.service.customdto.correctexamstate.MarkingExamStateDTO;
 import fr.istic.service.customdto.correctexamstate.QuestionStateDTO;
 import fr.istic.service.customdto.correctexamstate.SheetStateDTO;
@@ -2910,6 +2911,36 @@ public class ExtendedAPI {
 
         }
 
+        return Response.ok().build();
+
+    }
+
+
+    @POST
+    @Path("/createNoteBookExamStructure")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response createNoteBookExamStructure(
+            List<AnswersNoteBook> answersNoteBook,
+            @Context final SecurityContext ctx) {
+        if (!(answersNoteBook.size()> 0) || !securityService.canAccess(ctx, answersNoteBook.get(0).getExamId(), Exam.class)) {
+            return Response.status(403, "Current user cannot access this ressource").build();
+        }
+
+        var userLogin = Optional
+        .ofNullable(ctx.getUserPrincipal().getName());
+if (!userLogin.isPresent()) {
+    throw new AccountResourceException("Current user login not found");
+}
+var user = User.findOneByLogin(userLogin.get());
+if (!user.isPresent()) {
+    throw new AccountResourceException("User could not be found");
+}
+        try{
+            this.examService.createNoteBookExamStructure(answersNoteBook,user.get());
+        }catch (Exception e){
+            log.error("Error in createNoteBookExamStructure",e);
+            return Response.status(500, "Error in createNoteBookExamStructure").build();
+        }
         return Response.ok().build();
 
     }
