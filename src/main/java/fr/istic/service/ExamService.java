@@ -405,7 +405,6 @@ public class ExamService {
     }
     @Transactional
     public void createNoteBookExamStructure(List<AnswersNoteBook> answersNoteBook, User u) {
-        log.error("ok recu " + answersNoteBook.size());
         Exam e =Exam.findById(answersNoteBook.get(0).getExamId());
 
         Integer maxLength = answersNoteBook.stream().mapToInt(answersNoteBook1 -> answersNoteBook1.getQuestions().size()).max().orElse(0);
@@ -458,6 +457,7 @@ public class ExamService {
             // Hybride comment à créer
             HybridGradedComment hybridGradedComment = new HybridGradedComment();
             hybridGradedComment.text = "Note";
+            hybridGradedComment.description = "Nbgrader automatic evaluation";
             hybridGradedComment.question = q;
             q.hybridcomments.add(hybridGradedComment);
             hybridGradedComment.relative= true;
