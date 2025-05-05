@@ -452,7 +452,7 @@ public class ExamService {
             e.questions.add(q);
             Question.persistOrUpdate(q);
 
-            questionCaches.put(qIndex, q);
+            questionCaches.put(qnb.getNumero(), q);
 
             // Hybride comment à créer
             HybridGradedComment hybridGradedComment = new HybridGradedComment();
@@ -464,6 +464,7 @@ public class ExamService {
             // Compute minimum step
             Integer maxStep = 1;
             for(AnswersNoteBook answerNoteBook : answersNoteBook){
+                if (qIndex < answerNoteBook.getQuestions().size()){
                 QuestionNoteBook q1= answerNoteBook.getQuestions().get(qIndex);
                 if (q1.getNotemax() >0.0 && q1.getNote() >0.0){
                     Integer step = decimalToFractionDenominateur(q1.getNote()/q1.getNotemax());
@@ -471,6 +472,7 @@ public class ExamService {
                         maxStep = step;
                     }
                 }
+            }
             }
 
             hybridGradedComment.step =  maxStep;
@@ -500,7 +502,7 @@ public class ExamService {
                 sr.sheet = es;
                 sr.lastModifiedDate =Instant.now();
                 sr.correctedBy = u;
-                sr.question = questionCaches.get(qIndex);
+                sr.question = questionCaches.get(qnb.getNumero());
                 sr.worststar = false;
                 sr.star = false;
                 StudentResponse.persistOrUpdate(sr);
