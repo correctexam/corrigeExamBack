@@ -2286,8 +2286,8 @@ public class ExtendedAPI {
             currentNote = 0;
         }
        // log.error("question " + resp.question.numero+ " currentNote " + Double.valueOf(currentNote /4));
-        if (resp.quarternote == null || Double.valueOf(currentNote * 100).intValue() != resp.quarternote) {
-            resp.quarternote = Double.valueOf(currentNote * 100).intValue();
+        if (resp.quarternote == null || Math.round(Double.valueOf(currentNote * 100.0)) != resp.quarternote) {
+            resp.quarternote =(int) Math.round(Double.valueOf(currentNote * 100.0));
             StudentResponse.update(resp);
         }
 
