@@ -402,7 +402,11 @@ public class ExtendedAPI {
             qpdf.setID(q.id);
             qpdf.setNumero(q.numero);
             qpdf.setPoint(q.quarterpoint * 1.0 / 4);
-            qpdf.setStep(q.step);
+            if (q.step != null) {
+                qpdf.setStep(q.step);
+            } else {
+                qpdf.setStep(1);
+            }
             qpdf.setTypeAlgoName(q.type.algoName);
             qpdf.setTypeID(q.type.id);
             qpdf.setZonepdf(new Zonepdf());
