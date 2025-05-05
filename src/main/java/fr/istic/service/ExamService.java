@@ -89,7 +89,7 @@ public class ExamService {
             StudentResponse.getAll4ExamIdEvenOrphan(id).list().forEach(sr -> sr.delete());
             FinalResult.getAll4ExamId(id).list().forEach(f -> f.delete());
             Exam e = Exam.findById(id);
-            HybridGradedComment.deleteByQIds(e.questions.stream().map(q-> q.id).collect(Collectors.toSet()));
+            HybridGradedComment.deleteByQIds(e.questions.stream().map(q -> q.id).collect(Collectors.toSet()));
 
             if (e.scanfile != null && this.fichierS3Service.isObjectExist("scan/" + e.scanfile.id + ".pdf")) {
                 try {
@@ -117,7 +117,7 @@ public class ExamService {
     }
 
     @Transactional
-    protected void cleanStudentRssponse(long id){
+    protected void cleanStudentRssponse(long id) {
         List<StudentResponse> srs = StudentResponse.getAll4ExamIdEvenOrphan(id).list();
         srs.forEach(sr -> {
             Set<TextComment> tcs = new HashSet<TextComment>(sr.textcomments);
@@ -139,25 +139,21 @@ public class ExamService {
             sr.persistOrUpdate();
         });
 
-       // srs.forEach(sr -> sr.delete());
+        // srs.forEach(sr -> sr.delete());
 
     }
 
     @Transactional
-    protected Set<Long>  cleanExamZone(long id){
+    protected Set<Long> cleanExamZone(long id) {
         Exam exam = Exam.findById(id);
         Set<Long> zoneids = new HashSet<>();
-        if (exam.namezone != null ){
+        if (exam.namezone != null) {
             zoneids.add(exam.namezone.id);
-        }
-        else if (exam.firstnamezone != null ){
+        } else if (exam.firstnamezone != null) {
             zoneids.add(exam.firstnamezone.id);
-        }
-        else if (exam.idzone != null ){
+        } else if (exam.idzone != null) {
             zoneids.add(exam.idzone.id);
-        }
-        else if (exam.notezone != null )
-        {
+        } else if (exam.notezone != null) {
             zoneids.add(exam.notezone.id);
         }
         Exam.removeAllZone(exam);
@@ -166,30 +162,27 @@ public class ExamService {
     }
 
     @Transactional
-    protected void  cleanExamZone(Set<Long> zoneids){
+    protected void cleanExamZone(Set<Long> zoneids) {
         Zone.deleteAllZonesIds(zoneids);
 
     }
 
-
-
     @Transactional
-    protected void  cleanQuestion(long examId,Set<Long> qids ){
-        StudentResponse.deleteByQIds(   qids);
+    protected void cleanQuestion(long examId, Set<Long> qids) {
+        StudentResponse.deleteByQIds(qids);
         TextComment.deleteByQIds(qids);
         GradedComment.deleteByQIds(qids);
         Question.deleteAllExamId(examId);
 
     }
 
-
-
     @Transactional
-    protected void cleanFinalResult(long id){
+    protected void cleanFinalResult(long id) {
         FinalResult.deleteAllByExamId(id);
 
     }
-        /**
+
+    /**
      * Delete the Exam by id.
      *
      * @param id the id of the entity.
@@ -197,15 +190,13 @@ public class ExamService {
     @Transactional
     public void deleteQuestionCommentAndZone(Long id) {
         log.debug("Request to delete Exam : {}", id);
-            Set<Long> qids = Question.findQuestionbyExamId(id).list().stream().map(ex -> ex.id).collect(Collectors.toSet());
+        Set<Long> qids = Question.findQuestionbyExamId(id).list().stream().map(ex -> ex.id).collect(Collectors.toSet());
 
-            this.cleanFinalResult(id);
-            Set<Long> zonesids = this.cleanExamZone(id);
-            this.cleanExamZone(zonesids);
-           // this.cleanStudentRssponse(id);
-            this.cleanQuestion(id,qids);
-
-
+        this.cleanFinalResult(id);
+        Set<Long> zonesids = this.cleanExamZone(id);
+        this.cleanExamZone(zonesids);
+        // this.cleanStudentRssponse(id);
+        this.cleanQuestion(id, qids);
 
     }
 
@@ -249,15 +240,16 @@ public class ExamService {
         return new Paged<>(Exam.findExambyScanId(scanId).page(page))
                 .map(exam -> examMapper.toDto((Exam) exam));
     }
+
     private static final Map<Double, Integer> knownFractions = new HashMap<>();
     static {
-        knownFractions.put(1.0 / 2,2);
+        knownFractions.put(1.0 / 2, 2);
         knownFractions.put(1.0 / 3, 3);
         knownFractions.put(0.33, 3);
         knownFractions.put(0.66, 3);
         knownFractions.put(2.0 / 3, 3);
-        knownFractions.put(1.0 / 4,4);
-        knownFractions.put(3.0 / 4,4);
+        knownFractions.put(1.0 / 4, 4);
+        knownFractions.put(3.0 / 4, 4);
         knownFractions.put(1.0 / 5, 5);
         knownFractions.put(2.0 / 5, 5);
         knownFractions.put(3.0 / 5, 5);
@@ -297,13 +289,13 @@ public class ExamService {
 
     private static final Map<Double, Integer> knownFractionsNum = new HashMap<>();
     static {
-        knownFractionsNum.put(1.0 / 2,1);
+        knownFractionsNum.put(1.0 / 2, 1);
         knownFractionsNum.put(1.0 / 3, 1);
         knownFractionsNum.put(0.33, 1);
         knownFractionsNum.put(0.66, 2);
         knownFractionsNum.put(2.0 / 3, 2);
-        knownFractionsNum.put(1.0 / 4,1);
-        knownFractionsNum.put(3.0 / 4,3);
+        knownFractionsNum.put(1.0 / 4, 1);
+        knownFractionsNum.put(3.0 / 4, 3);
         knownFractionsNum.put(1.0 / 5, 1);
         knownFractionsNum.put(2.0 / 5, 2);
         knownFractionsNum.put(3.0 / 5, 3);
@@ -341,8 +333,6 @@ public class ExamService {
         knownFractionsNum.put(0.889, 8);
     }
 
-
-
     public static int decimalToFractionDenominateur(double value) {
         for (Map.Entry<Double, Integer> entry : knownFractions.entrySet()) {
             if (Math.abs(value - entry.getKey()) < 0.001) {
@@ -363,7 +353,8 @@ public class ExamService {
                 bestNumerator = numer;
                 bestDenominator = denom;
                 minError = error;
-                if (error < 0.0001) break;
+                if (error < 0.0001)
+                    break;
             }
         }
 
@@ -391,7 +382,8 @@ public class ExamService {
                 bestNumerator = numer;
                 bestDenominator = denom;
                 minError = error;
-                if (error < 0.0001) break;
+                if (error < 0.0001)
+                    break;
             }
         }
 
@@ -399,15 +391,16 @@ public class ExamService {
         return (bestNumerator / gcd);
     }
 
-
     private static int gcd(int a, int b) {
         return b == 0 ? a : gcd(b, a % b);
     }
+
     @Transactional
     public void createNoteBookExamStructure(List<AnswersNoteBook> answersNoteBook, User u) {
-        Exam e =Exam.findById(answersNoteBook.get(0).getExamId());
+        Exam e = Exam.findById(answersNoteBook.get(0).getExamId());
 
-        Integer maxLength = answersNoteBook.stream().mapToInt(answersNoteBook1 -> answersNoteBook1.getQuestions().size()).max().orElse(0);
+        Integer maxLength = answersNoteBook.stream()
+                .mapToInt(answersNoteBook1 -> answersNoteBook1.getQuestions().size()).max().orElse(0);
         AnswersNoteBook questionMaxLength = null;
         for (AnswersNoteBook answersNoteBook1 : answersNoteBook) {
             if (answersNoteBook1.getQuestions().size() == maxLength) {
@@ -415,22 +408,24 @@ public class ExamService {
                 break;
             }
         }
+        Set<Integer> qsnumero = questionMaxLength.getQuestions().stream().map(e1 -> e1.getNumero())
+                .collect(Collectors.toSet());
 
         Scan scan = new Scan();
-        scan.name= e.name  +"Scan";
+        scan.name = e.name + "Scan";
         scan.contentContentType = "application/zip";
-        e.scanfile  =scan;
+        e.scanfile = scan;
         Scan.persistOrUpdate(scan);
         e.persistOrUpdate();
-        Map<Integer,Question> questionCaches = new HashMap<>();
-        Map<Integer,HybridGradedComment> hcCaches = new HashMap<>();
-        int qIndex= 0;
+        Map<Integer, Question> questionCaches = new HashMap<>();
+        Map<Integer, HybridGradedComment> hcCaches = new HashMap<>();
+        int qIndex = 0;
         for (QuestionNoteBook qnb : questionMaxLength.getQuestions()) {
             Question q = new Question();
             q.exam = e;
             q.gradeType = GradeType.HYBRID;
             q.type = QuestionType.findQuestionTypebyAlgoName("manual").firstResult();
-            q.numero = qIndex+1;
+            q.numero = qIndex + 1;
             q.randomHorizontalCorrection = false;
             q.canBeNegative = false;
             q.canExceedTheMax = false;
@@ -440,10 +435,10 @@ public class ExamService {
 
             Zone z = new Zone();
             z.pageNumber = qIndex;
-            z.xInit =- 1;
-            z.yInit =- 1;
-            z.height =- 1;
-            z.width =- 1;
+            z.xInit = -1;
+            z.yInit = -1;
+            z.height = -1;
+            z.width = -1;
 
             Zone.persistOrUpdate(z);
 
@@ -460,69 +455,84 @@ public class ExamService {
             hybridGradedComment.description = "Nbgrader automatic evaluation";
             hybridGradedComment.question = q;
             q.hybridcomments.add(hybridGradedComment);
-            hybridGradedComment.relative= true;
+            hybridGradedComment.relative = true;
             // Compute minimum step
             Integer maxStep = 1;
-            for(AnswersNoteBook answerNoteBook : answersNoteBook){
-                if (qIndex < answerNoteBook.getQuestions().size()){
-                QuestionNoteBook q1= answerNoteBook.getQuestions().get(qIndex);
-                if (q1.getNotemax() >0.0 && q1.getNote() >0.0){
-                    Integer step = decimalToFractionDenominateur(q1.getNote()/q1.getNotemax());
-                    if (step> maxStep){
-                        maxStep = step;
+            for (AnswersNoteBook answerNoteBook : answersNoteBook) {
+                if (qIndex < answerNoteBook.getQuestions().size()) {
+                    QuestionNoteBook q1 = answerNoteBook.getQuestions().get(qIndex);
+                    if (q1.getNotemax() > 0.0 && q1.getNote() > 0.0) {
+                        Integer step = decimalToFractionDenominateur(q1.getNote() / q1.getNotemax());
+                        if (step > maxStep) {
+                            maxStep = step;
+                        }
                     }
                 }
             }
-            }
 
-            hybridGradedComment.step =  maxStep;
+            hybridGradedComment.step = maxStep;
             hybridGradedComment.grade = 400;
             HybridGradedComment.persistOrUpdate(hybridGradedComment);
-            hcCaches.put(qIndex, hybridGradedComment);
+            hcCaches.put(q.numero, hybridGradedComment);
 
-            qIndex = qIndex+1;
+            qIndex = qIndex + 1;
 
         }
 
         Integer studentIndex = 0;
         for (AnswersNoteBook answerNoteBook : answersNoteBook) {
 
-
             ExamSheet es = new ExamSheet();
-            es.pagemin = (studentIndex* maxLength) ;
-            es.pagemax = (studentIndex* maxLength) + maxLength-1;
+            es.pagemin = (studentIndex * maxLength);
+            es.pagemax = (studentIndex * maxLength) + maxLength - 1;
             es.name = answerNoteBook.getSheetName();
             scan.sheets.add(es);
             es.scan = scan;
             ExamSheet.persistOrUpdate(es);
-            qIndex= 0;
 
-            for (QuestionNoteBook qnb : answerNoteBook.getQuestions()) {
-                StudentResponse sr = new StudentResponse();
-                sr.sheet = es;
-                sr.lastModifiedDate =Instant.now();
-                sr.correctedBy = u;
-                sr.question = questionCaches.get(qnb.getNumero());
-                sr.worststar = false;
-                sr.star = false;
-                StudentResponse.persistOrUpdate(sr);
-                Answer2HybridGradedComment answer2HybridGradedComment = new Answer2HybridGradedComment();
-                answer2HybridGradedComment.hybridcomments =hcCaches.get(qIndex);
-                hcCaches.get(qIndex).valueAnswers.add(answer2HybridGradedComment);
-                HybridGradedComment.persistOrUpdate(hcCaches.get(qIndex));
-                answer2HybridGradedComment.studentResponse = sr;
-                if (qnb.getNotemax() >0.0 && qnb.getNote() >0.0){
-                    answer2HybridGradedComment.stepValue = decimalToFractionNumerateur(qnb.getNote()/ qnb.getNotemax());
-                } else {
-                    answer2HybridGradedComment.stepValue = 0;
+            for (int numero : qsnumero) {
+                Optional<QuestionNoteBook> q1 = answerNoteBook.getQuestions().stream()
+                        .filter(qnb -> qnb.getNumero() == numero).findFirst();
+                q1.ifPresent(qnb -> {
+                    // QuestionNoteBook qnb : answerNoteBook.getQuestions()) {
+                    StudentResponse sr = new StudentResponse();
+                    sr.sheet = es;
+                    sr.lastModifiedDate = Instant.now();
+                    sr.correctedBy = u;
+                    sr.question = questionCaches.get(qnb.getNumero());
+                    sr.worststar = false;
+                    sr.star = false;
+                    StudentResponse.persistOrUpdate(sr);
+                    Answer2HybridGradedComment answer2HybridGradedComment = new Answer2HybridGradedComment();
+                    answer2HybridGradedComment.hybridcomments = hcCaches.get(numero);
+                    hcCaches.get(numero).valueAnswers.add(answer2HybridGradedComment);
+                    HybridGradedComment.persistOrUpdate(hcCaches.get(numero));
+                    answer2HybridGradedComment.studentResponse = sr;
+                    if (qnb.getNotemax() > 0.0 && qnb.getNote() > 0.0) {
+                        answer2HybridGradedComment.stepValue = decimalToFractionNumerateur(
+                                qnb.getNote() / qnb.getNotemax());
+                    } else {
+                        answer2HybridGradedComment.stepValue = 0;
+                    }
+                    Answer2HybridGradedComment.persistOrUpdate(answer2HybridGradedComment);
+                    StudentResponse.persistOrUpdate(sr);
+                });
+                if (q1.isEmpty()) {
+                    StudentResponse sr = new StudentResponse();
+                    sr.sheet = es;
+                    sr.lastModifiedDate = Instant.now();
+                    sr.correctedBy = u;
+                    sr.question = questionCaches.get(numero);
+                    sr.worststar = false;
+                    sr.star = false;
+                    sr.quarternote = 0;
+                    StudentResponse.persistOrUpdate(sr);
+
                 }
-                Answer2HybridGradedComment.persistOrUpdate(answer2HybridGradedComment);
-                StudentResponse.persistOrUpdate(sr);
-                qIndex = qIndex+1;
+
             }
             studentIndex = studentIndex + 1;
         }
-
 
     }
 
