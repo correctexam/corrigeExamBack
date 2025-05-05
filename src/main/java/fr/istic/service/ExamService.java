@@ -434,7 +434,7 @@ public class ExamService {
             q.quarterpoint = Double.valueOf(qnb.getNotemax() * 4).intValue();
 
             Zone z = new Zone();
-            z.pageNumber = qIndex;
+            z.pageNumber = qIndex+1;
             z.xInit = -1;
             z.yInit = -1;
             z.height = -1;
