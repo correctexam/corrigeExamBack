@@ -51,6 +51,7 @@ import fr.istic.service.customdto.StudentMassDTO;
 import fr.istic.service.customdto.StudentResultDTO;
 import fr.istic.service.customdto.WorstAndBestSolution;
 import fr.istic.service.customdto.ZoneSameCommentDTO;
+import fr.istic.service.customdto.answernotebooks.AnswersNoteBook;
 import fr.istic.service.customdto.correctexamstate.MarkingExamStateDTO;
 import fr.istic.service.customdto.correctexamstate.QuestionStateDTO;
 import fr.istic.service.customdto.correctexamstate.SheetStateDTO;
@@ -485,7 +486,10 @@ public class ExtendedAPI {
                         this.computeNote4Hybrid(resp);
 
                         // resp.persistOrUpdate();
+                        if (resp.quarternote!= null){
+
                         finalnote = finalnote + (resp.quarternote / 4);
+                    }
 
                     } else if ("QCM".equals(resp.question.type.algoName) && resp.question.step !=null && resp.question.step > 0) {
                         int currentNote = 0;
@@ -827,10 +831,17 @@ public class ExtendedAPI {
                                             resp1.quarternote.doubleValue() / 4));
 
                         } else if (GradeType.HYBRID.equals(resp1.question.gradeType)) {
+                            if (resp1.quarternote!= null){
 
                             res.getNotequestions().put(resp1.question.numero,
                                     df.format(
                                             resp1.quarternote.doubleValue() / 400));
+                            } else {
+                                res.getNotequestions().put(resp1.question.numero,
+                                df.format(
+                                        0 / 400));
+
+                            }
                         } else {
                             res.getNotequestions().put(resp1.question.numero,
                                     df.format(
@@ -2275,7 +2286,7 @@ public class ExtendedAPI {
             currentNote = 0;
         }
        // log.error("question " + resp.question.numero+ " currentNote " + Double.valueOf(currentNote /4));
-        if (Double.valueOf(currentNote * 100).intValue() != resp.quarternote) {
+        if (resp.quarternote == null || Double.valueOf(currentNote * 100).intValue() != resp.quarternote) {
             resp.quarternote = Double.valueOf(currentNote * 100).intValue();
             StudentResponse.update(resp);
         }
@@ -2910,6 +2921,36 @@ public class ExtendedAPI {
 
         }
 
+        return Response.ok().build();
+
+    }
+
+
+    @POST
+    @Path("/createNoteBookExamStructure")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response createNoteBookExamStructure(
+            List<AnswersNoteBook> answersNoteBook,
+            @Context final SecurityContext ctx) {
+        if (!(answersNoteBook.size()> 0) || !securityService.canAccess(ctx, answersNoteBook.get(0).getExamId(), Exam.class)) {
+            return Response.status(403, "Current user cannot access this ressource").build();
+        }
+
+        var userLogin = Optional
+        .ofNullable(ctx.getUserPrincipal().getName());
+if (!userLogin.isPresent()) {
+    throw new AccountResourceException("Current user login not found");
+}
+var user = User.findOneByLogin(userLogin.get());
+if (!user.isPresent()) {
+    throw new AccountResourceException("User could not be found");
+}
+        try{
+            this.examService.createNoteBookExamStructure(answersNoteBook,user.get());
+        }catch (Exception e){
+            log.error("Error in createNoteBookExamStructure",e);
+            return Response.status(500, "Error in createNoteBookExamStructure").build();
+        }
         return Response.ok().build();
 
     }
