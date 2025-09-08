@@ -14,6 +14,7 @@ import fr.istic.domain.ExamSheet;
 import fr.istic.domain.FinalResult;
 import fr.istic.domain.GradedComment;
 import fr.istic.domain.HybridGradedComment;
+import fr.istic.domain.Prediction;
 import fr.istic.domain.Question;
 import fr.istic.domain.QuestionType;
 import fr.istic.domain.Scan;
@@ -76,20 +77,29 @@ public class ExamService {
      *
      * @param id the id of the entity.
      */
-    @Transactional
     public void delete(Long id) {
         log.debug("Request to delete Exam : {}", id);
-        Exam.findByIdOptional(id).ifPresent(exam -> {
-            StudentResponse.getAll4ExamIdEvenOrphan(id).list().forEach(sr -> {
+        this.prepareDeleteExam(id);
+        this.deleteExam(id);
+
+
+    }
+
+    @Transactional
+    public void prepareDeleteExam(long id){
+             Exam.findByIdOptional(id).ifPresent(exam -> {
+            ExamSheet.getAll4ExamIdEvenOrphan(id).list().forEach(sr -> sr.cleanBeforDelete());
+            /*StudentResponse.getAll4ExamIdEvenOrphan(id).list().forEach(sr -> {
                 sr.clearComments();
                 Answer2HybridGradedComment.deleteAllAnswerHybridGradedCommentByAnswerId(sr.id);
             });
 
-            ExamSheet.getAll4ExamIdEvenOrphan(id).list().forEach(sr -> sr.cleanBeforDelete());
             StudentResponse.getAll4ExamIdEvenOrphan(id).list().forEach(sr -> sr.delete());
             FinalResult.getAll4ExamId(id).list().forEach(f -> f.delete());
+            var s = HybridGradedComment.deleteByQIds(e.questions.stream().map(q -> q.id).collect(Collectors.toSet()));
+            log.error("to remove" + s);*/
+            this.deleteQuestionCommentAndZone(id);
             Exam e = Exam.findById(id);
-            HybridGradedComment.deleteByQIds(e.questions.stream().map(q -> q.id).collect(Collectors.toSet()));
 
             if (e.scanfile != null && this.fichierS3Service.isObjectExist("scan/" + e.scanfile.id + ".pdf")) {
                 try {
@@ -109,11 +119,18 @@ public class ExamService {
                     e1.printStackTrace();
                 }
             }
-            exam.delete();
             Comments.deleteCommentByExamId("" + id);
-
             this.cacheService.deleteFile(id);
         });
+
+    }
+
+
+    @Transactional
+    protected void deleteExam(long id){
+            var e = Exam.findById(id);
+            e.delete();
+
     }
 
     @Transactional
@@ -169,11 +186,18 @@ public class ExamService {
 
     @Transactional
     protected void cleanQuestion(long examId, Set<Long> qids) {
-        StudentResponse.deleteByQIds(qids);
-        TextComment.deleteByQIds(qids);
-        GradedComment.deleteByQIds(qids);
+        var s  = Answer2HybridGradedComment.deleteAllByQIds(qids);
+        Set<Long> cids = HybridGradedComment.findByExamId(examId).list().stream().map(ex -> ex.id).collect(Collectors.toSet());
+        s  = Answer2HybridGradedComment.deleteAllAnswerHybridGradedCommentByCommentIds(cids);
+        s= StudentResponse.deleteByQIds(qids);
+        s= TextComment.deleteByQIds(qids);
+        s= GradedComment.deleteByQIds(qids);
+        s= HybridGradedComment.deleteByQIds(qids);
+        s=Prediction.deleteByQIds(qids);
+    }
+    @Transactional
+    protected void removeQuestion(long examId, Set<Long> qids) {
         Question.deleteAllExamId(examId);
-
     }
 
     @Transactional
@@ -187,16 +211,16 @@ public class ExamService {
      *
      * @param id the id of the entity.
      */
-    @Transactional
-    public void deleteQuestionCommentAndZone(Long id) {
-        log.debug("Request to delete Exam : {}", id);
-        Set<Long> qids = Question.findQuestionbyExamId(id).list().stream().map(ex -> ex.id).collect(Collectors.toSet());
+    public void deleteQuestionCommentAndZone(Long examid) {
+        log.debug("Request to delete Exam : {}", examid);
+        Set<Long> qids = Question.findQuestionbyExamId(examid).list().stream().map(ex -> ex.id).collect(Collectors.toSet());
 
-        this.cleanFinalResult(id);
-        Set<Long> zonesids = this.cleanExamZone(id);
+        this.cleanFinalResult(examid);
+        Set<Long> zonesids = this.cleanExamZone(examid);
         this.cleanExamZone(zonesids);
         // this.cleanStudentRssponse(id);
-        this.cleanQuestion(id, qids);
+        this.cleanQuestion(examid, qids);
+        this.removeQuestion(examid, qids);
 
     }
 

@@ -25,7 +25,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
-@Transactional
 public class CourseService {
 
     private final Logger log = LoggerFactory.getLogger(CourseService.class);
@@ -50,12 +49,37 @@ public class CourseService {
      *
      * @param id the id of the entity.
      */
-    @Transactional
+    protected void prepareDelete(Long id) {
+        Course.findByIdOptional(id).ifPresent(course -> {
+            List<Exam> exams = new ArrayList<>();
+            exams.addAll(Exam.findExambyCourseId(id).list());
+            exams.forEach(exam-> this.examService.delete(exam.id));
+        });
+    }
+
+
+
+        /**
+     * Delete the Course by id.
+     *
+     * @param id the id of the entity.
+     */
     public void delete(Long id) {
         log.debug("Request to delete Course : {}", id);
+        this.prepareDelete(id);
+        this.deleteinternal(id);
+    }
+
+
+    /**
+     * Delete the Course by id.
+     *
+     * @param id the id of the entity.
+     */
+    @Transactional
+    protected void deleteinternal(Long id) {
 
         Course.findByIdOptional(id).ifPresent(course -> {
-            Exam.findExambyCourseId(id).list().forEach(exam-> this.examService.delete(exam.id));
             Course c = Course.findById(id);
             c.groups.forEach(g -> {
                 g.students.forEach(st -> {

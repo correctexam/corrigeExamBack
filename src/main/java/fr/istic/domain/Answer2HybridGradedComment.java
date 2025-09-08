@@ -4,6 +4,8 @@ import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.io.Serializable;
+import java.util.Set;
+
 import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Cache;
@@ -123,6 +125,12 @@ public class Answer2HybridGradedComment extends PanacheEntityBase implements Ser
     }
     public static long deleteAllAnswerHybridGradedCommentByAnswerId(long  responseId){
         return delete("studentResponse.id", responseId);
+    }
+    public static long deleteAllByQIds( Set<Long> qids){
+        return delete("delete from Answer2HybridGradedComment ar where ar.studentResponse.question.id in ?1", qids);
+    }
+    public static long deleteAllAnswerHybridGradedCommentByCommentIds(Set<Long>   commentIds){
+        return delete("delete from Answer2HybridGradedComment ar where ar.hybridcomments.id in ?1", commentIds);
     }
 
 

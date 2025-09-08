@@ -2,6 +2,7 @@ package fr.istic.domain;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
+import io.quarkus.logging.Log;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.io.Serializable;
 import java.util.HashSet;
@@ -47,7 +48,7 @@ public class HybridGradedComment extends PanacheEntityBase implements Serializab
     @JsonbTransient
     public Question question;
 
-    @OneToMany(mappedBy = "hybridcomments")
+    @OneToMany(mappedBy = "hybridcomments", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     public Set<Answer2HybridGradedComment> valueAnswers = new HashSet<>();
 
@@ -133,6 +134,10 @@ public class HybridGradedComment extends PanacheEntityBase implements Serializab
     public static PanacheQuery<HybridGradedComment> findByQuestionId( long qid) {
         return find("select hybridGradedComment from HybridGradedComment hybridGradedComment where hybridGradedComment.question.id =?1", qid);
     }
+    public static PanacheQuery<HybridGradedComment> findByExamId( long qid) {
+        return find("select hybridGradedComment from HybridGradedComment hybridGradedComment where hybridGradedComment.question.exam.id =?1", qid);
+    }
+
 
     public static PanacheQuery<HybridGradedComment> canAccess(long commentId, String login) {
         return find("select ex from HybridGradedComment ex join ex.question.exam.course.profs as u where ex.id =?1 and u.login =?2", commentId, login);

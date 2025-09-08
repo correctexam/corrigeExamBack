@@ -37,9 +37,9 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.testresult.directory>${project.build.directory}/test-results</project.testresult.directory>
         <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
-        <quarkus-plugin.version>3.19.2</quarkus-plugin.version>
+        <quarkus-plugin.version>3.25.4</quarkus-plugin.version>
         <quarkus.logManager>org.jboss.logmanager.LogManager</quarkus.logManager>
-        <quarkus.platform.version>3.19.2</quarkus.platform.version>
+        <quarkus.platform.version>3.25.4</quarkus.platform.version>
         <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
     </properties>
     <dependencyManagement>
@@ -58,7 +58,7 @@
        <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>3.0.4</version>
+            <version>3.0.5</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/io.quarkus/quarkus-awt -->
 <dependency>
@@ -76,7 +76,7 @@
 <dependency>
     <groupId>io.quarkiverse.minio</groupId>
     <artifactId>quarkus-minio</artifactId>
-    <version>3.7.7</version>
+    <version>3.8.4</version>
 </dependency>
 
         <dependency>
@@ -123,7 +123,7 @@
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm</artifactId>
-            <version>9.6</version>
+            <version>9.7.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -171,7 +171,7 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.9.1</version>
+            <version>2.13.1</version>
         </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>
@@ -193,13 +193,13 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-                <version>5.5.1</version>
+                <version>5.5.6</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.25.1</version>
+            <version>3.27.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
