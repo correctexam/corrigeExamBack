@@ -6,9 +6,6 @@ import fr.istic.domain.Authority;
 import fr.istic.domain.Course;
 import fr.istic.domain.Exam;
 import fr.istic.domain.ExamSheet;
-import fr.istic.domain.Scan;
-import fr.istic.domain.Student;
-import fr.istic.domain.StudentResponse;
 import fr.istic.domain.User;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.ExamService;
@@ -208,6 +205,7 @@ public class ExamResource {
             result = examService.findExambyScanId(page, Long.parseLong("" + scanId.get(0)));
 
         } else {
+
             if (ctx.getUserPrincipal().getName()!= null){
 
 
@@ -223,7 +221,13 @@ public class ExamResource {
                     && user.get().authorities.stream().anyMatch(e1 -> e1.equals(new Authority("ROLE_ADMIN")))) {
                 result = examService.findAll(page);
 
-            } else {
+            }
+            else if (user.get().authorities.size() >= 1
+                    && user.get().authorities.stream().anyMatch(e1 -> e1.equals(new Authority("ROLE_USER")))) {
+                        result = examService.findAll4User(page,user.get());
+
+            }
+            else {
                 return Response.status(403, "Current user cannot access to this ressource").build();
             }
 

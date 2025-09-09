@@ -9,6 +9,7 @@ import io.minio.errors.XmlParserException;
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.Answer2HybridGradedComment;
 import fr.istic.domain.Comments;
+import fr.istic.domain.Course;
 import fr.istic.domain.Exam;
 import fr.istic.domain.ExamSheet;
 import fr.istic.domain.FinalResult;
@@ -25,6 +26,7 @@ import fr.istic.domain.Zone;
 import fr.istic.domain.enumeration.GradeType;
 import fr.istic.service.customdto.answernotebooks.AnswersNoteBook;
 import fr.istic.service.customdto.answernotebooks.QuestionNoteBook;
+import fr.istic.service.dto.CourseDTO;
 import fr.istic.service.dto.ExamDTO;
 import fr.istic.service.mapper.ExamMapper;
 import org.slf4j.Logger;
@@ -249,6 +251,17 @@ public class ExamService {
         log.debug("Request to get all Exams");
         return new Paged<>(Exam.findAll().page(page))
                 .map(exam -> examMapper.toDto((Exam) exam));
+    }
+
+            /**
+     * Get all the exams.
+     * @param page the pagination information.
+     * @return the list of entities.
+     */
+    public Paged<ExamDTO> findAll4User(Page page, User u) {
+        log.debug("Request to get all Exams " + u.login );
+        return new Paged<>(Exam.findExambyLogin(u.login).page(page))
+            .map(exam -> examMapper.toDto((Exam) exam));
     }
 
     @Transactional
