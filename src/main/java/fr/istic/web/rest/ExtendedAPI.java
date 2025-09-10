@@ -1347,6 +1347,23 @@ public class ExtendedAPI {
 
         }
     }
+    @GET
+    @Path("/getCacheTimeStamp/{examId}")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getCacheTimeStamp(@PathParam("examId") long examId) {
+        try {
+            return Response
+                    .status(Response.Status.OK)
+                    .entity(cacheUploadService.getCacheTimeStamp(examId))
+                    .type(MediaType.TEXT_PLAIN)
+                    .build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.serverError().build();
+
+        }
+    }
 
     /*
      * @GET
