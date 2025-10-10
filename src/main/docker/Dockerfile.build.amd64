@@ -1,4 +1,9 @@
+ARG MAVEN_VERSION="3.9.11"
+ARG MAVEN_BASE_URL="https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries"
+
 FROM quay.io/quarkus/ubi-quarkus-graalvmce-builder-image:jdk-21 AS build-step
+ARG MAVEN_VERSION
+ARG MAVEN_BASE_URL
 USER root
 WORKDIR /app
 # RUN gu install native-image
@@ -10,10 +15,13 @@ WORKDIR /app/corrigeExamBack
 
 RUN mkdir -p /opt/maven
 WORKDIR /opt/maven
-RUN curl -O "https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz" && tar xzvf "apache-maven-3.9.6-bin.tar.gz" && rm "apache-maven-3.9.6-bin.tar.gz"
+
+
+RUN echo 
+RUN curl -fsSL -o /tmp/apache-maven.tar.gz ${MAVEN_BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz && tar -xzf /tmp/apache-maven.tar.gz && rm -f /tmp/apache-maven.tar.gz
 
 WORKDIR /app/corrigeExamBack
-RUN /opt/maven/apache-maven-3.9.6/bin/mvn package -Pnative
+RUN /opt/maven/apache-maven-${MAVEN_VERSION}/bin/mvn package -Pnative
 
 FROM quay.io/quarkus/quarkus-micro-image:2.0-amd64 as prod
 WORKDIR /work/
