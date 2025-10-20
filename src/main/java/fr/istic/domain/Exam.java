@@ -166,6 +166,7 @@ public class Exam extends PanacheEntityBase implements Serializable {
         if (exam.id == null) {
             return 0;
         } else {
+            exam.idzone = null;
             return  update("idzone = ?1 where id = ?2", null, exam.id);
 
         }
