@@ -54,15 +54,13 @@ public class ZoneService {
      */
     @Transactional
     public void delete(Long id) {
-        log.error("Request to delete Zone : {}", id);
+        log.debug("Request to delete Zone : {}", id);
         Optional<Question> q = Question.findQuestionbyZoneId(id).firstResultOptional();
         if (q.isPresent()) {
             questionSerivce.cleanAllCorrectionAndComment(q.get());
             questionSerivce.delete(q.get().id);
         } else{
             Optional<Exam> exam =   Exam.findExamThatMatchZoneId(id).firstResultOptional();
-
-            log.debug("Exam found to clean zone : {}", exam.get().id);
             if (exam.isPresent()) {
                 if (exam.get().namezone != null && exam.get().namezone.id.equals(id)){
                     Exam.removeNameZoneId(exam.get());
