@@ -70,16 +70,15 @@ public class CacheUploadService {
 
     protected void putObject(String name, byte[] bytes, String contenttype)
             throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException {
-                if (this.fichierS3Service.isObjectExist(name)) {
-                    try {
-                        this.fichierS3Service.deleteObject(name);
-                    } catch (ErrorResponseException | InsufficientDataException | InternalException
-                            | InvalidResponseException | ServerException | XmlParserException e) {
-                        e.printStackTrace();
-                    }
+        if (this.fichierS3Service.isObjectExist(name)) {
+            try {
+                this.fichierS3Service.deleteObject(name);
+            } catch (ErrorResponseException | InsufficientDataException | InternalException
+                    | InvalidResponseException | ServerException | XmlParserException e) {
+                e.printStackTrace();
+            }
 
-
-                }
+        }
         this.fichierS3Service.putObject(name, bytes, contenttype);
     }
 
@@ -160,7 +159,7 @@ public class CacheUploadService {
             if (!customDir.exists()) {
                 customDir.mkdirs();
             }
-            String fileName = "cache" +File.separator  + id + "indexdb.json";
+            String fileName = "cache" + File.separator + id + "indexdb.json";
 
             fileName = customDir.getAbsolutePath() +
                     File.separator + fileName;
@@ -169,11 +168,11 @@ public class CacheUploadService {
             } else {
                 long k = 1;
                 fileName = customDir.getAbsolutePath() +
-                        File.separator + "cache"+ File.separator  + id + "_part_" + k + "_indexdb.json";
+                        File.separator + "cache" + File.separator + id + "_part_" + k + "_indexdb.json";
                 while (Paths.get(fileName).toFile().exists()) {
                     Paths.get(fileName).toFile().delete();
                     k = k + 1;
-                    fileName = "cache" +File.separator  + id + "_part_" + k + "_indexdb.json";
+                    fileName = "cache" + File.separator + id + "_part_" + k + "_indexdb.json";
                 }
 
             }
@@ -237,7 +236,7 @@ public class CacheUploadService {
             if (!customDir.exists()) {
                 customDir.mkdirs();
             }
-            File customDir1 = new File(UPLOAD_DIR + File.separator + "cache" );
+            File customDir1 = new File(UPLOAD_DIR + File.separator + "cache");
             if (!customDir1.exists()) {
                 customDir1.mkdirs();
             }
@@ -371,7 +370,7 @@ public class CacheUploadService {
 
             // create a connection to the database
             conn = DriverManager.getConnection(url);
-            //TODO
+            // TODO
             String query = "select count(*) from template";
             try (Statement stmt = conn.createStatement()) {
                 ResultSet rs = stmt.executeQuery(query);
@@ -401,7 +400,7 @@ public class CacheUploadService {
         return 0;
     }
 
-        public long getCacheTimeStampSqlite(long id) throws IOException {
+    public long getCacheTimeStampSqlite(long id) throws IOException {
 
         InputStream inputStream = null;
         String dbpath = "";
@@ -471,10 +470,8 @@ public class CacheUploadService {
         return 0;
     }
 
-
-
-public long getCacheTimeStamp(long id) throws IOException{
-            InputStream inputStream = null;
+    public long getCacheTimeStamp(long id) throws IOException {
+        InputStream inputStream = null;
         long timestamp = 0;
         if (this.uses3) {
             String fileName = "cache/" + id + "indexdb.json";
@@ -510,7 +507,7 @@ public long getCacheTimeStamp(long id) throws IOException{
                 inputStream = Files.newInputStream(Paths.get(fileName));
 
             } else {
-                fileName = "cache/" + id +  "_exam_template_indexdb.json";
+                fileName = "cache/" + id + "_exam_template_indexdb.json";
                 fileName = customDir.getAbsolutePath() +
                         File.separator + fileName;
                 if (Paths.get(fileName).toFile().exists()) {
@@ -548,25 +545,23 @@ public long getCacheTimeStamp(long id) throws IOException{
         reader.beginObject();
         reader.nextName();
         reader.nextString();
-         reader.nextName();
+        reader.nextName();
         reader.skipValue();
         reader.nextName();
         reader.beginArray();
-        while (reader.hasNext()){
-        reader.beginObject();
-        reader.nextName();
-        reader.nextLong();
-        if (reader.hasNext()){
+        while (reader.hasNext()) {
+            reader.beginObject();
             reader.nextName();
-            timestamp= reader.nextLong();
-        }
-        reader.endObject();
+            reader.nextLong();
+            if (reader.hasNext()) {
+                reader.nextName();
+                timestamp = reader.nextLong();
+            }
+            reader.endObject();
         }
         reader.endArray();
 
-
         reader.endObject();
-
 
         // reader.endObject();
 
@@ -574,8 +569,7 @@ public long getCacheTimeStamp(long id) throws IOException{
         inputStream.close();
         return timestamp;
 
-}
-
+    }
 
     public long getCachePageInTemplate(long id) throws IOException {
         InputStream inputStream = null;
@@ -614,7 +608,7 @@ public long getCacheTimeStamp(long id) throws IOException{
                 inputStream = Files.newInputStream(Paths.get(fileName));
 
             } else {
-                fileName = "cache/" + id +  "_exam_template_indexdb.json";
+                fileName = "cache/" + id + "_exam_template_indexdb.json";
                 fileName = customDir.getAbsolutePath() +
                         File.separator + fileName;
                 if (Paths.get(fileName).toFile().exists()) {
@@ -666,16 +660,16 @@ public long getCacheTimeStamp(long id) throws IOException{
         reader.nextName();
         reader.skipValue();
         reader.nextName();
-        //reader.skipValue();
+        // reader.skipValue();
         reader.beginArray();
-        while (reader.hasNext()){
+        while (reader.hasNext()) {
 
             reader.beginObject();
             reader.nextName();
             reader.nextString();
             reader.nextName();
             long l = reader.nextLong();
-            if (l > pageNumber){
+            if (l > pageNumber) {
                 pageNumber = l;
             }
             reader.nextName();
@@ -693,7 +687,6 @@ public long getCacheTimeStamp(long id) throws IOException{
         return pageNumber;
 
     }
-
 
     public String getAlignPage(long id, int pagefileter, boolean nonalign) throws IOException {
         InputStream inputStream = null;

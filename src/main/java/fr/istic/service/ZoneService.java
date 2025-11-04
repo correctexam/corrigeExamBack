@@ -42,7 +42,8 @@ public class ZoneService {
 
     @Transactional
     void deleteZone (long id){
-        Zone.deleteById(id);
+        Zone z = Zone.findById(id);
+        z.delete();
     }
 
 
@@ -70,6 +71,8 @@ public class ZoneService {
                 }
                 else if (exam.get().idzone != null && exam.get().idzone.id.equals(id)){
                     Exam.removeIdZoneId(exam.get());
+                    exam.get().idzone = null;
+
                 }
                 else if (exam.get().notezone != null && exam.get().notezone.id.equals(id))
                 {
