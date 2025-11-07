@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>fr.istic</groupId>
     <artifactId>correctexam</artifactId>
@@ -42,6 +43,8 @@
         <quarkus.platform.version>3.25.4</quarkus.platform.version>
         <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
     </properties>
+
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -53,32 +56,14 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+
     <dependencies>
-
-       <dependency>
-            <groupId>org.apache.pdfbox</groupId>
-            <artifactId>pdfbox</artifactId>
-            <version>3.0.5</version>
+        <!-- Quarkus -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-awt</artifactId>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/io.quarkus/quarkus-awt -->
-<dependency>
-    <groupId>io.quarkus</groupId>
-    <artifactId>quarkus-awt</artifactId>
-</dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.camel.quarkus/camel-quarkus-pdf -->
-<!--<dependency>
-    <groupId>org.apache.camel.quarkus</groupId>
-    <artifactId>camel-quarkus-pdf</artifactId>
-    <version>3.6.0</version>
-</dependency>-->
-
-
-<dependency>
-    <groupId>io.quarkiverse.minio</groupId>
-    <artifactId>quarkus-minio</artifactId>
-    <version>3.8.4</version>
-</dependency>
-
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy</artifactId>
@@ -121,17 +106,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm</artifactId>
-            <version>9.7.1</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-liquibase</artifactId>
-            <scope>${liquibase.scope}</scope>
-        </dependency>
-        <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-elytron-security</artifactId>
         </dependency>
@@ -157,12 +131,39 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-cache</artifactId>
+            <artifactId>quarkus-junit5</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-junit5-mockito</artifactId>
+            <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-liquibase</artifactId>
+            <scope>${liquibase.scope}</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-cache</artifactId>
+        </dependency>
+
+        <!-- Database -->
+
+        <dependency>
+            <groupId>io.quarkiverse.jdbc</groupId>
+            <artifactId>quarkus-jdbc-sqlite</artifactId>
+            <version>3.0.11</version>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.minio</groupId>
+            <artifactId>quarkus-minio</artifactId>
+            <version>3.8.4</version>
+        </dependency>
+
+        <!-- Mapping -->
+
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
@@ -179,21 +180,34 @@
             <version>${mapstruct.version}</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-junit5</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-junit5-mockito</artifactId>
 
+        <!-- Others -->
+
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>9.8</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>rest-assured</artifactId>
-                <version>5.5.6</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+
+        <!-- Testing -->
+
+        <dependency>
+            <groupId>org.jacoco</groupId>
+            <artifactId>org.jacoco.agent</artifactId>
+            <version>${jacoco-maven-plugin.version}</version>
+            <classifier>runtime</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -215,39 +229,15 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.jacoco</groupId>
-            <artifactId>org.jacoco.agent</artifactId>
-            <version>${jacoco-maven-plugin.version}</version>
-            <classifier>runtime</classifier>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>5.5.6</version>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
-
-        <!--<dependency>
-            <groupId>org.jasig.cas.client</groupId>
-            <artifactId>cas-client-core</artifactId>
-            <version>${cas.version}</version>
-        </dependency>-->
-        <!-- https://mvnrepository.com/artifact/org.apereo.cas.client/cas-client-core -->
-<dependency>
-    <groupId>io.quarkiverse.jdbc</groupId>
-    <artifactId>quarkus-jdbc-sqlite</artifactId>
-    <version>3.0.11</version>
-</dependency>
-  <!--      <dependency>
-            <groupId>org.apereo.cas.client</groupId>
-            <artifactId>cas-client-core</artifactId>
-            <version>4.0.4</version>
-                <exclusions>
-        <exclusion>
-          <groupId>org.bouncycastle</groupId>
-          <artifactId>bcprov-jdk15on</artifactId>
-        </exclusion>
-      </exclusions>
-
-        </dependency>-->
 
     </dependencies>
+
+
     <build>
         <defaultGoal>compile quarkus:dev</defaultGoal>
         <pluginManagement>
@@ -347,13 +337,15 @@
                             <requireMavenVersion>
                                 <message>You are running an older version of Maven. JHipster Quarkus requires at least
                                     Maven
-                                    ${maven.version}</message>
+                                    ${maven.version}
+                                </message>
                                 <version>[${maven.version},)</version>
                             </requireMavenVersion>
                             <requireJavaVersion>
                                 <message>You are running an incompatible version of Java. JHipster Quarkus supports JDK
                                     17 to
-                                    21.</message>
+                                    21.
+                                </message>
                                 <version>[17,22)</version>
                             </requireJavaVersion>
                         </rules>
@@ -375,9 +367,9 @@
                     <version>${maven-surefire-plugin.version}</version>
                     <configuration>
                         <systemPropertyVariables>
-                         <!--   <jacoco-agent.destfile>${jacoco.utReportFile}</jacoco-agent.destfile>-->
+                            <!--   <jacoco-agent.destfile>${jacoco.utReportFile}</jacoco-agent.destfile>-->
                             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
-                                      <maven.home>${maven.home}</maven.home>
+                            <maven.home>${maven.home}</maven.home>
 
                         </systemPropertyVariables>
                     </configuration>
@@ -400,7 +392,7 @@
                         <dependency>
                             <groupId>com.puppycrawl.tools</groupId>
                             <artifactId>checkstyle</artifactId>
-                            <version>${checkstyle.version}</version>
+                            <version>12.1.1</version>
                         </dependency>
                     </dependencies>
                     <configuration>
@@ -437,13 +429,13 @@
                 <artifactId>liquibase-maven-plugin</artifactId>
                 <version>4.31.1</version>
                 <configuration>
-        <changeLogFile>config/liquibase/master.xml</changeLogFile>
-        <changeLogDirectory>${project.basedir}/src/main/resources/</changeLogDirectory>
+                    <changeLogFile>config/liquibase/master.xml</changeLogFile>
+                    <changeLogDirectory>${project.basedir}/src/main/resources/</changeLogDirectory>
 
-        <url>jdbc:mysql://localhost:3306/gradeScopeIstic</url>
-        <username>tlc</username>
-        <password>tlc</password>
-    </configuration>
+                    <url>jdbc:mysql://localhost:3306/gradeScopeIstic</url>
+                    <username>tlc</username>
+                    <password>tlc</password>
+                </configuration>
             </plugin>
 
             <plugin>
@@ -476,6 +468,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-maven-plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
@@ -632,34 +625,34 @@
             </dependencies>
             <build>
                 <plugins>
-                   <!-- <plugin>
-                        <groupId>org.cyclonedx</groupId>
-                        <artifactId>cyclonedx-maven-plugin</artifactId>
-                        <configuration>
-                            <projectType>library</projectType>
-                            <schemaVersion>1.4</schemaVersion>
-                            <includeBomSerialNumber>true</includeBomSerialNumber>
-                            <includeCompileScope>true</includeCompileScope>
-                            <includeProvidedScope>true</includeProvidedScope>
-                            <includeRuntimeScope>true</includeRuntimeScope>
-                            <includeSystemScope>true</includeSystemScope>
-                            <includeTestScope>false</includeTestScope>
-                            <includeLicenseText>false</includeLicenseText>
-                            <outputReactorProjects>true</outputReactorProjects>
-                            <outputFormat>all</outputFormat>
-                            <outputName>bom</outputName>
-                            <outputDirectory>${project.build.directory}</outputDirectory>
-                            <verbose>false</verbose>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>makeAggregateBom</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>-->
+                    <!-- <plugin>
+                         <groupId>org.cyclonedx</groupId>
+                         <artifactId>cyclonedx-maven-plugin</artifactId>
+                         <configuration>
+                             <projectType>library</projectType>
+                             <schemaVersion>1.4</schemaVersion>
+                             <includeBomSerialNumber>true</includeBomSerialNumber>
+                             <includeCompileScope>true</includeCompileScope>
+                             <includeProvidedScope>true</includeProvidedScope>
+                             <includeRuntimeScope>true</includeRuntimeScope>
+                             <includeSystemScope>true</includeSystemScope>
+                             <includeTestScope>false</includeTestScope>
+                             <includeLicenseText>false</includeLicenseText>
+                             <outputReactorProjects>true</outputReactorProjects>
+                             <outputFormat>all</outputFormat>
+                             <outputName>bom</outputName>
+                             <outputDirectory>${project.build.directory}</outputDirectory>
+                             <verbose>false</verbose>
+                         </configuration>
+                         <executions>
+                             <execution>
+                                 <phase>package</phase>
+                                 <goals>
+                                     <goal>makeAggregateBom</goal>
+                                 </goals>
+                             </execution>
+                         </executions>
+                     </plugin>-->
                     <plugin>
                         <artifactId>maven-clean-plugin</artifactId>
                         <executions>
@@ -757,7 +750,9 @@
                                 </goals>
                                 <configuration>
                                     <systemProperties>
-                                        <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
+                                        <native.image.path>
+                                            ${project.build.directory}/${project.build.finalName}-runner
+                                        </native.image.path>
                                     </systemProperties>
                                 </configuration>
                             </execution>
