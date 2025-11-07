@@ -1,5 +1,5 @@
-.PHONY: check build deploy
-check:
+.PHONY: check-graalvm native deploy
+check-graalvm:
 	@echo "Checking JDK"
 	@java -version 2>&1 | grep 'GraalVM' >/dev/null || \
 	( echo "Error: JGRaalVM is required."; \
@@ -9,7 +9,7 @@ check:
 	exit 1 )
 	@echo "GrallVM found."
 
-build: check
+native: check-graalvm
 	cp web.xml.prod src/main/resources/META-INF/web.xml
 	./mvnw clean generate-sources
 	./mvnw compile
