@@ -5,9 +5,10 @@ services:
     volumes:
       - ./../resources/db/migration/:/docker-entrypoint-initdb.d
     environment:
-      - MYSQL_USER=root
-      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
-      - MYSQL_DATABASE=correctexam
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=gradeScopeIstic
+      - MYSQL_USER=gradescope
+      - MYSQL_PASSWORD=test
     command: mysqld --lower_case_table_names=1 --skip-ssl --character_set_server=utf8mb4 --explicit_defaults_for_timestamp
     ports:
-      - 3306
+     - "3306:3306"
