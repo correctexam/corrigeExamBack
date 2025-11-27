@@ -8,7 +8,7 @@ USER root
 WORKDIR /app
 # RUN gu install native-image
 RUN microdnf install git -y
-RUN git clone https://github.com/correctexam/corrigeExamBack
+RUN git clone https://github.com/sunye/correctexam-backend.git
 WORKDIR /app/corrigeExamBack
 RUN git checkout develop
 WORKDIR /app/corrigeExamBack
@@ -17,11 +17,11 @@ RUN mkdir -p /opt/maven
 WORKDIR /opt/maven
 
 
-RUN echo 
+RUN echo
 RUN curl -fsSL -o /tmp/apache-maven.tar.gz ${MAVEN_BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz && tar -xzf /tmp/apache-maven.tar.gz && rm -f /tmp/apache-maven.tar.gz
 
 WORKDIR /app/corrigeExamBack
-RUN /opt/maven/apache-maven-${MAVEN_VERSION}/bin/mvn package -Pnative
+RUN /opt/maven/apache-maven-${MAVEN_VERSION}/bin/mvn --settings .util/settings.xml package -Pnative
 
 FROM quay.io/quarkus/quarkus-micro-image:2.0-amd64 as prod
 WORKDIR /work/

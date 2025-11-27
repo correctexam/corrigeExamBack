@@ -1,0 +1,8 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.2.0">
+    <proxies>
+        <proxy>
+            <host>cache.ha.univ-nantes.fr</host>
+            <port>3128</port>
+        </proxy>
+    </proxies>
+</settings>

@@ -5,9 +5,7 @@ services:
     build:
       context: .
       args:
-        - http_proxy
-        - https_proxy
-        - no_proxy
+        - MAVEN_OPTS
       dockerfile: Dockerfile.build.amd64
 
     environment:
