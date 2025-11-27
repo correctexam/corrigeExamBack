@@ -4,6 +4,10 @@ services:
     image: barais/correctexam-back
     build:
       context: .
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy
       dockerfile: Dockerfile.build.amd64
 
     environment:
@@ -39,6 +43,10 @@ services:
     image: barais/correctexam-front
     build:
       context: .
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy
       dockerfile: Dockerfile.front
     ports:
       - 9000:80 # default mst update the https://github.com/correctexam/corrigeExamFront/blob/main/webpack/environment.js if you change the port
