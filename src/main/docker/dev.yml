@@ -1,0 +1,71 @@
+services:
+  correctexam-mysql:
+    image: mysql:8.0.20
+    volumes:
+      - ./../resources/db/migration/:/docker-entrypoint-initdb.d
+    environment:
+      - MYSQL_USER=root
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=correctexam
+    command: mysqld --lower_case_table_names=1 --skip-ssl --character_set_server=utf8mb4 --explicit_defaults_for_timestamp
+    ports:
+      - 3308:3306
+
+  myadmin:
+    image: phpmyadmin
+    container_name: myadmin
+    environment:
+      -  PMA_HOST=correctexam-mysql
+    ports:
+      - 8081:80
+  maildev:
+    image: maildev/maildev
+    container_name: maildev
+    command: bin/maildev --base-pathname /maildev -w 1080 -s 25
+    ports:
+      - 1080:1080
+
+  miniocorrectexam:
+    image: quay.io/minio/minio
+    container_name: miniocorrectexam
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - /data/files:/data:rw
+    restart: always
+    ports:
+      - 9000:9000
+      - 9090:9090
+    command: server /data --console-address ":9090"
+
+  rabbitmq:
+    image: rabbitmq:management
+    ports:
+      - "5672:5672"  # RabbitMQ port
+      - "15672:15672"  # RabbitMQ management port
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq
+
+
+  pdf_to_webp:
+    image: barais/pdf_to_webp
+    command: ["./pdf_to_webp", "--mq","--mq-server-host","rabbitmq","--server-url","http://miniocorrectexam:9000"]
+
+volumes:
+  rabbitmq-data:
+    driver: local
+
+
+# To activate to setup rag
+
+#networks:
+#  elastic:
