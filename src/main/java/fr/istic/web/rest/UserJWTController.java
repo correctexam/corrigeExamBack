@@ -8,7 +8,6 @@ import io.quarkus.security.runtime.QuarkusSecurityIdentity;
 import jakarta.annotation.security.PermitAll;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
-import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -18,6 +17,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Controller to authenticate users.
@@ -58,7 +59,7 @@ public class UserJWTController {
      */
     @RegisterForReflection
     public static class JWTToken {
-        @JsonbProperty("id_token")
+        @JsonProperty("id_token")
         public String idToken;
 
         JWTToken(String idToken) {

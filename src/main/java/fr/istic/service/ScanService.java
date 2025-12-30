@@ -20,7 +20,9 @@ import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.multipdf.PDFMergerUtility.DocumentMergeMode;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.server.multipart.FormValue;
+import org.jboss.resteasy.reactive.server.multipart.MultipartFormDataInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,13 +37,12 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
-import org.jboss.resteasy.plugins.providers.multipart.InputPart;
-
 import jakarta.ws.rs.core.MultivaluedMap;
 
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -244,25 +245,18 @@ public class ScanService {
         return dtos;
     }
 
-    public void uploadFile(MultipartFormDataInput input, long examId, boolean merge) {
-        Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
-        List<String> fileNames = new ArrayList<>();
-        List<InputPart> inputParts = uploadForm.get("file");
-        String fileName = null;
-        for (InputPart inputPart : inputParts) {
-            try {
-                MultivaluedMap<String, String> header = inputPart.getHeaders();
-                fileName = getFileName(header);
-                fileNames.add(fileName);
-                InputStream inputStream = inputPart.getBody(InputStream.class, null);
-                if (this.hasScanFile(examId) && merge) {
-                    mergeFile(inputStream, "application/pdf", examId);
-                } else {
-                    writeFile(inputStream, "application/pdf", examId);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+    public void uploadFile(@RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file, long examId,
+            boolean merge) {
+        try {
+            FileInputStream inputStream = new FileInputStream(file.uploadedFile().toFile());
+
+            if (this.hasScanFile(examId) && merge) {
+                mergeFile(inputStream, "application/pdf", examId);
+            } else {
+                writeFile(inputStream, "application/pdf", examId);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -312,8 +306,7 @@ public class ScanService {
             scan.toFile().delete();
             toadd.toFile().delete();
 
-
-//            byte[] bytes = IOUtils.toByteArray(new FileInputStream(res.toFile()));
+            // byte[] bytes = IOUtils.toByteArray(new FileInputStream(res.toFile()));
             if (this.uses3) {
                 String fileName = "scan/" + scanId + ".pdf";
                 try {
@@ -369,10 +362,10 @@ public class ScanService {
             throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException {
         this.fichierS3Service.putObject(name, bytes, contenttype);
     }
-        protected void uploadObject(String name,String origfilename, String contenttype)
+
+    protected void uploadObject(String name, String origfilename, String contenttype)
             throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException {
         this.fichierS3Service.uploadObject(name, origfilename, contenttype);
     }
-
 
 }

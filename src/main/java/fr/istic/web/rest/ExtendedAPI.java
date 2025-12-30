@@ -37,8 +37,9 @@ import fr.istic.service.StudentResponseService;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
-import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.jboss.resteasy.reactive.MultipartForm;
+import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.server.multipart.MultipartFormDataInput;
 
 import fr.istic.service.StudentService;
 import fr.istic.service.UserService;
@@ -80,7 +81,7 @@ import fr.istic.service.mapper.QuestionMapper;
 import fr.istic.service.mapper.TextCommentMapper;
 import fr.istic.service.mapper.ZoneMapper;
 import fr.istic.web.util.HeaderUtil;
-
+import io.netty.handler.codec.http.multipart.FileUpload;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -89,6 +90,7 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -1187,10 +1189,10 @@ public class ExtendedAPI {
     @Path("/uploadExportFinalStudent/{examId}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response fileUploadStudentPdf(@MultipartForm MultipartFormDataInput input,
+    public Response fileUploadStudentPdf(@RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file,
             @PathParam("examId") long examId) {
         try {
-            cacheStudentPdfFService.uploadFile(input, examId);
+            cacheStudentPdfFService.uploadFile(file, examId);
         } catch (Exception e) {
             e.printStackTrace();
             return Response.serverError().build();
@@ -1203,9 +1205,10 @@ public class ExtendedAPI {
     @Path("/uploadCache")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response fileUpload(@MultipartForm MultipartFormDataInput input) {
+    public Response fileUpload(
+            @RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file) {
         try {
-            cacheUploadService.uploadFile(input);
+            cacheUploadService.uploadFile(file);
         } catch (Exception e) {
             e.printStackTrace();
             return Response.serverError().build();
@@ -1219,14 +1222,14 @@ public class ExtendedAPI {
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response scanUpload(@MultipartForm MultipartFormDataInput input, @PathParam("scanId") long scanId,
+    public Response scanUpload(@RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file, @PathParam("scanId") long scanId,
             @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, scanId, Scan.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
 
         try {
-            scanService.uploadFile(input, scanId, false);
+            scanService.uploadFile(file, scanId, false);
         } catch (Exception e) {
             e.printStackTrace();
             return Response.serverError().build();
@@ -1240,14 +1243,14 @@ public class ExtendedAPI {
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response scanAndMergeUpload(@MultipartForm MultipartFormDataInput input, @PathParam("scanId") long scanId,
+    public Response scanAndMergeUpload(@RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file, @PathParam("scanId") long scanId,
             @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, scanId, Scan.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
 
         try {
-            scanService.uploadFile(input, scanId, true);
+            scanService.uploadFile(file, scanId, true);
         } catch (Exception e) {
             e.printStackTrace();
             return Response.serverError().build();
@@ -1645,7 +1648,7 @@ public class ExtendedAPI {
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
 
-    public Response importCourse(@MultipartForm MultipartFormDataInput input, @Context SecurityContext ctx) {
+    public Response importCourse(@RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file, @Context SecurityContext ctx) {
         var userLogin = Optional
                 .ofNullable(ctx.getUserPrincipal().getName());
         if (!userLogin.isPresent()) {
@@ -1657,7 +1660,7 @@ public class ExtendedAPI {
         }
         if (!userLogin.equals("system")) {
             try {
-                CourseDTO dto = importExportService.importCourse(input, user.get(), true);
+                CourseDTO dto = importExportService.importCourse(file, user.get(), true);
                 if (dto != null) {
                     return Response.ok().entity(dto).build();
                 } else {
@@ -1678,7 +1681,7 @@ public class ExtendedAPI {
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
 
-    public Response importCourseWithoutStudentData(@MultipartForm MultipartFormDataInput input,
+    public Response importCourseWithoutStudentData(@RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file,
             @Context SecurityContext ctx) {
         var userLogin = Optional
                 .ofNullable(ctx.getUserPrincipal().getName());
@@ -1691,7 +1694,7 @@ public class ExtendedAPI {
         }
         if (!userLogin.equals("system")) {
             try {
-                CourseDTO dto = importExportService.importCourse(input, user.get(), false);
+                CourseDTO dto = importExportService.importCourse(file, user.get(), false);
                 if (dto != null) {
                     return Response.ok().entity(dto).build();
                 } else {

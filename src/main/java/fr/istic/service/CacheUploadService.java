@@ -3,14 +3,15 @@ package fr.istic.service;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.resteasy.plugins.providers.multipart.InputPart;
-import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.server.multipart.FormValue;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.core.MultivaluedMap;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +26,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -82,25 +84,16 @@ public class CacheUploadService {
         this.fichierS3Service.putObject(name, bytes, contenttype);
     }
 
-    public void uploadFile(MultipartFormDataInput input) {
-        Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
+    public void uploadFile(@RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file) {
+        try{
+            FileInputStream inputStream = new FileInputStream(file.uploadedFile().toFile());
 
-        List<String> fileNames = new ArrayList<>();
-        List<InputPart> inputParts = uploadForm.get("file");
-        String fileName = null;
-        for (InputPart inputPart : inputParts) {
-            try {
-                MultivaluedMap<String, String> header = inputPart.getHeaders();
-                fileName = getFileName(header);
-                fileNames.add(fileName);
-
-                InputStream inputStream = inputPart.getBody(InputStream.class, null);
+            String fileName = file.fileName();
 
                 writeFile(inputStream, fileName, "application/json");
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
     }
 
     private File writeStreamToTempFile(InputStream inputStream, String tempFileSuffix) throws IOException {

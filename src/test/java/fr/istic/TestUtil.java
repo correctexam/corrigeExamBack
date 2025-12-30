@@ -10,9 +10,7 @@ import fr.istic.web.rest.vm.LoginVM;
 import io.restassured.mapper.ObjectMapper;
 import io.restassured.mapper.ObjectMapperDeserializationContext;
 import io.restassured.mapper.ObjectMapperSerializationContext;
-import jakarta.json.bind.Jsonb;
-import jakarta.json.bind.JsonbBuilder;
-import jakarta.json.bind.JsonbConfig;
+import jakarta.json.JsonConfig;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import java.time.ZoneId;
@@ -77,7 +75,7 @@ public final class TestUtil {
     }
 
     public static ObjectMapper jsonbObjectMapper() {
-        final var config = new JsonbConfig().withDateFormat(DATE_TIME_FORMAT, null);
+        final var config = new JsonConfig().withDateFormat(DATE_TIME_FORMAT, null);
         final Jsonb jsonb = JsonbBuilder.create(config);
         return new ObjectMapper() {
 

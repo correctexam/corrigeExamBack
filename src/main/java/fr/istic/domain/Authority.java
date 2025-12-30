@@ -33,7 +33,6 @@ public class Authority extends PanacheEntityBase implements Serializable {
     }
 
     public Authority(String name) {
-        //for jsonb
         this.name = name;
     }
 

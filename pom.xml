@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>fr.istic</groupId>
     <artifactId>correctexam</artifactId>
@@ -37,9 +38,9 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.testresult.directory>${project.build.directory}/test-results</project.testresult.directory>
         <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
-        <quarkus-plugin.version>3.25.4</quarkus-plugin.version>
+        <quarkus-plugin.version>3.30.5</quarkus-plugin.version>
         <quarkus.logManager>org.jboss.logmanager.LogManager</quarkus.logManager>
-        <quarkus.platform.version>3.25.4</quarkus.platform.version>
+        <quarkus.platform.version>3.30.5</quarkus.platform.version>
         <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
     </properties>
     <dependencyManagement>
@@ -55,31 +56,31 @@
     </dependencyManagement>
     <dependencies>
 
-       <dependency>
+        <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
             <version>3.0.5</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/io.quarkus/quarkus-awt -->
-<dependency>
-    <groupId>io.quarkus</groupId>
-    <artifactId>quarkus-awt</artifactId>
-</dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-awt</artifactId>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.camel.quarkus/camel-quarkus-pdf -->
-<!--<dependency>
+        <!--<dependency>
     <groupId>org.apache.camel.quarkus</groupId>
     <artifactId>camel-quarkus-pdf</artifactId>
     <version>3.6.0</version>
 </dependency>-->
 
 
-<dependency>
-    <groupId>io.quarkiverse.minio</groupId>
-    <artifactId>quarkus-minio</artifactId>
-    <version>3.8.4</version>
-</dependency>
-
         <dependency>
+            <groupId>io.quarkiverse.minio</groupId>
+            <artifactId>quarkus-minio</artifactId>
+            <version>3.8.6</version>
+        </dependency>
+
+        <!--       <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy</artifactId>
         </dependency>
@@ -93,8 +94,8 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-resteasy-jsonb</artifactId>
-        </dependency>
+            <artifactId>quarkus-resteasy-jackson</artifactId>
+        </dependency>-->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-mailer</artifactId>
@@ -117,15 +118,28 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest-jackson</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.quarkus</groupId>
             <artifactId>quarkus-test-h2</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-messaging-rabbitmq</artifactId>
+        </dependency>
+<!--        <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm</artifactId>
             <version>9.7.1</version>
             <scope>test</scope>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-liquibase</artifactId>
@@ -177,6 +191,7 @@
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct-processor</artifactId>
             <version>${mapstruct.version}</version>
+
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -187,13 +202,12 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5-mockito</artifactId>
-
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-                <version>5.5.6</version>
+            <version>5.5.6</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -208,6 +222,14 @@
             <version>${archunit-junit5.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
+
+        <!--<dependency>
+            <groupId>org.jasig.cas.client</groupId>
+            <artifactId>cas-client-core</artifactId>
+            <version>${cas.version}</version>
+        </dependency>-->
+        <!-- https://mvnrepository.com/artifact/org.apereo.cas.client/cas-client-core -->
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit-junit5-engine</artifactId>
@@ -221,20 +243,13 @@
             <classifier>runtime</classifier>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
+        <dependency>
+            <groupId>io.quarkiverse.jdbc</groupId>
+            <artifactId>quarkus-jdbc-sqlite</artifactId>
+            <version>3.0.11</version>
+        </dependency>
 
-        <!--<dependency>
-            <groupId>org.jasig.cas.client</groupId>
-            <artifactId>cas-client-core</artifactId>
-            <version>${cas.version}</version>
-        </dependency>-->
-        <!-- https://mvnrepository.com/artifact/org.apereo.cas.client/cas-client-core -->
-<dependency>
-    <groupId>io.quarkiverse.jdbc</groupId>
-    <artifactId>quarkus-jdbc-sqlite</artifactId>
-    <version>3.0.11</version>
-</dependency>
-  <!--      <dependency>
+        <!--      <dependency>
             <groupId>org.apereo.cas.client</groupId>
             <artifactId>cas-client-core</artifactId>
             <version>4.0.4</version>
@@ -375,9 +390,9 @@
                     <version>${maven-surefire-plugin.version}</version>
                     <configuration>
                         <systemPropertyVariables>
-                         <!--   <jacoco-agent.destfile>${jacoco.utReportFile}</jacoco-agent.destfile>-->
+                            <!--   <jacoco-agent.destfile>${jacoco.utReportFile}</jacoco-agent.destfile>-->
                             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
-                                      <maven.home>${maven.home}</maven.home>
+                            <maven.home>${maven.home}</maven.home>
 
                         </systemPropertyVariables>
                     </configuration>
@@ -437,13 +452,13 @@
                 <artifactId>liquibase-maven-plugin</artifactId>
                 <version>4.31.1</version>
                 <configuration>
-        <changeLogFile>config/liquibase/master.xml</changeLogFile>
-        <changeLogDirectory>${project.basedir}/src/main/resources/</changeLogDirectory>
+                    <changeLogFile>config/liquibase/master.xml</changeLogFile>
+                    <changeLogDirectory>${project.basedir}/src/main/resources/</changeLogDirectory>
 
-        <url>jdbc:mysql://localhost:3306/gradeScopeIstic</url>
-        <username>tlc</username>
-        <password>tlc</password>
-    </configuration>
+                    <url>jdbc:mysql://localhost:3306/gradeScopeIstic</url>
+                    <username>tlc</username>
+                    <password>tlc</password>
+                </configuration>
             </plugin>
 
             <plugin>
@@ -632,7 +647,7 @@
             </dependencies>
             <build>
                 <plugins>
-                   <!-- <plugin>
+                    <!-- <plugin>
                         <groupId>org.cyclonedx</groupId>
                         <artifactId>cyclonedx-maven-plugin</artifactId>
                         <configuration>

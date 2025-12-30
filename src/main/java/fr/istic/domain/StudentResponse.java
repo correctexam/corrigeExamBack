@@ -1,6 +1,5 @@
 package fr.istic.domain;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import jakarta.json.bind.annotation.JsonbTransient;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
@@ -57,7 +56,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "question_id")
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Question question;
 
     @Transient
@@ -85,7 +84,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "correctedby_id")
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public User correctedBy;
 
 
@@ -93,7 +92,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "sheet_id")
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public ExamSheet sheet;
 
     @ManyToMany
@@ -101,7 +100,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     @JoinTable(name = "student_response_textcomments",
                joinColumns = @JoinColumn(name = "student_response_id", referencedColumnName = "id"),
                inverseJoinColumns = @JoinColumn(name = "textcomments_id", referencedColumnName = "id"))
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Set<TextComment> textcomments = new HashSet<>();
 
     @ManyToMany
@@ -109,7 +108,7 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     @JoinTable(name = "student_response_gradedcomments",
                joinColumns = @JoinColumn(name = "student_response_id", referencedColumnName = "id"),
                inverseJoinColumns = @JoinColumn(name = "gradedcomments_id", referencedColumnName = "id"))
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Set<GradedComment> gradedcomments = new HashSet<>();
 
 

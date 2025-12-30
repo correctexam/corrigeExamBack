@@ -6,10 +6,11 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.io.Serializable;
 import java.util.Set;
 
-import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * A Answer2HybridGradedComment.
@@ -33,12 +34,12 @@ public class Answer2HybridGradedComment extends PanacheEntityBase implements Ser
 
     @ManyToOne
     @JoinColumn(name = "hybridcomments_id")
-    @JsonbTransient
+    @JsonIgnore
     public HybridGradedComment hybridcomments;
 
     @ManyToOne
     @JoinColumn(name = "student_response_id")
-    @JsonbTransient
+    @JsonIgnore
     public StudentResponse studentResponse;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
