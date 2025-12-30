@@ -7,15 +7,15 @@ import static org.hamcrest.Matchers.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fr.istic.web.rest.vm.LoginVM;
+import io.restassured.internal.mapping.Jackson2Mapper;
 import io.restassured.mapper.ObjectMapper;
-import io.restassured.mapper.ObjectMapperDeserializationContext;
-import io.restassured.mapper.ObjectMapperSerializationContext;
-import jakarta.json.JsonConfig;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.Temporal;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
 
 /**
  * Utility class for testing REST controllers.
@@ -23,8 +23,8 @@ import java.time.temporal.Temporal;
 public final class TestUtil {
 
     private static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter
-        .ofPattern(DATE_TIME_FORMAT)
-        .withZone(ZoneId.of("UTC"));
+            .ofPattern(DATE_TIME_FORMAT)
+            .withZone(ZoneId.of("UTC"));
 
     public static String formatDateTime(Temporal temporal) {
         return DATE_TIME_FORMATTER.format(temporal);
@@ -54,42 +54,38 @@ public final class TestUtil {
     }
 
     public static String getToken(String username, String password) {
-        //Authenticating user
+        // Authenticating user
         var login = new LoginVM();
         login.username = username;
         login.password = password;
 
         return given()
-            .body(login)
-            .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-            .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
-            .when()
-            .post("/api/authenticate")
-            .then()
-            .statusCode(OK.getStatusCode())
-            .body("id_token", instanceOf(String.class))
-            .body("id_token", notNullValue())
-            .header(HttpHeaders.AUTHORIZATION, not(blankOrNullString()))
-            .extract()
-            .path("id_token");
+                .body(login)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                .when()
+                .post("/api/authenticate")
+                .then()
+                .statusCode(OK.getStatusCode())
+                .body("id_token", instanceOf(String.class))
+                .body("id_token", notNullValue())
+                .header(HttpHeaders.AUTHORIZATION, not(blankOrNullString()))
+                .extract()
+                .path("id_token");
     }
 
     public static ObjectMapper jsonbObjectMapper() {
-        final var config = new JsonConfig().withDateFormat(DATE_TIME_FORMAT, null);
-        final Jsonb jsonb = JsonbBuilder.create(config);
-        return new ObjectMapper() {
 
-            @Override
-            public Object deserialize(ObjectMapperDeserializationContext context) {
-                return jsonb.fromJson(context.getDataToDeserialize().asString(), context.getType());
-            }
+        io.restassured.mapper.ObjectMapper objectMapper = new Jackson2Mapper(((type, charset) -> {
+            com.fasterxml.jackson.databind.ObjectMapper om = new com.fasterxml.jackson.databind.ObjectMapper()
+                    .findAndRegisterModules();
+            om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            return om;
+        }));
 
-            @Override
-            public Object serialize(ObjectMapperSerializationContext context) {
-                return jsonb.toJson(context.getObjectToSerialize());
-            }
-        };
+        return objectMapper;
     }
 
-    private TestUtil() {}
+    private TestUtil() {
+    }
 }

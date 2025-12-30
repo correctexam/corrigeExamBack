@@ -14,6 +14,8 @@ import fr.istic.web.rest.vm.KeyAndPasswordVM;
 import fr.istic.web.rest.vm.ManagedUserVM;
 
 import io.quarkus.security.Authenticated;
+import io.smallrye.common.annotation.Blocking;
+
 import java.security.Principal;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
@@ -107,6 +109,7 @@ public class AccountResource {
      */
     @POST
     @Path("/register")
+    @Blocking
     @PermitAll
     public CompletionStage<Response> registerAccount(@Valid ManagedUserVM managedUserVM) {
         if (!checkPasswordLength(managedUserVM.password)) {

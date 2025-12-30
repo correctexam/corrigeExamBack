@@ -33,7 +33,6 @@ public class JsonConfiguration implements ObjectMapperCustomizer {
 
     @Override
     public void customize(ObjectMapper objectMapper) {
-        // TODO Auto-generated method stub
          var module = new SimpleModule();
         module.addDeserializer(byte[].class, new CustomByteDeserializer());
         module.addSerializer(new CustomByteSerializer());
