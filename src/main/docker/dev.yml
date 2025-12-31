@@ -3,6 +3,7 @@ services:
     image: mysql:8.0.20
     volumes:
       - ./../resources/db/migration/:/docker-entrypoint-initdb.d
+      - mysql-data:/var/lib/mysql
     environment:
       - MYSQL_USER=root
       - MYSQL_ALLOW_EMPTY_PASSWORD=yes
@@ -26,13 +27,13 @@ services:
       - 1080:1080
 
   miniocorrectexam:
-    image: quay.io/minio/minio
+    image: minio/minio
     container_name: miniocorrectexam
     environment:
       - MINIO_ROOT_USER=admin
       - MINIO_ROOT_PASSWORD=minioadmin
     volumes:
-      - /data/files:/data:rw
+      - minio-files:/data:rw
     restart: always
     ports:
       - 9000:9000
@@ -46,6 +47,8 @@ services:
       - "15672:15672"  # RabbitMQ management port
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
+    restart: always
+
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
       interval: 30s
@@ -59,10 +62,16 @@ services:
   pdf_to_webp:
     image: barais/pdf_to_webp
     command: ["./pdf_to_webp", "--mq","--mq-server-host","rabbitmq","--server-url","http://miniocorrectexam:9000"]
+    restart: always
 
 volumes:
   rabbitmq-data:
     driver: local
+  mysql-data:
+    driver: local
+  minio-files:
+    driver: local
+
 
 
 # To activate to setup rag
