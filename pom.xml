@@ -38,9 +38,9 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <project.testresult.directory>${project.build.directory}/test-results</project.testresult.directory>
         <properties-maven-plugin.version>1.0.0</properties-maven-plugin.version>
-        <quarkus-plugin.version>3.30.5</quarkus-plugin.version>
+        <quarkus-plugin.version>3.40.1.1</quarkus-plugin.version>
         <quarkus.logManager>org.jboss.logmanager.LogManager</quarkus.logManager>
-        <quarkus.platform.version>3.30.5</quarkus.platform.version>
+        <quarkus.platform.version>3.40.1.1</quarkus.platform.version>
         <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
     </properties>
     <dependencyManagement>
@@ -59,7 +59,7 @@
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>3.0.5</version>
+            <version>3.0.8</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/io.quarkus/quarkus-awt -->
         <dependency>
@@ -434,6 +434,7 @@
                     <groupId>io.quarkus</groupId>
                     <artifactId>quarkus-maven-plugin</artifactId>
                     <version>${quarkus-plugin.version}</version>
+                    		<extensions>true</extensions> <!-- THIS ONE -->
                     <executions>
                         <execution>
                             <goals>
@@ -443,6 +444,7 @@
                             </goals>
                         </execution>
                     </executions>
+
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -504,6 +506,7 @@
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-maven-plugin</artifactId>
                 <version>${quarkus-plugin.version}</version>
+                <extensions>true</extensions>
             </plugin>
         </plugins>
     </build>
