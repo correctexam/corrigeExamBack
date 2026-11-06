@@ -17,7 +17,7 @@
         <junit.itReportFolder>${project.testresult.directory}/integrationTest</junit.itReportFolder>
         <junit.utReportFolder>${project.testresult.directory}/test</junit.utReportFolder>
         <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
-        <mapstruct.version>1.6.3</mapstruct.version>
+        <mapstruct.version>1.7.0.Beta2</mapstruct.version>
         <maven-checkstyle.version>3.1.0</maven-checkstyle.version>
         <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
