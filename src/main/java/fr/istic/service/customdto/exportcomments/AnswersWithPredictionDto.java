@@ -5,11 +5,17 @@ import java.util.List;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
 
+@Schema(description = "All answers for a question together with their predictions.")
+
 public class AnswersWithPredictionDto {
+    @Schema(description = "Maximum grade of the question.")
     private Double maxgrade;
+    @Schema(description = "Identifier of the question.")
     private Long qid;
+    @Schema(description = "Answers with their predictions.")
     private List<Answer> answer  = new ArrayList<>();
 
     public Double getMaxgrade() { return maxgrade; }

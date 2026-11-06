@@ -6,10 +6,15 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
+@Schema(description = "Configuration of a single application logger.")
 public class LoggerVM {
+  @Schema(description = "Name of the logger.")
   public String name;
+  @Schema(description = "Effective log level applied to the logger.")
   public String effectiveLevel;
+  @Schema(description = "Configured log level of the logger.")
   public String configuredLevel;
 
   public LoggerVM(String name, Logger logger) {

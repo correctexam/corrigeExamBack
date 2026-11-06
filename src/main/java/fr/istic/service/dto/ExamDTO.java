@@ -6,31 +6,48 @@ import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 /**
  * A DTO for the {@link fr.istic.domain.Exam} entity.
  */
 @RegisterForReflection
+@Schema(description = "An exam built from a template, with its zones, scan file and course.")
 public class ExamDTO implements Serializable {
 
+    @Schema(description = "Unique identifier.")
     public Long id;
 
     @NotNull
+    @Schema(description = "Name of the exam.", required=true)
     public String name;
     @Column(name = "nbgrader")
+    @Schema(description = "Whether the exam is graded by the built-in grader.", defaultValue="true")
     public Boolean nbgrader=true;
 
 
+    @Schema(description = "Identifier of the related template.")
     public Long templateId;
+    @Schema(description = "Name of the related template.")
     public String templateName;
+    @Schema(description = "Whether the template places the mark zone.")
     public Boolean templateMark;
+    @Schema(description = "Whether the template places the name box.")
     public Boolean templateNameBoxCase;
+    @Schema(description = "Identifier of the zone used for the student id.")
     public Long idzoneId;
+    @Schema(description = "Identifier of the zone used for the student name.")
     public Long namezoneId;
+    @Schema(description = "Identifier of the zone used for the student first name.")
     public Long firstnamezoneId;
+    @Schema(description = "Identifier of the zone used for the exam note.")
     public Long notezoneId;
+    @Schema(description = "Identifier of the related scan file.")
     public Long scanfileId;
+    @Schema(description = "Name of the related scan file.")
     public String scanfileName;
+    @Schema(description = "Identifier of the related course.")
     public Long courseId;
+    @Schema(description = "Name of the related course.")
     public String courseName;
 
     @Override

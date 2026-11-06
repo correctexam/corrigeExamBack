@@ -2,10 +2,15 @@ package fr.istic.service.customdto;
 import java.util.List;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
+@Schema(description = "Identifiers of predictions made for a given exam question.")
 public class PredictionsIdsDto {
+    @Schema(description = "Identifiers of the predictions.")
     private List<Long> predictionsids;
+    @Schema(description = "Identifier of the related exam.")
     private long examId;
+    @Schema(description = "Number of the related question.")
     private int numero;
 
     public long getExamId() {

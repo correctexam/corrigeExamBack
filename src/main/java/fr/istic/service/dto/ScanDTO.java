@@ -7,17 +7,22 @@ import java.io.Serializable;
 import java.util.Objects;
 import jakarta.persistence.Lob;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 /**
  * A DTO for the {@link fr.istic.domain.Scan} entity.
  */
 @RegisterForReflection
+@Schema(description = "A scanned file used as source of exam sheets.")
 public class ScanDTO implements Serializable {
 
+    @Schema(description = "Unique identifier.")
     public Long id;
 
     @NotNull
+    @Schema(description = "Name of the scan.", required=true)
     public String name;
 
+    @Schema(description = "MIME content type of the scan file.")
     public String contentContentType;
 
 

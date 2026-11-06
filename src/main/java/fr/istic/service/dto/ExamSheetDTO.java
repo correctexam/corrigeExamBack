@@ -6,22 +6,30 @@ import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.util.Objects;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 /**
  * A DTO for the {@link fr.istic.domain.ExamSheet} entity.
  */
 @RegisterForReflection
+@Schema(description = "A sheet of a scanned exam covering a page range.")
 public class ExamSheetDTO implements Serializable {
 
+    @Schema(description = "Unique identifier.")
     public Long id;
 
     @NotNull
+    @Schema(description = "Name of the sheet.", required=true)
     public String name;
 
+    @Schema(description = "First page of the sheet.")
     public Integer pagemin;
 
+    @Schema(description = "Last page of the sheet.")
     public Integer pagemax;
 
+    @Schema(description = "Identifier of the related scan.")
     public Long scanId;
+    @Schema(description = "Name of the related scan.")
     public String scanName;
 
     @Override

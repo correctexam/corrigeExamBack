@@ -2,12 +2,19 @@ package fr.istic.service.customdto;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
+@Schema(description = "A student with identity and group information, used to build or import students.")
 public class StudentDTO {
+    @Schema(description = "National student identifier (INE).")
     private String ine;
+    @Schema(description = "Last name of the student.")
     private String nom;
+    @Schema(description = "First name of the student.")
     private String prenom;
+    @Schema(description = "Email address of the student.")
     private String mail;
+    @Schema(description = "Group of the student.")
     private String groupe;
 
     public String getIne() { return ine; }

@@ -2,15 +2,25 @@ package fr.istic.service.customdto.exportpdf;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
+@Schema(description = "A question printed in the exported PDF.")
 public class Questionspdf {
+    @Schema(description = "Grading type of the question.")
     private String gradeType;
+    @Schema(description = "Identifier of the question.")
     private long id;
+    @Schema(description = "Number of the question.")
     private long numero;
+    @Schema(description = "Points awarded by the question.")
     private Double point;
+    @Schema(description = "Step value of the question.")
     private long step;
+    @Schema(description = "Algorithm name of the question type.")
     private String typeAlgoName;
+    @Schema(description = "Identifier of the question type.")
     private long typeID;
+    @Schema(description = "Zone of the question.")
     private Zonepdf zonepdf;
 
     public String getGradeType() { return gradeType; }

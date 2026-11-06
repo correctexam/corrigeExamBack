@@ -5,14 +5,23 @@ import java.util.Map;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
+@Schema(description = "Result of a student for an exam, extending the student identity.")
 public class StudentResultDTO extends StudentDTO{
+    @Schema(description = "Unique identifier of the student.")
     Long id;
+    @Schema(description = "Universally unique identifier of the student.")
     String uuid;
+    @Schema(description = "Student number.")
     String studentNumber;
+    @Schema(description = "Result note as a string.")
     String note;
     // abi = 0 => false, abi =1 => true abi = 2 abj
+    @Schema(description = "Correction indicator (0=false, 1=true, 2=abstain).")
     int abi;
+
+    @Schema(description = "Map of question numbers to their notes.")
     Map<Integer, String> notequestions =  new HashMap<>();
 
     public Long getId() {
@@ -39,6 +48,9 @@ public class StudentResultDTO extends StudentDTO{
     }
     public void setAbi(int abi) {
         this.abi = abi;
+    }
+    public int getAbi() {
+        return abi;
     }
 
     public Map<Integer, String> getNotequestions() {

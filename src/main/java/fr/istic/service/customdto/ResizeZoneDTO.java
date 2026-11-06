@@ -2,12 +2,18 @@ package fr.istic.service.customdto;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
+@Schema(description = "Resize coordinates applied to a zone.")
 public class ResizeZoneDTO {
+    @Schema(description = "Left offset of the resize.")
     private int left;
 
+    @Schema(description = "Top offset of the resize.")
     private int top;
+    @Schema(description = "Horizontal scale factor.")
     private double x;
+    @Schema(description = "Vertical scale factor.")
     private double y;
 
     public int getLeft() { return left; }

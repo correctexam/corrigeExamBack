@@ -27,6 +27,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -39,6 +48,10 @@ import org.slf4j.LoggerFactory;
 /**
  * REST controller for managing {@link fr.istic.domain.HybridGradedComment}.
  */
+@Tag(
+    name = "HybridGradedComment",
+    description = "Management of hybrid graded comments: create, update, delete, and search hybrid graded comments."
+)
 @Path("/api/hybrid-graded-comments")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -64,6 +77,20 @@ public class HybridGradedCommentResource {
      * @param hybridGradedCommentDTO the hybridGradedCommentDTO to create.
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new hybridGradedCommentDTO, or with status {@code 400 (Bad Request)} if the hybridGradedComment has already an ID.
      */
+    @Operation(
+        summary = "Create a hybrid graded comment",
+        description = "Creates a new hybrid graded comment and returns the created hybrid graded comment."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "201",
+                description = "The created hybrid graded comment",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = HybridGradedCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "The new hybrid graded comment cannot already have an ID")
+        }
+    )
     @POST
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
 
@@ -86,10 +113,30 @@ public class HybridGradedCommentResource {
      * or with status {@code 400 (Bad Request)} if the hybridGradedCommentDTO is not valid,
      * or with status {@code 500 (Internal Server Error)} if the hybridGradedCommentDTO couldn't be updated.
      */
+    @Operation(
+        summary = "Update a hybrid graded comment",
+        description = "Updates an existing hybrid graded comment and returns the updated hybrid graded comment."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated hybrid graded comment",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = HybridGradedCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Hybrid graded comment with an invalid (null) ID"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "The hybrid graded comment couldn't be updated")
+        }
+    )
     @PUT
     @Path("/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response updateHybridGradedComment(HybridGradedCommentDTO hybridGradedCommentDTO, @PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response updateHybridGradedComment(
+        HybridGradedCommentDTO hybridGradedCommentDTO,
+        @Parameter(description = "Id of the hybrid graded comment to update", required = true) @PathParam("id") Long id,
+        @Context SecurityContext ctx
+    ) {
         log.debug("REST request to update HybridGradedComment : {}", hybridGradedCommentDTO);
         if (hybridGradedCommentDTO.id == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
@@ -111,10 +158,23 @@ public class HybridGradedCommentResource {
      * @param id the id of the hybridGradedCommentDTO to delete.
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
+    @Operation(
+        summary = "Delete a hybrid graded comment",
+        description = "Deletes the hybrid graded comment with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "Hybrid graded comment deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @DELETE
     @Path("/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response deleteHybridGradedComment(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response deleteHybridGradedComment(
+        @Parameter(description = "Id of the hybrid graded comment to delete", required = true) @PathParam("id") Long id,
+        @Context SecurityContext ctx
+    ) {
         log.debug("REST request to delete HybridGradedComment : {}", id);
         if (!securityService.canAccess(ctx, id, HybridGradedComment.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -131,6 +191,21 @@ public class HybridGradedCommentResource {
      * @param pageRequest the pagination information.
      * @return the {@link Response} with status {@code 200 (OK)} and the list of hybridGradedComments in body.
      */
+    @Operation(
+        summary = "Get all hybrid graded comments",
+        description = "Returns a paged list of hybrid graded comments. Optionally filter by questionId."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The list of hybrid graded comments",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = HybridGradedCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "Current user not found")
+        }
+    )
     @GET
     public Response getAllHybridGradedComments(
         @BeanParam PageRequestVM pageRequest,
@@ -184,18 +259,51 @@ public class HybridGradedCommentResource {
      * @param id the id of the hybridGradedCommentDTO to retrieve.
      * @return the {@link Response} with status {@code 200 (OK)} and with body the hybridGradedCommentDTO, or with status {@code 404 (Not Found)}.
      */
+    @Operation(
+        summary = "Get a hybrid graded comment",
+        description = "Returns the hybrid graded comment with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The hybrid graded comment",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = HybridGradedCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "404", description = "Hybrid graded comment not found")
+        }
+    )
     @GET
     @Path("/{id}")
-    public Response getHybridGradedComment(@PathParam("id") Long id) {
+    public Response getHybridGradedComment(
+        @Parameter(description = "Id of the hybrid graded comment to retrieve", required = true) @PathParam("id") Long id
+    ) {
         log.debug("REST request to get HybridGradedComment : {}", id);
         Optional<HybridGradedCommentDTO> hybridGradedCommentDTO = hybridGradedCommentService.findOne(id);
         return ResponseUtil.wrapOrNotFound(hybridGradedCommentDTO);
     }
 
+    @Operation(
+        summary = "Count usages of a hybrid graded comment",
+        description = "Returns the number of answers using the hybrid graded comment with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The number of usages",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.INTEGER, format = "int64"))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @Path("/countHowManyUse/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response getUsedOfGradedComment(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response getUsedOfGradedComment(
+        @Parameter(description = "Id of the hybrid graded comment to count usages of", required = true) @PathParam("id") Long id,
+        @Context SecurityContext ctx
+    ) {
         log.debug("REST request to get count HybridGradedCommentUse : {}", id);
         if (!securityService.canAccess(ctx, id, HybridGradedComment.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();

@@ -8,19 +8,26 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Objects;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 /**
  * A DTO for the {@link fr.istic.domain.CourseGroup} entity.
  */
 @RegisterForReflection
+@Schema(description = "A group of students within a course.")
 public class CourseGroupDTO implements Serializable {
 
+    @Schema(description = "Unique identifier.")
     public Long id;
 
     @NotNull
+    @Schema(description = "Name of the group.", required=true)
     public String groupName;
 
+    @Schema(description = "Set of students belonging to the group.")
     public Set<StudentDTO> students = new HashSet<>();
+    @Schema(description = "Identifier of the related course.")
     public Long courseId;
+    @Schema(description = "Name of the related course.")
     public String courseName;
 
     @Override

@@ -30,6 +30,14 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,6 +48,10 @@ import java.util.StringTokenizer;
 /**
  * REST controller for managing {@link fr.istic.domain.StudentResponse}.
  */
+@Tag(
+    name = "StudentResponse",
+    description = "Management of student responses: create, update, delete, list, retrieve and partially annotate responses."
+)
 @Path("/api/student-responses")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -67,6 +79,18 @@ public class StudentResponseResource {
      *         the new studentResponseDTO, or with status {@code 400 (Bad Request)}
      *         if the studentResponse has already an ID.
      */
+    @Operation(summary = "Create a new student response", description = "Creates a new student response and returns the created student response.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "201",
+                description = "The created student response",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = StudentResponseDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "A new student response cannot already have an ID"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @POST
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response createStudentResponse(StudentResponseDTO studentResponseDTO, @Context UriInfo uriInfo,@Context final SecurityContext ctx) {
@@ -98,6 +122,19 @@ public class StudentResponseResource {
      *         or with status {@code 500 (Internal Server Error)} if the
      *         studentResponseDTO couldn't be updated.
      */
+    @Operation(summary = "Update a student response", description = "Updates an existing student response and returns the updated student response.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated student response",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = StudentResponseDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Invalid student response id or validation error"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "The student response could not be updated")
+        }
+    )
     @PUT
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response updateStudentResponse(StudentResponseDTO studentResponseDTO, @Context SecurityContext ctx) {
@@ -123,10 +160,17 @@ public class StudentResponseResource {
      * @param id the id of the studentResponseDTO to delete.
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
+    @Operation(summary = "Delete a student response", description = "Deletes the student response with the given id.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "The student response has been deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @DELETE
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Path("/{id}")
-    public Response deleteStudentResponse(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response deleteStudentResponse(@Parameter(description = "Id of the student response to delete", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to delete StudentResponse : {}", id);
         if (!securityService.canAccess(ctx, id, StudentResponse.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -146,6 +190,20 @@ public class StudentResponseResource {
      * @return the {@link Response} with status {@code 200 (OK)} and the list of
      *         studentResponses in body.
      */
+    @Operation(
+        summary = "Get all student responses",
+        description = "Returns a page of student responses, optionally filtered by sheetId or questionId."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The page of student responses",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = StudentResponseDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     public Response getAllStudentResponses(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest,
             @Context UriInfo uriInfo, @Context SecurityContext ctx) {
@@ -214,11 +272,23 @@ public class StudentResponseResource {
      * @return the {@link Response} with status {@code 200 (OK)} and with body the
      *         studentResponseDTO, or with status {@code 404 (Not Found)}.
      */
+    @Operation(summary = "Get the student response by id", description = "Gets the student response with the given id.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The requested student response",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = StudentResponseDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "404", description = "No student response found for this id")
+        }
+    )
     @GET
     @Path("/{id}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
 
-    public Response getStudentResponse(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response getStudentResponse(@Parameter(description = "Id of the student response to retrieve", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, id, StudentResponse.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -228,11 +298,26 @@ public class StudentResponseResource {
         return ResponseUtil.wrapOrNotFound(studentResponseDTO);
     }
 
+    @Operation(
+        summary = "Partially update a student response",
+        description = "Partially updates the note of the student response with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated student response",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = StudentResponseDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "404", description = "No student response found for this id")
+        }
+    )
     @PATCH
     @Path(value = "/{id}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response partialUpdateSR(
-            @PathParam(value = "id") final Long id,
+            @Parameter(description = "Id of the student response to update", required = true) @PathParam(value = "id") final Long id,
             StudentResponseNote srDTO, @Context SecurityContext ctx) {
         log.debug("REST request to partial update StudentResponse partially : {}, {}", id, srDTO);
 

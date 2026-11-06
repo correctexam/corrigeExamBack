@@ -23,6 +23,15 @@ import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -34,6 +43,10 @@ import java.util.Optional;
 /**
  * REST controller for managing {@link fr.istic.domain.Course}.
  */
+@Tag(
+    name = "Course",
+    description = "Management of courses: create, update, delete, and search courses."
+)
 @Path("/api/courses")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -66,6 +79,21 @@ public class CourseResource {
      * @param courseDTO the courseDTO to create.
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new courseDTO, or with status {@code 400 (Bad Request)} if the course has already an ID.
      */
+    @Operation(
+        summary = "Create a course",
+        description = "Creates a new course and returns the created course."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "201",
+                description = "The created course",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CourseDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "The new course cannot already have an ID"),
+            @APIResponse(responseCode = "500", description = "Current user not found")
+        }
+    )
     @POST
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createCourse(@Valid CourseDTO courseDTO, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
@@ -102,6 +130,22 @@ public class CourseResource {
      * or with status {@code 400 (Bad Request)} if the courseDTO is not valid,
      * or with status {@code 500 (Internal Server Error)} if the courseDTO couldn't be updated.
      */
+    @Operation(
+        summary = "Update a course",
+        description = "Updates an existing course and returns the updated course."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated course",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CourseDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Course with an invalid (null) ID"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "The course couldn't be updated")
+        }
+    )
     @PUT
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateCourse(@Valid CourseDTO courseDTO, @Context SecurityContext ctx) {
@@ -125,10 +169,23 @@ public class CourseResource {
      * @param id the id of the courseDTO to delete.
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
+    @Operation(
+        summary = "Delete a course",
+        description = "Deletes the course with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "Course deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @DELETE
     @Path("/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response deleteCourse(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response deleteCourse(
+        @Parameter(description = "Id of the course to delete", required = true) @PathParam("id") Long id,
+        @Context SecurityContext ctx
+    ) {
         log.debug("REST request to delete Course : {}", id);
         if (!securityService.canAccess(ctx, id, Course.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -146,6 +203,20 @@ public class CourseResource {
      * @param pageRequest the pagination information.
      * @return the {@link Response} with status {@code 200 (OK)} and the list of courses in body.
      */
+    @Operation(
+        summary = "Get all courses",
+        description = "Returns a paged list of all courses the current user can access."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The list of courses",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = CourseDTO.class))
+            ),
+            @APIResponse(responseCode = "500", description = "Current user not found")
+        }
+    )
     @GET
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
 
@@ -184,11 +255,29 @@ public class CourseResource {
      * @param id the id of the courseDTO to retrieve.
      * @return the {@link Response} with status {@code 200 (OK)} and with body the courseDTO, or with status {@code 404 (Not Found)}.
      */
+    @Operation(
+        summary = "Get a course",
+        description = "Returns the course with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The course",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CourseDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "404", description = "Course not found")
+        }
+    )
     @GET
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
 
     @Path("/{id}")
-    public Response getCourse(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response getCourse(
+        @Parameter(description = "Id of the course to retrieve", required = true) @PathParam("id") Long id,
+        @Context SecurityContext ctx
+    ) {
         log.debug("REST request to get Course : {}", id);
         if (!securityService.canAccess(ctx, id, Course.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();

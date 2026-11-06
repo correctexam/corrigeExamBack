@@ -2,12 +2,17 @@ package fr.istic.service.customdto;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
+@Schema(description = "Brief user information used when sharing a resource.")
 public class UserModelShare {
+    @Schema(description = "Last name of the user.")
     private String name;
 
 
+    @Schema(description = "First name of the user.")
     private String firstname;
+    @Schema(description = "Login of the user.")
     private String login;
 
     public UserModelShare(){}

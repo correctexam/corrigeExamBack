@@ -5,11 +5,16 @@ import java.util.List;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
+@Schema(description = "Best and worst solutions for a given question.")
 public class WorstAndBestSolution {
+    @Schema(description = "Number of the question.")
     private long numero;
 
+    @Schema(description = "Best solutions for the question.")
     private List<String> bestSolutions = new ArrayList<>();
+    @Schema(description = "Worst solutions for the question.")
     private List<String> worstSolutions= new ArrayList<>();
 
     public WorstAndBestSolution(){

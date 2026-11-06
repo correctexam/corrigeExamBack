@@ -12,20 +12,33 @@ import fr.istic.service.dto.TextCommentDTO;
 import fr.istic.service.dto.ZoneDTO;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
+@Schema(description = "Groups zones and student answers that share the same comment configuration.")
 public class ZoneSameCommentDTO {
 
+    @Schema(description = "List of zones sharing the comment configuration.")
     List<ZoneDTO> zones;
+    @Schema(description = "Student answers associated with the zones.")
     List<Answer4QuestionDTO> answers;
+    @Schema(description = "Text comments of the zones.")
     List<TextCommentDTO> textComments = new ArrayList<>();
+    @Schema(description = "Graded comments of the zones.")
     List<GradedCommentDTO> gradedComments = new ArrayList<>();
+    @Schema(description = "Hybrid graded comments of the zones.")
     List<HybridGradedCommentDTO> hybridComments = new ArrayList<>();
 
+     @Schema(description = "Points awarded by the comment configuration.")
      Double point;
+     @Schema(description = "Step value of the comment configuration.")
      Integer step;
+     @Schema(description = "Expression defining a valid answer.")
      String validExpression;
+     @Schema(description = "Grading type of the zones.")
      GradeType gradeType;
+     @Schema(description = "Number of the question.")
      Integer numero;
+     @Schema(description = "Algorithm name of the question type.")
      String algoName;
 
 

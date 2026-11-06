@@ -6,19 +6,25 @@ import jakarta.validation.constraints.*;
 import java.io.Serializable;
 import java.util.Objects;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 /**
  * A DTO for the {@link fr.istic.domain.QuestionType} entity.
  */
 @RegisterForReflection
+@Schema(description = "A type of question defining the grading algorithm and its processing endpoints.")
 public class QuestionTypeDTO implements Serializable {
 
+    @Schema(description = "Unique identifier.")
     public Long id;
 
     @NotNull
+    @Schema(description = "Name of the grading algorithm.", required=true)
     public String algoName;
 
+    @Schema(description = "Endpoint called to grade this question type.")
     public String endpoint;
 
+    @Schema(description = "JavaScript function used to process this question type.")
     public String jsFunction;
 
 

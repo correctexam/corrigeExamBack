@@ -26,6 +26,15 @@ import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -42,6 +51,10 @@ import java.util.stream.Collectors;
 /**
  * REST controller for managing {@link fr.istic.domain.Comments}.
  */
+@Tag(
+    name = "Comments",
+    description = "Management of comments: create, update, delete, and search comments."
+)
 @Path("/api/comments")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -69,6 +82,20 @@ public class CommentsResource {
      *         the new commentsDTO, or with status {@code 400 (Bad Request)} if the
      *         comments has already an ID.
      */
+    @Operation(
+        summary = "Create a comment",
+        description = "Creates a new comment and returns the created comment."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "201",
+                description = "The created comment",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CommentsDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "The new comment cannot already have an ID")
+        }
+    )
     @POST
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response createComments(CommentsDTO commentsDTO, @Context UriInfo uriInfo) {
@@ -94,6 +121,22 @@ public class CommentsResource {
      *         or with status {@code 500 (Internal Server Error)} if the commentsDTO
      *         couldn't be updated.
      */
+    @Operation(
+        summary = "Update a comment",
+        description = "Updates an existing comment and returns the updated comment."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated comment",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CommentsDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Comment with an invalid (null) ID"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "The comment couldn't be updated")
+        }
+    )
     @PUT
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response updateComments(CommentsDTO commentsDTO, @Context SecurityContext ctx) {
@@ -118,10 +161,23 @@ public class CommentsResource {
      * @param id the id of the commentsDTO to delete.
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
+    @Operation(
+        summary = "Delete a comment",
+        description = "Deletes the comment with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "Comment deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @DELETE
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Path("/{id}")
-    public Response deleteComments(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response deleteComments(
+        @Parameter(description = "Id of the comment to delete", required = true) @PathParam("id") Long id,
+        @Context SecurityContext ctx
+    ) {
         log.debug("REST request to delete Comments : {}", id);
         if (!securityService.canAccess(ctx, id, Comments.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -142,6 +198,21 @@ public class CommentsResource {
      * @return the {@link Response} with status {@code 200 (OK)} and the list of
      *         comments in body.
      */
+    @Operation(
+        summary = "Get all comments",
+        description = "Returns a paged list of comments. Optionally filter by zonegeneratedid."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The list of comments",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = CommentsDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "Current user not found")
+        }
+    )
     @GET
     public Response getAllComments(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest,
             @Context UriInfo uriInfo, @Context SecurityContext ctx) {
@@ -185,10 +256,28 @@ public class CommentsResource {
      * @return the {@link Response} with status {@code 200 (OK)} and with body the
      *         commentsDTO, or with status {@code 404 (Not Found)}.
      */
+    @Operation(
+        summary = "Get a comment",
+        description = "Returns the comment with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The comment",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CommentsDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "404", description = "Comment not found")
+        }
+    )
     @GET
     @Path("/{id}")
 
-    public Response getComments(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response getComments(
+        @Parameter(description = "Id of the comment to retrieve", required = true) @PathParam("id") Long id,
+        @Context SecurityContext ctx
+    ) {
         log.debug("REST request to get Comments : {}", id);
         if (!securityService.canAccess(ctx, id, Comments.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -198,10 +287,26 @@ public class CommentsResource {
         return ResponseUtil.wrapOrNotFound(commentsDTO);
     }
 
+    @Operation(
+        summary = "Migrate exam sheets for an exam",
+        description = "Generates SQL statements to migrate comments for the given exam id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The generated migration SQL",
+                content = @Content(mediaType = MediaType.TEXT_PLAIN, schema = @Schema(type = SchemaType.STRING))
+            )
+        }
+    )
     @GET
     @Path("/migrate/{exId}")
     @Produces(MediaType.TEXT_PLAIN)
-    public String migrateExamSheets4ExamId(@PathParam("exId") Long exId, @Context SecurityContext ctx) {
+    public String migrateExamSheets4ExamId(
+        @Parameter(description = "Id of the exam to migrate", required = true) @PathParam("exId") Long exId,
+        @Context SecurityContext ctx
+    ) {
         log.debug("REST request to migrate Comment : {}", exId);
         List<Comments> toMigrate = Comments.findCommentByExamId("" + exId).list();
         List<ExamSheet> sheets = ExamSheet.getAll4ExamId(exId).list();

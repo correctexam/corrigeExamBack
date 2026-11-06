@@ -9,19 +9,31 @@ import java.util.Objects;
 import fr.istic.service.dto.CommentsDTO;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
+@Schema(description = "Aggregates a student answer with its note, page range and attached comments for a given question.")
 public class Answer4QuestionDTO {
 
+    @Schema(description = "Name of the student.")
     String studentName;
 
+    @Schema(description = "Note awarded for the answer.")
     Double note;
+    @Schema(description = "Whether the answer is starred.")
     boolean star = false;
+    @Schema(description = "Whether the answer is marked as a worst answer.")
     boolean worststar = false;
+    @Schema(description = "First page of the answer.")
     int pagemin = 0;
+    @Schema(description = "Last page of the answer.")
     int pagemax = 0;
+    @Schema(description = "Comments DTOs attached to the answer.")
     List<CommentsDTO> comments = new ArrayList<>();
+    @Schema(description = "Identifiers of the text comments attached to the answer.")
     List<Long> textComments = new ArrayList<>();
+    @Schema(description = "Identifiers of the graded comments attached to the answer.")
     List<Long> gradedComments = new ArrayList<>();
+    @Schema(description = "Map of hybrid graded comment identifiers to applied step values.")
     Map<Long, Integer> hybridgradedComments = new HashMap<>();
 
     public Answer4QuestionDTO() {

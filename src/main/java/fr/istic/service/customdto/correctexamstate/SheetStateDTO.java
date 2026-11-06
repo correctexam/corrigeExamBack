@@ -2,10 +2,15 @@ package fr.istic.service.customdto.correctexamstate;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
+@Schema(description = "Marking state of a sheet.")
 public class SheetStateDTO {
+    @Schema(description = "Identifier of the sheet.")
     private long id;
+    @Schema(description = "Number of answered questions.")
     private long answeredSheets;
+    @Schema(description = "Index of the first unmarked question.")
     private long firstUnmarkedQuestion;
 
     public long getId() {
