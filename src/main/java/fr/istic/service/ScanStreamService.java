@@ -2,7 +2,6 @@ package fr.istic.service;
 
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.operators.multi.processors.BroadcastProcessor;
-import io.vertx.core.json.JsonObject;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import java.io.IOException;
@@ -29,7 +28,13 @@ public class ScanStreamService {
      */
     @Incoming("scan-status-in")
     public void consumeRabbitMQ(Object status) {
-        byte[] b  =(byte[]) status;
+        byte[] b=null;
+        if (status instanceof io.vertx.core.buffer.Buffer) {
+            b = ((io.vertx.core.buffer.Buffer) status).getBytes();
+        } else if (status instanceof byte[]){
+         b  =(byte[]) status;
+        }
+        if (b != null) {
                 try {
                     ScanStatusDto dto = objectMapper.reader().readValue(b, ScanStatusDto.class);
                     System.err.println("receive " + dto.page + " "  + dto.progress+ " " +dto.status);
@@ -37,6 +42,10 @@ public class ScanStreamService {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            } else{
+                System.err.println("Unknown status type: " + status.getClass().getName());
+
+            }
 
     }
 
