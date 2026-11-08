@@ -27,6 +27,14 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +43,10 @@ import java.util.Optional;
 /**
  * REST controller for managing {@link fr.istic.domain.Scan}.
  */
+@Tag(
+    name = "Scan",
+    description = "Management of scans: create, update, delete and retrieve the scanned pages of an exam."
+)
 @Path("/api/scans")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -62,6 +74,17 @@ public class ScanResource {
      */
     @POST
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @Operation(summary = "Create a new scan", description = "Creates a new scan and returns the created scan.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "201",
+                description = "The created scan",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ScanDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "A new scan cannot already have an ID")
+        }
+    )
     public Response createScan(@Valid ScanDTOContent scanDTO, @Context UriInfo uriInfo) {
         log.debug("REST request to save Scan : {}", scanDTO);
         if (scanDTO.id != null) {
@@ -83,6 +106,18 @@ public class ScanResource {
      */
     @PUT
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @Operation(summary = "Update an existing scan", description = "Updates an existing scan and returns the updated scan.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated scan",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ScanDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Invalid scan data"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     public Response updateScan(@Valid ScanDTOContent scanDTO, @Context SecurityContext ctx) {
         log.debug("REST request to update Scan : {}", scanDTO);
         if (scanDTO.id == null) {
@@ -106,7 +141,14 @@ public class ScanResource {
     @DELETE
     @Path("/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response deleteScan(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    @Operation(summary = "Delete a scan", description = "Deletes the scan with the given ID.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "Scan deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
+    public Response deleteScan(@Parameter(description = "ID of the scan", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to delete Scan : {}", id);
         if (!securityService.canAccess(ctx, id, Scan.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -125,6 +167,16 @@ public class ScanResource {
      */
     @GET
 //    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @Operation(summary = "Get all scans", description = "Returns a paginated list of scans, optionally filtered by name.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The list of scans",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = ScanDTO.class))
+            )
+        }
+    )
     public Response getAllScans(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of Scans");
         var page = pageRequest.toPage();
@@ -160,7 +212,18 @@ public class ScanResource {
      */
     @GET
     @Path("/{id}")
-    public Response getScan(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    @Operation(summary = "Get a scan", description = "Returns the scan with the given ID.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The scan",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ScanDTO.class))
+            ),
+            @APIResponse(responseCode = "404", description = "The scan does not exist")
+        }
+    )
+    public Response getScan(@Parameter(description = "ID of the scan", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get Scan : {}", id);
         Optional<ScanDTO> scanDTO = scanService.findOne(id);
         return ResponseUtil.wrapOrNotFound(scanDTO);

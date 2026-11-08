@@ -4,15 +4,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
+@Schema(description = "A zone printed in the exported PDF.")
 public class Zonepdf {
+    @Schema(description = "Height of the zone.")
     private long height;
+    @Schema(description = "Identifier of the zone.")
     private long id;
+    @Schema(description = "Page number of the zone.")
     private long pageNumber;
+    @Schema(description = "Width of the zone.")
     private long width;
 
     @JsonProperty("xInit")
+    @Schema(description = "Initial X coordinate of the zone.")
     private long xInit;
+    @Schema(description = "Initial Y coordinate of the zone.")
     private long yInit;
 
     public long getHeight() { return height; }

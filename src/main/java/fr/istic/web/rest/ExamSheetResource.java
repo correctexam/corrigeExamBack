@@ -31,6 +31,14 @@ import jakarta.json.JsonObject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +48,10 @@ import java.util.StringTokenizer;
 /**
  * REST controller for managing {@link fr.istic.domain.ExamSheet}.
  */
+@Tag(
+    name = "ExamSheet",
+    description = "Management of exam sheets: create, update, delete, list, retrieve and annotate sheets."
+)
 @Path("/api/exam-sheets")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -67,6 +79,17 @@ public class ExamSheetResource {
      *         the new examSheetDTO, or with status {@code 400 (Bad Request)} if the
      *         examSheet has already an ID.
      */
+    @Operation(summary = "Create a new exam sheet", description = "Creates a new exam sheet and returns the created exam sheet.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "201",
+                description = "The created exam sheet",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ExamSheetDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "A new exam sheet cannot already have an ID")
+        }
+    )
     @POST
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response createExamSheet(@Valid ExamSheetDTO examSheetDTO, @Context UriInfo uriInfo) {
@@ -92,6 +115,19 @@ public class ExamSheetResource {
      *         or with status {@code 500 (Internal Server Error)} if the
      *         examSheetDTO couldn't be updated.
      */
+    @Operation(summary = "Update an exam sheet", description = "Updates an existing exam sheet and returns the updated exam sheet.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated exam sheet",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ExamSheetDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Invalid exam sheet id or validation error"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "The exam sheet could not be updated")
+        }
+    )
     @PUT
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response updateExamSheet(@Valid ExamSheetDTO examSheetDTO, @Context SecurityContext ctx) {
@@ -109,10 +145,26 @@ public class ExamSheetResource {
         return response.build();
     }
 
+    @Operation(
+        summary = "Bind students to an exam sheet",
+        description = "Updates the list of students bound to the exam sheet with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated exam sheet with its bound students",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ExamSheetDTO.class))
+            ),
+            @APIResponse(responseCode = "204", description = "No exam sheet found for this id"),
+            @APIResponse(responseCode = "400", description = "Invalid exam sheet id"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @PUT
     @Path("/boundstudents/{id}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response updateExamSheetboundstudents(@PathParam("id") Long id, List<Long> studentsId,
+    public Response updateExamSheetboundstudents(@Parameter(description = "Id of the exam sheet", required = true) @PathParam("id") Long id, List<Long> studentsId,
             @Context SecurityContext ctx) {
 
         if (id == null || id <= 0) {
@@ -138,11 +190,27 @@ public class ExamSheetResource {
         }
     }
 
+    @Operation(
+        summary = "Toggle teacher comments on sheets",
+        description = "Toggles the teacher comment with the given comment id on the given sheets of an exam."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated student responses",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = StudentResponseDTO.class))
+            ),
+            @APIResponse(responseCode = "204", description = "No student response updated"),
+            @APIResponse(responseCode = "400", description = "Invalid comment id"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @PUT
     @Path("/toggletcomments/{examid}/{commentid}/{numero}/{checked}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response toggleTcomments(@PathParam("examid") Long examid, @PathParam("commentid") Long commentid,
-            @PathParam("numero") int numero, @PathParam("checked") boolean checked, List<Long> sheetsId,
+    public Response toggleTcomments(@Parameter(description = "Id of the exam", required = true) @PathParam("examid") Long examid, @Parameter(description = "Id of the comment", required = true) @PathParam("commentid") Long commentid,
+            @Parameter(description = "Question numero", required = true) @PathParam("numero") int numero, @Parameter(description = "Whether the comment is checked", required = true) @PathParam("checked") boolean checked, List<Long> sheetsId,
             @Context SecurityContext ctx) {
 
         if (ctx.getUserPrincipal().getName() != null) {
@@ -188,11 +256,27 @@ public class ExamSheetResource {
         }
     }
 
+    @Operation(
+        summary = "Toggle global comments on sheets",
+        description = "Toggles the global comment with the given comment id on the given sheets of an exam."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated student responses",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = StudentResponseDTO.class))
+            ),
+            @APIResponse(responseCode = "204", description = "No student response updated"),
+            @APIResponse(responseCode = "400", description = "Invalid comment id"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @PUT
     @Path("/togglegcomments/{examid}/{commentid}/{numero}/{checked}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response toggleGcomments(@PathParam("examid") Long examid, @PathParam("commentid") Long commentid,
-            @PathParam("numero") int numero, @PathParam("checked") boolean checked, List<Long> sheetsId,
+    public Response toggleGcomments(@Parameter(description = "Id of the exam", required = true) @PathParam("examid") Long examid, @Parameter(description = "Id of the comment", required = true) @PathParam("commentid") Long commentid,
+            @Parameter(description = "Question numero", required = true) @PathParam("numero") int numero, @Parameter(description = "Whether the comment is checked", required = true) @PathParam("checked") boolean checked, List<Long> sheetsId,
             @Context SecurityContext ctx) {
 
         if (ctx.getUserPrincipal().getName() != null) {
@@ -238,11 +322,27 @@ public class ExamSheetResource {
         }
     }
 
+    @Operation(
+        summary = "Toggle helper comments on sheets",
+        description = "Toggles the helper comment with the given comment id on the given sheets of an exam."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated student responses",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = StudentResponseDTO.class))
+            ),
+            @APIResponse(responseCode = "204", description = "No student response updated"),
+            @APIResponse(responseCode = "400", description = "Invalid comment id"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @PUT
     @Path("/togglehcomments/{examid}/{commentid}/{numero}/{step}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response toggleHcomments(@PathParam("examid") Long examid, @PathParam("commentid") Long commentid,
-            @PathParam("numero") int numero, @PathParam("step") int step, List<Long> sheetsId,
+    public Response toggleHcomments(@Parameter(description = "Id of the exam", required = true) @PathParam("examid") Long examid, @Parameter(description = "Id of the comment", required = true) @PathParam("commentid") Long commentid,
+            @Parameter(description = "Question numero", required = true) @PathParam("numero") int numero, @Parameter(description = "Grading step", required = true) @PathParam("step") int step, List<Long> sheetsId,
             @Context SecurityContext ctx) {
 
         if (ctx.getUserPrincipal().getName() != null) {
@@ -289,11 +389,27 @@ public class ExamSheetResource {
     }
 
 
+    @Operation(
+        summary = "Update notes on sheets",
+        description = "Updates the notes of the given sheets of an exam at the given question numero and grading step."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated student responses",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = StudentResponseDTO.class))
+            ),
+            @APIResponse(responseCode = "204", description = "No student response updated"),
+            @APIResponse(responseCode = "400", description = "Invalid exam id"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @PUT
     @Path("/updatenotes/{examid}/{numero}/{step}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response updateNotes(@PathParam("examid") Long examid,
-            @PathParam("numero") int numero, @PathParam("step") int step, List<Long> sheetsId,
+    public Response updateNotes(@Parameter(description = "Id of the exam", required = true) @PathParam("examid") Long examid,
+            @Parameter(description = "Question numero", required = true) @PathParam("numero") int numero, @Parameter(description = "Grading step", required = true) @PathParam("step") int step, List<Long> sheetsId,
             @Context SecurityContext ctx) {
 
         if (ctx.getUserPrincipal().getName() != null) {
@@ -346,10 +462,17 @@ public class ExamSheetResource {
      * @param id the id of the examSheetDTO to delete.
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
+    @Operation(summary = "Delete an exam sheet", description = "Deletes the exam sheet with the given id.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "The exam sheet has been deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @DELETE
     @Path("/{id}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response deleteExamSheet(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response deleteExamSheet(@Parameter(description = "Id of the exam sheet to delete", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to delete ExamSheet : {}", id);
         if (!securityService.canAccess(ctx, id, ExamSheet.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -370,6 +493,20 @@ public class ExamSheetResource {
      * @return the {@link Response} with status {@code 200 (OK)} and the list of
      *         examSheets in body.
      */
+    @Operation(
+        summary = "Get all exam sheets",
+        description = "Returns a page of exam sheets, optionally filtered by name, scanId, examId or page range."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The page of exam sheets",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = ExamSheetDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     public Response getAllExamSheets(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest,
             @Context UriInfo uriInfo, @Context SecurityContext ctx) {
@@ -478,10 +615,22 @@ public class ExamSheetResource {
      * @return the {@link Response} with status {@code 200 (OK)} and with body the
      *         examSheetDTO, or with status {@code 404 (Not Found)}.
      */
+    @Operation(summary = "Get the exam sheet by id", description = "Gets the exam sheet with the given id.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The requested exam sheet",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ExamSheetDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "404", description = "No exam sheet found for this id")
+        }
+    )
     @GET
     @Path("/{id}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getExamSheet(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response getExamSheet(@Parameter(description = "Id of the exam sheet to retrieve", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get ExamSheet : {}", id);
         if (!securityService.canAccess(ctx, id, ExamSheet.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();

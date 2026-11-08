@@ -331,6 +331,8 @@ CREATE TABLE `question_type` (
   `js_function` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+INSERT INTO question_type (algo_name, endpoint, js_function) VALUES ('manual', '', '');
+INSERT INTO question_type (algo_name, endpoint, js_function) VALUES ('QCM', '', '');
 INSERT INTO question_type (algo_name, endpoint, js_function) VALUES ('manuscrit', '', '');
 
 -- --------------------------------------------------------

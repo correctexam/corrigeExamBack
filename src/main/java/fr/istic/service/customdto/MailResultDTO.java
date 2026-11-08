@@ -2,13 +2,21 @@ package fr.istic.service.customdto;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
+@Schema(description = "Content and options used to prepare the result email sent to a student.")
 public class MailResultDTO {
+    @Schema(description = "Subject of the email.")
     private String subject;
+    @Schema(description = "Body of the email.")
     private String body;
+    @Schema(description = "Whether the email includes the correction quality report.")
     private boolean mailabi;
+    @Schema(description = "Whether the email includes the marked PDF.")
     private boolean mailpdf;
+    @Schema(description = "Body of the correction quality report section.")
     private String bodyabi;
+    @Schema(description = "Unique identifier of the associated exam sheet.")
     private String sheetuuid;
 
 

@@ -5,9 +5,13 @@ import io.quarkus.panache.common.Sort;
 import jakarta.ws.rs.QueryParam;
 import java.util.List;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+@Schema(description = "Sorting parameters for a listing request.")
+
 public class SortRequestVM {
 
     @QueryParam("sort")
+    @Schema(description = "List of sort expressions, each 'column[,asc|desc]'.")
     public List<String> sort;
 
     public Sort toSort() {

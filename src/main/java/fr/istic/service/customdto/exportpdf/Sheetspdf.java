@@ -4,15 +4,25 @@ import java.util.List;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
 
+@Schema(description = "An exam sheet printed in the exported PDF.")
+
 public class Sheetspdf {
+    @Schema(description = "Identifier of the sheet.")
     private long id;
+    @Schema(description = "Name of the sheet.")
     private String name;
+    @Schema(description = "Final result of the sheet.")
     private double finalresult;
+    @Schema(description = "Last page of the sheet.")
     private long pagemax;
+    @Schema(description = "First page of the sheet.")
     private long pagemin;
+    @Schema(description = "Students of the sheet.")
     private List<Studentpdf> studentpdf;
+    @Schema(description = "Student responses of the sheet.")
     private List<StudentResponsepdf> studentResponsepdf;
 
     public long getID() { return id; }

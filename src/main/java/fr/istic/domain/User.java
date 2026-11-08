@@ -13,7 +13,6 @@ import java.util.Optional;
 import java.util.Set;
 import jakarta.persistence.*;
 import org.hibernate.annotations.BatchSize;
-import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -45,7 +44,7 @@ public class User extends PanacheEntityBase implements Serializable {
     @NotNull
     @Size(min = 60, max = 60)
     @Column(name = "password_hash", length = 60, nullable = false)
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public String password;
 
     @Size(max = 50)
@@ -75,12 +74,12 @@ public class User extends PanacheEntityBase implements Serializable {
 
     @Size(max = 20)
     @Column(name = "activation_key", length = 20)
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public String activationKey;
 
     @Size(max = 20)
     @Column(name = "reset_key", length = 20)
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public String resetKey;
 
     @Column(name = "reset_date")
@@ -94,28 +93,28 @@ public class User extends PanacheEntityBase implements Serializable {
     )
     @Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
     @BatchSize(size = 20)
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Set<Authority> authorities = new HashSet<>();
 
     //To move to an audit mechanism
     //    @CreatedBy
     @Column(name = "created_by", nullable = false, length = 50, updatable = false)
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public String createdBy = "";
 
     //    @CreatedDate
     @Column(name = "created_date", updatable = false)
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Instant createdDate = Instant.now();
 
     //    @LastModifiedBy
     @Column(name = "last_modified_by", length = 50)
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public String lastModifiedBy = "";
 
     //    @LastModifiedDate
     @Column(name = "last_modified_date")
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Instant lastModifiedDate = Instant.now();
 
     @Override

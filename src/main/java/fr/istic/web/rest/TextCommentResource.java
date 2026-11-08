@@ -25,6 +25,15 @@ import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -38,6 +47,10 @@ import java.util.Optional;
 /**
  * REST controller for managing {@link fr.istic.domain.TextComment}.
  */
+@Tag(
+    name = "TextComment",
+    description = "Management of text comments: create, update, delete, and search text comments."
+)
 @Path("/api/text-comments")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -63,6 +76,20 @@ public class TextCommentResource {
      * @param textCommentDTO the textCommentDTO to create.
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new textCommentDTO, or with status {@code 400 (Bad Request)} if the textComment has already an ID.
      */
+    @Operation(
+        summary = "Create a text comment",
+        description = "Creates a new text comment and returns the created text comment."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "201",
+                description = "The created text comment",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TextCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "The new text comment cannot already have an ID")
+        }
+    )
     @POST
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createTextComment(TextCommentDTO textCommentDTO, @Context UriInfo uriInfo) {
@@ -84,6 +111,22 @@ public class TextCommentResource {
      * or with status {@code 400 (Bad Request)} if the textCommentDTO is not valid,
      * or with status {@code 500 (Internal Server Error)} if the textCommentDTO couldn't be updated.
      */
+    @Operation(
+        summary = "Update a text comment",
+        description = "Updates an existing text comment and returns the updated text comment."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated text comment",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TextCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Text comment with an invalid (null) ID"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "The text comment couldn't be updated")
+        }
+    )
     @PUT
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateTextComment(TextCommentDTO textCommentDTO, @Context SecurityContext ctx) {
@@ -106,10 +149,23 @@ public class TextCommentResource {
      * @param id the id of the textCommentDTO to delete.
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
+    @Operation(
+        summary = "Delete a text comment",
+        description = "Deletes the text comment with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "Text comment deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @DELETE
     @Path("/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response deleteTextComment(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response deleteTextComment(
+        @Parameter(description = "Id of the text comment to delete", required = true) @PathParam("id") Long id,
+        @Context SecurityContext ctx
+    ) {
         log.debug("REST request to delete TextComment : {}", id);
         if (!securityService.canAccess(ctx, id, TextComment.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -126,6 +182,21 @@ public class TextCommentResource {
      * @param pageRequest the pagination information.
      * @return the {@link Response} with status {@code 200 (OK)} and the list of textComments in body.
      */
+    @Operation(
+        summary = "Get all text comments",
+        description = "Returns a paged list of text comments. Optionally filter by questionId."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The list of text comments",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = TextCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "Current user not found")
+        }
+    )
     @GET
     public Response getAllTextComments(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of TextComments");
@@ -172,10 +243,28 @@ public class TextCommentResource {
      * @param id the id of the textCommentDTO to retrieve.
      * @return the {@link Response} with status {@code 200 (OK)} and with body the textCommentDTO, or with status {@code 404 (Not Found)}.
      */
+    @Operation(
+        summary = "Get a text comment",
+        description = "Returns the text comment with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The text comment",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = TextCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "404", description = "Text comment not found")
+        }
+    )
     @GET
     @Path("/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response getTextComment(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response getTextComment(
+        @Parameter(description = "Id of the text comment to retrieve", required = true) @PathParam("id") Long id,
+        @Context SecurityContext ctx
+    ) {
         log.debug("REST request to get TextComment : {}", id);
         if (!securityService.canAccess(ctx, id, TextComment.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -185,10 +274,27 @@ public class TextCommentResource {
     }
 
 
+    @Operation(
+        summary = "Count usages of a text comment",
+        description = "Returns the number of student responses using the text comment with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The number of usages",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.INTEGER, format = "int64"))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @Path("/countHowManyUse/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response getUsedOfGradedComment(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response getUsedOfGradedComment(
+        @Parameter(description = "Id of the text comment to count usages of", required = true) @PathParam("id") Long id,
+        @Context SecurityContext ctx
+    ) {
         log.debug("REST request to get count textcommentUse : {}", id);
         if (!securityService.canAccess(ctx, id, TextComment.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();

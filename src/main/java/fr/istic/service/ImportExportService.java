@@ -1,5 +1,6 @@
 package fr.istic.service;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -7,6 +8,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,8 +23,9 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.MultivaluedMap;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.resteasy.plugins.providers.multipart.InputPart;
-import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.server.multipart.FormValue;
+import org.jboss.resteasy.reactive.server.multipart.MultipartFormDataInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1506,20 +1509,11 @@ public class ImportExportService {
     }
 
     @Transactional
-    public CourseDTO importCourse(MultipartFormDataInput input, User user, boolean includeStudentData) {
-        Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
+    public CourseDTO importCourse(@RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file, User user, boolean includeStudentData) {
+    try{
 
-        List<String> fileNames = new ArrayList<>();
-        List<InputPart> inputParts = uploadForm.get("file");
-        String fileName = null;
-        for (InputPart inputPart : inputParts) {
-            MultivaluedMap<String, String> header = inputPart.getHeaders();
-            fileName = getFileName(header);
-            fileNames.add(fileName);
-            InputStream inputStream;
-            try {
-                inputStream = inputPart.getBody(InputStream.class, null);
-                JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
+            FileInputStream inputStream = new FileInputStream(file.uploadedFile().toFile());
+        JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
                 JsonElement jelement = JsonParser.parseReader(reader);
                 Course c = this.importCourse(jelement.getAsJsonObject(), user, includeStudentData);
 
@@ -1527,7 +1521,6 @@ public class ImportExportService {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
         return null;
     }
 

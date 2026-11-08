@@ -31,6 +31,14 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +47,10 @@ import java.util.Optional;
 /**
  * REST controller for managing {@link fr.istic.domain.Prediction}.
  */
+@Tag(
+    name = "Prediction",
+    description = "Management of grading predictions: create, update, delete, list, retrieve and filter predictions."
+)
 @Path("/api/predictions")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -64,6 +76,17 @@ public class PredictionResource {
      * @param predictionDTO the predictionDTO to create.
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new predictionDTO, or with status {@code 400 (Bad Request)} if the prediction already has an ID.
      */
+    @Operation(summary = "Create a new prediction", description = "Creates a new prediction and returns the created prediction.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "201",
+                description = "The created prediction",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PredictionDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "A new prediction cannot already have an ID")
+        }
+    )
     @POST
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createPrediction(PredictionDTO predictionDTO, @Context UriInfo uriInfo) {
@@ -77,6 +100,20 @@ public class PredictionResource {
         return response.build();
     }
 
+    @Operation(
+        summary = "Find predictions without a student response",
+        description = "Returns the subset of the provided prediction ids that have no associated student response."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The prediction ids without student response",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PredictionsIdsDto.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Please provide a list of prediction ids")
+        }
+    )
     @POST
     @Path("/findPredictionWithoutStudentResponse")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
@@ -99,6 +136,19 @@ public class PredictionResource {
      * or with status {@code 400 (Bad Request)} if the predictionDTO is not valid,
      * or with status {@code 500 (Internal Server Error)} if the predictionDTO couldn't be updated.
      */
+    @Operation(summary = "Update a prediction", description = "Updates an existing prediction and returns the updated prediction.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated prediction",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PredictionDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Invalid prediction id or validation error"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "The prediction could not be updated")
+        }
+    )
     @PUT
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updatePrediction(PredictionDTO predictionDTO, @Context SecurityContext ctx) {
@@ -121,10 +171,18 @@ public class PredictionResource {
      * @param id the id of the predictionDTO to delete.
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
+    @Operation(summary = "Delete a prediction", description = "Deletes the prediction with the given id.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "The prediction has been deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "The prediction could not be deleted")
+        }
+    )
     @DELETE
     @Path("/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response deletePrediction(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response deletePrediction(@Parameter(description = "Id of the prediction to delete", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to delete Prediction : {}", id);
         try {
             // Security check
@@ -156,10 +214,21 @@ public class PredictionResource {
      * @param id the questionId of the question associated to prediction to delete.
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
+    @Operation(
+        summary = "Delete the predictions of a question",
+        description = "Deletes the predictions associated to the question with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "The predictions have been deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "The predictions could not be deleted")
+        }
+    )
     @DELETE
     @Path("/question/{questionId}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response deletePredictionByQuestionId(@PathParam("questionId") Long id, @Context SecurityContext ctx) {
+    public Response deletePredictionByQuestionId(@Parameter(description = "Id of the question whose predictions should be deleted", required = true) @PathParam("questionId") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to delete Prediction : {}", id);
         try {
             // Security check
@@ -191,6 +260,20 @@ public class PredictionResource {
      * @param pageRequest the pagination information.
      * @return the {@link Response} with status {@code 200 (OK)} and the list of predictions in body.
      */
+    @Operation(
+        summary = "Get all predictions",
+        description = "Returns a page of predictions, optionally filtered by questionId."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The page of predictions",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = PredictionDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response getAllPredictions(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
@@ -231,10 +314,22 @@ public class PredictionResource {
      * @param id the id of the predictionDTO to retrieve.
      * @return the {@link Response} with status {@code 200 (OK)} and with body the predictionDTO, or with status {@code 404 (Not Found)}.
      */
+    @Operation(summary = "Get the prediction by id", description = "Gets the prediction with the given id.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The requested prediction",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PredictionDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "404", description = "No prediction found for this id")
+        }
+    )
     @GET
     @Path("/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response getPrediction(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response getPrediction(@Parameter(description = "Id of the prediction to retrieve", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get Prediction : {}", id);
         if (!securityService.canAccess(ctx, id, Prediction.class)) {
             return Response.status(403, "Current user cannot access to this resource").build();

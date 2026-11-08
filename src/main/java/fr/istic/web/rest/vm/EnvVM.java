@@ -5,9 +5,13 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
+@Schema(description = "Environment properties exposed by the /management/env endpoint.")
 public class EnvVM {
+  @Schema(description = "List of active application profiles.")
   public final Collection<String> activeProfiles;
+  @Schema(description = "List of property sources with their properties.")
   public final Collection<PropertySource> propertySources;
 
   public EnvVM(Collection<String> activeProfiles, Collection<PropertySource> propertySources) {
@@ -16,8 +20,11 @@ public class EnvVM {
   }
 
   @RegisterForReflection
+  @Schema(description = "A named source of environment properties.")
   public static class PropertySource {
+    @Schema(description = "Name of the property source.")
     public final String name;
+    @Schema(description = "Map of property names to their property values.")
     public final Map<String, PropertyValue> properties;
 
     public PropertySource(String name, Map<String, String> properties) {
@@ -26,7 +33,9 @@ public class EnvVM {
     }
 
     @RegisterForReflection
+    @Schema(description = "Value of a single environment property.")
     public static class PropertyValue {
+      @Schema(description = "Value of the property; sensitive values are obfuscated.")
       public final String value;
 
       public PropertyValue(Map.Entry<String, String> entry) {

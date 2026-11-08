@@ -14,6 +14,8 @@ import fr.istic.web.rest.vm.KeyAndPasswordVM;
 import fr.istic.web.rest.vm.ManagedUserVM;
 
 import io.quarkus.security.Authenticated;
+import io.smallrye.common.annotation.Blocking;
+
 import java.security.Principal;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
@@ -26,12 +28,24 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * REST controller for managing the current user's account.
  */
+@Tag(
+    name = "Account",
+    description = "Management of the current user's account: get, update, register, activate, password reset."
+)
 @Path("/api")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -62,6 +76,18 @@ public class AccountResource {
      * @return the current user.
      * @throws RuntimeException {@code 500 (Internal Server Error)} if the user couldn't be returned.
      */
+    @Operation(summary = "Get the current user", description = "Returns the information of the authenticated user's account.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The current user",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = UserDTO.class))
+            ),
+            @APIResponse(responseCode = "401", description = "User not authenticated"),
+            @APIResponse(responseCode = "500", description = "Could not retrieve the current user")
+        }
+    )
     @GET
     @Path("/account")
     @Authenticated
@@ -79,6 +105,18 @@ public class AccountResource {
      * @throws EmailAlreadyUsedException {@code 400 (Bad Request)} if the email is already used.
      * @throws RuntimeException          {@code 500 (Internal Server Error)} if the user login wasn't found.
      */
+    @Operation(
+        summary = "Update the current user",
+        description = "Updates the information (first name, last name, email, language, image) of the current user."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Information updated"),
+            @APIResponse(responseCode = "400", description = "Email already used by another account"),
+            @APIResponse(responseCode = "401", description = "User not authenticated"),
+            @APIResponse(responseCode = "500", description = "Current user not found")
+        }
+    )
     @POST
     @Path("/account")
     public Response saveAccount(@Valid UserDTO userDTO, @Context SecurityContext ctx) {
@@ -105,8 +143,16 @@ public class AccountResource {
      * @throws EmailAlreadyUsedException {@code 400 (Bad Request)} if the email is already used.
      * @throws LoginAlreadyUsedException {@code 400 (Bad Request)} if the login is already used.
      */
+    @Operation(summary = "Register a new user", description = "Creates a new user account and sends an activation email.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "201", description = "Account created, activation email sent"),
+            @APIResponse(responseCode = "400", description = "Invalid password, or email/login already in use")
+        }
+    )
     @POST
     @Path("/register")
+    @Blocking
     @PermitAll
     public CompletionStage<Response> registerAccount(@Valid ManagedUserVM managedUserVM) {
         if (!checkPasswordLength(managedUserVM.password)) {
@@ -128,10 +174,22 @@ public class AccountResource {
      * @param key the activation key.
      * @throws RuntimeException {@code 500 (Internal Server Error)} if the user couldn't be activated.
      */
+    @Operation(
+        summary = "Activate a registered user",
+        description = "Activates the user account from the activation key received by email."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Account activated"),
+            @APIResponse(responseCode = "500", description = "No user found for this activation key")
+        }
+    )
     @GET
     @Path("/activate")
     @PermitAll
-    public void activateAccount(@QueryParam(value = "key") String key) {
+    public void activateAccount(
+        @Parameter(description = "Activation key sent by email", required = true) @QueryParam(value = "key") String key
+    ) {
         var user = userService.activateRegistration(key);
         if (!user.isPresent()) {
             throw new AccountResourceException("No user was found for this activation key");
@@ -144,6 +202,19 @@ public class AccountResource {
      * @param ctx the request security context.
      * @return the login if the user is authenticated.
      */
+    @Operation(
+        summary = "Check authentication",
+        description = "Indicates whether the user is authenticated and returns their login (empty string otherwise)."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "Login of the authenticated user (or empty string)",
+                content = @Content(mediaType = MediaType.TEXT_PLAIN, schema = @Schema(type = SchemaType.STRING))
+            )
+        }
+    )
     @GET
     @Path("/authenticate")
     @PermitAll
@@ -159,6 +230,17 @@ public class AccountResource {
      * @param passwordChangeDto current and new password.
      * @throws InvalidPasswordException {@code 400 (Bad Request)} if the new password is incorrect.
      */
+    @Operation(
+        summary = "Change the current user's password",
+        description = "Changes the current user's password (current and new password)."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Password changed"),
+            @APIResponse(responseCode = "400", description = "Invalid new password"),
+            @APIResponse(responseCode = "401", description = "User not authenticated")
+        }
+    )
     @POST
     @Path("/account/change-password")
     public Response changePassword(PasswordChangeDTO passwordChangeDto, @Context SecurityContext ctx) {
@@ -178,6 +260,13 @@ public class AccountResource {
      * @param mail the mail of the user.
      * @throws EmailNotFoundException {@code 400 (Bad Request)} if the email address is not registered.
      */
+    @Operation(summary = "Request a password reset", description = "Sends a password reset email to the provided address.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Reset email sent"),
+            @APIResponse(responseCode = "400", description = "No account associated with this email")
+        }
+    )
     @POST
     @Path("/account/reset-password/init")
     @Consumes(MediaType.TEXT_PLAIN)
@@ -193,6 +282,17 @@ public class AccountResource {
      * @throws InvalidPasswordException {@code 400 (Bad Request)} if the password is incorrect.
      * @throws RuntimeException         {@code 500 (Internal Server Error)} if the password could not be reset.
      */
+    @Operation(
+        summary = "Finish a password reset",
+        description = "Completes the password reset from the received key and the new password."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Password reset"),
+            @APIResponse(responseCode = "400", description = "Invalid password or wrong key"),
+            @APIResponse(responseCode = "500", description = "No user found for this reset key")
+        }
+    )
     @POST
     @Path("/account/reset-password/finish")
     public Response finishPasswordReset(KeyAndPasswordVM keyAndPassword) {

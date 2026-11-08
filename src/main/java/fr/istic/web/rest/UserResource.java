@@ -30,6 +30,14 @@ import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +65,10 @@ import org.slf4j.LoggerFactory;
  * <p>
  * Another option would be to have a specific JPA entity graph to handle this case.
  */
+@Tag(
+    name = "User",
+    description = "Management of users: create, update, delete, and retrieve users by login."
+)
 @Path("/api/users")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -94,6 +106,17 @@ public class UserResource {
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new user, or with status {@code 400 (Bad Request)} if the login or email is already in use.
      * @throws BadRequestAlertException {@code 400 (Bad Request)} if the login or email is already in use.
      */
+    @Operation(summary = "Create a new user", description = "Creates a new user if the login and email are not already used, and sends an activation email. Requires the admin role.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "201",
+                description = "The new user",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = UserDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Invalid input, or login/email already in use")
+        }
+    )
     @POST
     @RolesAllowed(AuthoritiesConstants.ADMIN)
     public Response createUser(@Valid UserDTO userDTO) {
@@ -123,6 +146,18 @@ public class UserResource {
      * @throws EmailAlreadyUsedException {@code 400 (Bad Request)} if the email is already in use.
      * @throws LoginAlreadyUsedException {@code 400 (Bad Request)} if the login is already in use.
      */
+    @Operation(summary = "Update an existing user", description = "Updates an existing user if the login and email are not already used. Requires the admin role.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated user",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = UserDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Invalid input, or login/email already in use"),
+            @APIResponse(responseCode = "404", description = "User not found")
+        }
+    )
     @PUT
     @RolesAllowed(AuthoritiesConstants.ADMIN)
     public Response updateUser(@Valid UserDTO userDTO) {
@@ -145,10 +180,17 @@ public class UserResource {
      * @param login the login of the user to delete.
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
+    @Operation(summary = "Delete a user", description = "Deletes the user with the given login. Requires the admin role.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "User deleted"),
+            @APIResponse(responseCode = "404", description = "User not found")
+        }
+    )
     @DELETE
     @Path("/{login}")
     @RolesAllowed(AuthoritiesConstants.ADMIN)
-    public Response deleteUser(@PathParam("login") String login) {
+    public Response deleteUser(@Parameter(description = "Login of the user to delete", required = true) @PathParam("login") String login) {
         log.debug("REST request to delete User: {}", login);
         userService.deleteUser(login);
         Response.ResponseBuilder response = Response.noContent();
@@ -162,6 +204,17 @@ public class UserResource {
      * @param pagination the pagination information.
      * @return the {@link Response} with status {@code 200 (OK)} and with body all users.
      */
+    @Operation(summary = "Get all users", description = "Returns a page of all managed users with pagination and sorting.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "A page of users",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = UserDTO.class))
+            ),
+            @APIResponse(responseCode = "401", description = "User not authenticated")
+        }
+    )
     @GET
     public Response getAllUsers(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         // final List<UserDTO> page = userService.getAllManagedUsers();
@@ -185,6 +238,17 @@ public class UserResource {
      *
      * @return a string list of all roles.
      */
+    @Operation(summary = "Get all authorities", description = "Returns a list of all authorities (roles). Requires the admin role.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The list of authorities",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = String.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Admin role required")
+        }
+    )
     @GET
     @Path("/authorities")
     @RolesAllowed("ROLE_ADMIN")
@@ -198,10 +262,21 @@ public class UserResource {
      * @param login the login of the user to find.
      * @return the {@link Response} with status {@code 200 (OK)} and with body the "login" user, or with status {@code 404 (Not Found)}.
      */
+    @Operation(summary = "Get a user by login", description = "Returns the user with the given login, or a 404 if not found.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The user",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = UserDTO.class))
+            ),
+            @APIResponse(responseCode = "404", description = "User not found")
+        }
+    )
     @GET
     //    @Path("/{login : " + Constants.LOGIN_REGEX + "}")
     @Path("/{login}")
-    public Response getUser(@PathParam("login") String login) {
+    public Response getUser(@Parameter(description = "Login of the user to retrieve", required = true) @PathParam("login") String login) {
         log.debug("REST request to get User : {}", login);
         return ResponseUtil.wrapOrNotFound(userService.getUserWithAuthoritiesByLogin(login).map(UserDTO::new));
     }

@@ -13,46 +13,61 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 /**
  * A DTO representing a user, with his authorities.
  */
 @RegisterForReflection
+@Schema(description = "User account with its authorities.")
 public class UserDTO implements Serializable {
 
+    @Schema(description = "Technical identifier of the user.")
     public Long id;
 
     @NotBlank
     @Pattern(regexp = Constants.LOGIN_REGEX)
     @Size(min = 1, max = 50)
+    @Schema(description = "Login of the user (1-50 chars, alphanumeric).", required = true, minLength = 1, maxLength = 50)
     public String login;
 
     @Size(max = 50)
+    @Schema(description = "First name of the user.", maxLength = 50)
     public String firstName;
 
     @Size(max = 50)
+    @Schema(description = "Last name of the user.", maxLength = 50)
     public String lastName;
 
     @Email
     @Size(min = 5, max = 254)
+    @Schema(description = "Email address of the user.", required = true, minLength = 5, maxLength = 254)
     public String email;
 
     @Size(max = 256)
+    @Schema(description = "URL of the user's profile image.", maxLength = 256)
     public String imageUrl;
 
+    @Schema(description = "Whether the user account is activated.", defaultValue = "false")
     public boolean activated = false;
 
     @Size(min = 2, max = 10)
+    @Schema(description = "Locale key of the user (e.g. 'en', 'fr').", minLength = 2, maxLength = 10)
     public String langKey;
 
+    @Schema(description = "Login of the creator of the account.")
     public String createdBy;
 
+    @Schema(description = "Account creation date.")
     public Instant createdDate;
 
+    @Schema(description = "Login of the last modifier of the account.")
     public String lastModifiedBy;
 
+    @Schema(description = "Last modification date.")
     public Instant lastModifiedDate;
 
+    @Schema(description = "Set of authorities (roles) of the user.")
     public Set<String> authorities;
 
     public UserDTO() {

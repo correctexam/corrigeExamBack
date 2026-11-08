@@ -4,16 +4,25 @@ import java.util.List;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
+@Schema(description = "Marking state of a question.")
 public class QuestionStateDTO {
+    @Schema(description = "Identifier of the question.")
     private long id;
+    @Schema(description = "Number of the question.")
     private long numero;
+    @Schema(description = "Label of the question.")
     private String libelle;
 
 
+    @Schema(description = "Number of answered sheets.")
     private long answeredSheets;
+    @Schema(description = "Index of the first unmarked sheet.")
     private long firstUnmarkedSheet;
+    @Schema(description = "Indices of the unmarked sheets.")
     private List<Integer> unmarkedSheetIndex;
+    @Schema(description = "Whether horizontal answers are corrected in random order.")
     private boolean randomHorizontalCorrection;
 
 

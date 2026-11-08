@@ -54,9 +54,8 @@ public class FichierS3Service {
                 // Make a new bucket called 'asiatrip'.
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
             }
-        } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
-                | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
-                | IllegalArgumentException | IOException e) {
+        } catch (MinioException
+                | IllegalArgumentException  e) {
             e.printStackTrace();
         }
     }
@@ -173,7 +172,7 @@ public class FichierS3Service {
                         PutObjectArgs.builder()
                                 .bucket(bucketName)
                                 .object(name).stream(
-                                        new ByteArrayInputStream(bytes), size, -1)
+                                        new ByteArrayInputStream(bytes), size, Long.valueOf(-1))
                                 .contentType(contenttype)
                                 .build());
             } catch (MinioException e) {
@@ -190,7 +189,12 @@ public class FichierS3Service {
 
         } else {
 
-            this.minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketName).object(name).build());
+            try {
+                this.minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketName).object(name).build());
+            } catch (MinioException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
 
     }

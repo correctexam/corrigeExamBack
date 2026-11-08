@@ -24,6 +24,15 @@ import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -37,6 +46,10 @@ import java.util.Optional;
 /**
  * REST controller for managing {@link fr.istic.domain.GradedComment}.
  */
+@Tag(
+    name = "GradedComment",
+    description = "Management of graded comments: create, update, delete, and search graded comments."
+)
 @Path("/api/graded-comments")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -63,6 +76,20 @@ public class GradedCommentResource {
      * @param gradedCommentDTO the gradedCommentDTO to create.
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new gradedCommentDTO, or with status {@code 400 (Bad Request)} if the gradedComment has already an ID.
      */
+    @Operation(
+        summary = "Create a graded comment",
+        description = "Creates a new graded comment and returns the created graded comment."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "201",
+                description = "The created graded comment",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = GradedCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "The new graded comment cannot already have an ID")
+        }
+    )
     @POST
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createGradedComment(GradedCommentDTO gradedCommentDTO, @Context UriInfo uriInfo) {
@@ -84,6 +111,22 @@ public class GradedCommentResource {
      * or with status {@code 400 (Bad Request)} if the gradedCommentDTO is not valid,
      * or with status {@code 500 (Internal Server Error)} if the gradedCommentDTO couldn't be updated.
      */
+    @Operation(
+        summary = "Update a graded comment",
+        description = "Updates an existing graded comment and returns the updated graded comment."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated graded comment",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = GradedCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Graded comment with an invalid (null) ID"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "The graded comment couldn't be updated")
+        }
+    )
     @PUT
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateGradedComment(GradedCommentDTO gradedCommentDTO, @Context SecurityContext ctx) {
@@ -106,10 +149,23 @@ public class GradedCommentResource {
      * @param id the id of the gradedCommentDTO to delete.
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
+    @Operation(
+        summary = "Delete a graded comment",
+        description = "Deletes the graded comment with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "Graded comment deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @DELETE
     @Path("/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response deleteGradedComment(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response deleteGradedComment(
+        @Parameter(description = "Id of the graded comment to delete", required = true) @PathParam("id") Long id,
+        @Context SecurityContext ctx
+    ) {
         log.debug("REST request to delete GradedComment : {}", id);
         if (!securityService.canAccess(ctx, id, GradedComment.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -126,6 +182,21 @@ public class GradedCommentResource {
      * @param pageRequest the pagination information.
      * @return the {@link Response} with status {@code 200 (OK)} and the list of gradedComments in body.
      */
+    @Operation(
+        summary = "Get all graded comments",
+        description = "Returns a paged list of graded comments. Optionally filter by questionId."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The list of graded comments",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = GradedCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "Current user not found")
+        }
+    )
     @GET
     public Response getAllGradedComments(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of GradedComments");
@@ -174,10 +245,28 @@ public class GradedCommentResource {
      * @param id the id of the gradedCommentDTO to retrieve.
      * @return the {@link Response} with status {@code 200 (OK)} and with body the gradedCommentDTO, or with status {@code 404 (Not Found)}.
      */
+    @Operation(
+        summary = "Get a graded comment",
+        description = "Returns the graded comment with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The graded comment",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = GradedCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "404", description = "Graded comment not found")
+        }
+    )
     @GET
     @Path("/{id}")
 
-    public Response getGradedComment(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response getGradedComment(
+        @Parameter(description = "Id of the graded comment to retrieve", required = true) @PathParam("id") Long id,
+        @Context SecurityContext ctx
+    ) {
         log.debug("REST request to get GradedComment : {}", id);
         if (!securityService.canAccess(ctx, id, GradedComment.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -187,10 +276,27 @@ public class GradedCommentResource {
         return ResponseUtil.wrapOrNotFound(gradedCommentDTO);
     }
 
+    @Operation(
+        summary = "Count usages of a graded comment",
+        description = "Returns the number of student responses using the graded comment with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The number of usages",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.INTEGER, format = "int64"))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @Path("/countHowManyUse/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response getUsedOfGradedComment(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response getUsedOfGradedComment(
+        @Parameter(description = "Id of the graded comment to count usages of", required = true) @PathParam("id") Long id,
+        @Context SecurityContext ctx
+    ) {
         log.debug("REST request to get GradedComment : {}", id);
         if (!securityService.canAccess(ctx, id, GradedComment.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();

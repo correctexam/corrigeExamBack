@@ -32,6 +32,14 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -43,6 +51,10 @@ import java.util.stream.Collectors;
 /**
  * REST controller for managing {@link fr.istic.domain.Exam}.
  */
+@Tag(
+    name = "Exam",
+    description = "Management of exams: create, update, delete, list and retrieve exams."
+)
 @Path("/api/exams")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -73,6 +85,17 @@ public class ExamResource {
      *         the new examDTO, or with status {@code 400 (Bad Request)} if the exam
      *         has already an ID.
      */
+    @Operation(summary = "Create a new exam", description = "Creates a new exam and returns the created exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "201",
+                description = "The created exam",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ExamDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "A new exam cannot already have an ID")
+        }
+    )
     @POST
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response createExam(@Valid ExamDTO examDTO, @Context UriInfo uriInfo) {
@@ -97,6 +120,19 @@ public class ExamResource {
      *         or with status {@code 500 (Internal Server Error)} if the examDTO
      *         couldn't be updated.
      */
+    @Operation(summary = "Update an exam", description = "Updates an existing exam and returns the updated exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated exam",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ExamDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Invalid exam id or validation error"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "The exam could not be updated")
+        }
+    )
     @PUT
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response updateExam(@Valid ExamDTO examDTO, @Context SecurityContext ctx) {
@@ -121,10 +157,17 @@ public class ExamResource {
      * @param id the id of the examDTO to delete.
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
+    @Operation(summary = "Delete an exam", description = "Deletes the exam with the given id.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "The exam has been deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @DELETE
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Path("/{id}")
-    public Response deleteExam(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response deleteExam(@Parameter(description = "Id of the exam to delete", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to delete Exam : {}", id);
         if (!securityService.canAccess(ctx, id, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -136,11 +179,21 @@ public class ExamResource {
         return response.build();
     }
 
+    @Operation(
+        summary = "Delete all student sheets of an exam",
+        description = "Removes the association between the students and the exam sheets of the given exam."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "The student sheets have been cleaned"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @DELETE
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Path("/cleanAllStudentSheet/{id}")
     @Transactional
-    public Response deleteStudentSheet(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response deleteStudentSheet(@Parameter(description = "Id of the exam whose student sheets should be cleaned", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to delete Exam : {}", id);
         if (!securityService.canAccess(ctx, id, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -182,6 +235,20 @@ public class ExamResource {
      * @return the {@link Response} with status {@code 200 (OK)} and the list of
      *         exams in body.
      */
+    @Operation(
+        summary = "Get all exams",
+        description = "Returns a page of exams, optionally filtered by courseId or by scanId."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The page of exams",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = ExamDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     public Response getAllExams(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest,
             @Context UriInfo uriInfo, @Context SecurityContext ctx) {
@@ -245,9 +312,21 @@ public class ExamResource {
      * @return the {@link Response} with status {@code 200 (OK)} and with body the
      *         examDTO, or with status {@code 404 (Not Found)}.
      */
+    @Operation(summary = "Get the exam by id", description = "Gets the exam with the given id.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The requested exam",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ExamDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "404", description = "No exam found for this id")
+        }
+    )
     @GET
     @Path("/{id}")
-    public Response getExam(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response getExam(@Parameter(description = "Id of the exam to retrieve", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get Exam : {}", id);
         if (!securityService.canAccess(ctx, id, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();

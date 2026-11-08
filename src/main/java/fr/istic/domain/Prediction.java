@@ -2,7 +2,6 @@ package fr.istic.domain;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
-import jakarta.json.bind.annotation.JsonbTransient;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 import jakarta.persistence.*;
@@ -42,12 +41,12 @@ public class Prediction extends PanacheEntityBase implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "question_id")
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Question question;
 
     @ManyToOne
     @JoinColumn(name = "sheet_id")
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public ExamSheet sheet;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove

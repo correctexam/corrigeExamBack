@@ -7,7 +7,6 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-import jakarta.json.bind.annotation.JsonbTransient;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -45,7 +44,7 @@ public class HybridGradedComment extends PanacheEntityBase implements Serializab
 
     @ManyToOne
     @JoinColumn(name = "question_id")
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Question question;
 
     @OneToMany(mappedBy = "hybridcomments", cascade = CascadeType.REMOVE, orphanRemoval = true)
@@ -123,6 +122,7 @@ public class HybridGradedComment extends PanacheEntityBase implements Serializab
             throw new IllegalArgumentException("hybridGradedComment can't be null");
         }
         if (hybridGradedComment.id == null) {
+
             persist(hybridGradedComment);
             return hybridGradedComment;
         } else {

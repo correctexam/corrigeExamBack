@@ -27,12 +27,24 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import java.util.Objects;
 import java.util.Optional;
 
 /**
  * REST controller for managing {@link fr.istic.domain.Zone}.
  */
+@Tag(
+    name = "Zone",
+    description = "Management of answer zones on scans: create, update, delete, list, retrieve and resize zones."
+)
 @Path("/api/zones")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -58,6 +70,17 @@ public class ZoneResource {
      * @param zoneDTO the zoneDTO to create.
      * @return the {@link Response} with status {@code 201 (Created)} and with body the new zoneDTO, or with status {@code 400 (Bad Request)} if the zone has already an ID.
      */
+    @Operation(summary = "Create a new zone", description = "Creates a new answer zone and returns the created zone.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "201",
+                description = "The created zone",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ZoneDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "A new zone cannot already have an ID")
+        }
+    )
     @POST
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response createZone(ZoneDTO zoneDTO, @Context UriInfo uriInfo) {
@@ -79,6 +102,19 @@ public class ZoneResource {
      * or with status {@code 400 (Bad Request)} if the zoneDTO is not valid,
      * or with status {@code 500 (Internal Server Error)} if the zoneDTO couldn't be updated.
      */
+    @Operation(summary = "Update a zone", description = "Updates an existing answer zone and returns the updated zone.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated zone",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ZoneDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Invalid zone id or validation error"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "The zone could not be updated")
+        }
+    )
     @PUT
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateZone(ZoneDTO zoneDTO, @Context SecurityContext ctx) {
@@ -101,10 +137,17 @@ public class ZoneResource {
      * @param id the id of the zoneDTO to delete.
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
+    @Operation(summary = "Delete a zone", description = "Deletes the zone with the given id.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "The zone has been deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @DELETE
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Path("/{id}")
-    public Response deleteZone(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response deleteZone(@Parameter(description = "Id of the zone to delete", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to delete Zone : {}", id);
         if (!securityService.canAccess(ctx, id, Zone.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -121,6 +164,17 @@ public class ZoneResource {
      * @param pageRequest the pagination information.
      * @return the {@link Response} with status {@code 200 (OK)} and the list of zones in body.
      */
+    @Operation(summary = "Get all zones", description = "Returns a page of answer zones.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The page of zones",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = ZoneDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @RolesAllowed({AuthoritiesConstants.ADMIN})
 
@@ -141,9 +195,20 @@ public class ZoneResource {
      * @param id the id of the zoneDTO to retrieve.
      * @return the {@link Response} with status {@code 200 (OK)} and with body the zoneDTO, or with status {@code 404 (Not Found)}.
      */
+    @Operation(summary = "Get the zone by id", description = "Gets the zone with the given id.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The requested zone",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ZoneDTO.class))
+            ),
+            @APIResponse(responseCode = "404", description = "No zone found for this id")
+        }
+    )
     @GET
     @Path("/{id}")
-    public Response getZone(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response getZone(@Parameter(description = "Id of the zone to retrieve", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get Zone : {}", id);
         // No scurity for voir copies
         Optional<ZoneDTO> zoneDTO = zoneService.findOne(id);
@@ -156,9 +221,19 @@ public class ZoneResource {
      * @param id the id of the zoneDTO to retrieve.
      * @return the {@link Response} with status {@code 200 (OK)} and with body the zoneDTO, or with status {@code 404 (Not Found)}.
      */
+    @Operation(summary = "Get zones of an exam", description = "Gets all the answer zones of the exam with the given id.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The zones of the exam",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = ZoneDTO.class))
+            )
+        }
+    )
     @GET
     @Path("/byExam/{examid}")
-    public Response getZoneByExam(@PathParam("examid") Long examid, @Context SecurityContext ctx) {
+    public Response getZoneByExam(@Parameter(description = "Id of the exam", required = true) @PathParam("examid") Long examid, @Context SecurityContext ctx) {
         log.debug("REST request to get Zone : {}", examid);
         // No scurity for voir copies
         ZoneDTO[] zoneDTOs = zoneService.getZone4Exam(examid);
@@ -166,9 +241,23 @@ public class ZoneResource {
         return response.build();
     }
 
+    @Operation(
+        summary = "Count student responses of a zone",
+        description = "Returns the number of student responses associated to the zone with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The number of student responses of the zone",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.INTEGER))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @Path("/studentAnswer/{id}")
-    public Response getNumberOfStudentResponse4Zone(@PathParam("id") Long zoneid, @Context SecurityContext ctx) {
+    public Response getNumberOfStudentResponse4Zone(@Parameter(description = "Id of the zone", required = true) @PathParam("id") Long zoneid, @Context SecurityContext ctx) {
         log.debug("REST request to get studentAnswer for Zone : {}", zoneid);
         if (!securityService.canAccess(ctx, zoneid, Zone.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -178,9 +267,23 @@ public class ZoneResource {
         return response.build();
     }
 
+    @Operation(
+        summary = "Count student responses of an exam",
+        description = "Returns the number of student responses associated to the exam with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The number of student responses of the exam",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.INTEGER))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @Path("/studentAnswer4exam/{examid}")
-    public Response getNumberOfStudentResponse4Exam(@PathParam("examid") Long examid, @Context SecurityContext ctx) {
+    public Response getNumberOfStudentResponse4Exam(@Parameter(description = "Id of the exam", required = true) @PathParam("examid") Long examid, @Context SecurityContext ctx) {
         log.debug("REST request to get studentAnswer for Zone : {}", examid);
         if (!securityService.canAccess(ctx, examid, Exam.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -189,7 +292,6 @@ public class ZoneResource {
         var response = Response.ok().entity(l);
         return response.build();
     }
-
 
 
 
@@ -204,11 +306,27 @@ public class ZoneResource {
      * or with status {@code 500 (Internal Server Error)} if the zoneDTO couldn't be updated.
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
+    @Operation(
+        summary = "Partially update a zone",
+        description = "Partially updates the given fields of the zone with the given id; null fields are ignored."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated zone",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ZoneDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Invalid zone id or mismatched ids"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "404", description = "No zone found for this id")
+        }
+    )
     @PATCH
     @Path(value = "/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response partialUpdateZone(
-        @PathParam(value = "id") final Long id,
+        @Parameter(description = "Id of the zone to update", required = true) @PathParam(value = "id") final Long id,
         ZoneDTO zoneDTO, @Context SecurityContext ctx
     ) {
         log.debug("REST request to partial update Zone partially : {}, {}", id, zoneDTO);
@@ -229,11 +347,26 @@ public class ZoneResource {
         );
     }
 
+    @Operation(
+        summary = "Resize a zone",
+        description = "Partially updates the scaling of the zone with the given id from a resize request."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The resized zone",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ZoneDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "404", description = "No zone found for this id")
+        }
+    )
     @PATCH
     @Path(value = "/scaling/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response partialResizeZone(
-        @PathParam(value = "id") final Long id,
+        @Parameter(description = "Id of the zone to resize", required = true) @PathParam(value = "id") final Long id,
         ResizeZoneDTO rzoneDTO, @Context SecurityContext ctx
     ) {
         log.debug("REST request to partial update Zone partially : {}, {}", id, rzoneDTO);

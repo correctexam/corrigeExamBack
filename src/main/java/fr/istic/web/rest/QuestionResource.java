@@ -23,6 +23,15 @@ import fr.istic.web.rest.vm.PageRequestVM;
 import fr.istic.web.rest.vm.SortRequestVM;
 import fr.istic.web.util.PaginationUtil;
 
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -37,6 +46,10 @@ import java.util.Optional;
 /**
  * REST controller for managing {@link fr.istic.domain.Question}.
  */
+@Tag(
+    name = "Question",
+    description = "Management of questions: create, update, delete, and search questions."
+)
 @Path("/api/questions")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -63,6 +76,20 @@ public class QuestionResource {
      *         the new questionDTO, or with status {@code 400 (Bad Request)} if the
      *         question has already an ID.
      */
+    @Operation(
+        summary = "Create a question",
+        description = "Creates a new question and returns the created question."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "201",
+                description = "The created question",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = QuestionDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "The new question cannot already have an ID")
+        }
+    )
     @POST
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
 
@@ -90,6 +117,22 @@ public class QuestionResource {
      *         or with status {@code 500 (Internal Server Error)} if the questionDTO
      *         couldn't be updated.
      */
+    @Operation(
+        summary = "Update a question",
+        description = "Updates an existing question and returns the updated question."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated question",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = QuestionDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Question with an invalid (null) ID"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "The question couldn't be updated")
+        }
+    )
     @PUT
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     public Response updateQuestion(@Valid QuestionDTO questionDTO, @Context SecurityContext ctx) {
@@ -114,10 +157,23 @@ public class QuestionResource {
      * @param id the id of the questionDTO to delete.
      * @return the {@link Response} with status {@code 204 (NO_CONTENT)}.
      */
+    @Operation(
+        summary = "Delete a question",
+        description = "Deletes the question with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "Question deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @DELETE
     @Path("/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response deleteQuestion(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response deleteQuestion(
+        @Parameter(description = "Id of the question to delete", required = true) @PathParam("id") Long id,
+        @Context SecurityContext ctx
+    ) {
         log.debug("REST request to delete Question : {}", id);
         if (!securityService.canAccess(ctx, id, Question.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -137,6 +193,21 @@ public class QuestionResource {
      * @return the {@link Response} with status {@code 200 (OK)} and the list of
      *         questions in body.
      */
+    @Operation(
+        summary = "Get all questions",
+        description = "Returns a paged list of questions. Optionally filter by examId, by examId with numero, or by zoneId."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The list of questions",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = QuestionDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "Current user not found")
+        }
+    )
     @GET
     public Response getAllQuestions(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest,
             @Context UriInfo uriInfo, @Context SecurityContext ctx) {
@@ -193,10 +264,28 @@ public class QuestionResource {
      * @return the {@link Response} with status {@code 200 (OK)} and with body the
      *         questionDTO, or with status {@code 404 (Not Found)}.
      */
+    @Operation(
+        summary = "Get a question",
+        description = "Returns the question with the given id."
+    )
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The question",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = QuestionDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "404", description = "Question not found")
+        }
+    )
     @GET
     @Path("/{id}")
     @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
-    public Response getQuestion(@PathParam("id") Long id, @Context SecurityContext ctx) {
+    public Response getQuestion(
+        @Parameter(description = "Id of the question to retrieve", required = true) @PathParam("id") Long id,
+        @Context SecurityContext ctx
+    ) {
         log.debug("REST request to get Question : {}", id);
         if (!securityService.canAccess(ctx, id, Question.class  )){
             return Response.status(403, "Current user cannot access to this ressource").build();

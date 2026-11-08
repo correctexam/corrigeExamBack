@@ -2,14 +2,23 @@ package fr.istic.service.customdto.exportpdf;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @RegisterForReflection
+@Schema(description = "A hybrid graded comment printed in the exported PDF.")
 public class Hybridcommentspdf {
+    @Schema(description = "Long description of the comment.")
     private String description;
+    @Schema(description = "Points awarded by the comment.")
     private double grade;
+    @Schema(description = "Text of the comment.")
     private String text;
+    @Schema(description = "Maximum step value.")
     private double stepMax;
+    @Schema(description = "Applied step value.")
     private double stepValue;
+    @Schema(description = "Whether the grade is applied relative to the step.")
     private boolean relative;
+    @Schema(description = "Effective grade of the answer.")
     private double answerGrade;
 
 

@@ -1,6 +1,5 @@
 package fr.istic.domain;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import jakarta.json.bind.annotation.JsonbTransient;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.hibernate.annotations.Cache;
@@ -33,7 +32,7 @@ public class FinalResult extends PanacheEntityBase implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "student_id")
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Student student;
 
     @Transient
@@ -44,7 +43,7 @@ public class FinalResult extends PanacheEntityBase implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "exam_id")
-    @JsonbTransient
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Exam exam;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove

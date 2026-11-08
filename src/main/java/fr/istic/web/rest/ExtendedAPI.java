@@ -37,8 +37,9 @@ import fr.istic.service.StudentResponseService;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
-import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.jboss.resteasy.reactive.MultipartForm;
+import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.server.multipart.MultipartFormDataInput;
 
 import fr.istic.service.StudentService;
 import fr.istic.service.UserService;
@@ -80,7 +81,7 @@ import fr.istic.service.mapper.QuestionMapper;
 import fr.istic.service.mapper.TextCommentMapper;
 import fr.istic.service.mapper.ZoneMapper;
 import fr.istic.web.util.HeaderUtil;
-
+import io.netty.handler.codec.http.multipart.FileUpload;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -88,7 +89,16 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.*;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -121,6 +131,10 @@ import static jakarta.ws.rs.core.UriBuilder.fromPath;
 /**
  * REST controller for managing {@link fr.istic.domain.Comments}.
  */
+@Tag(
+    name = "Exam",
+    description = "Extended operations for exams, courses and corrections: PDF export, results, comments, zones, cache, import/export and marking."
+)
 @Path("/api")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -232,11 +246,22 @@ public class ExtendedAPI {
     @ConfigProperty(name = "application.name")
     String applicationName;
 
+    @Operation(summary = "Export exam PDF data", description = "Returns the exportable PDF structure (zones, sheets, notes and comments) for the given exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The exported PDF data",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ExportPDFDto.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @Path("exportpdf/{examId}")
     @Transactional
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getExportPdfRoute(@PathParam("examId") long examId, @Context SecurityContext ctx) {
+    public Response getExportPdfRoute(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -245,11 +270,22 @@ public class ExtendedAPI {
         return Response.ok().entity(exportPDFDto).build();
     }
 
+    @Operation(summary = "Export PDF data for one sheet", description = "Returns the exportable PDF structure for a specific sheet of the exam identified by its UUID.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The exported PDF data for the sheet",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ExportPDFDto.class))
+            ),
+            @APIResponse(responseCode = "400", description = "No sheet found for the given UUID")
+        }
+    )
     @GET
     @Path("exportpdf4sheet/{examId}/{sheetuuid}")
     @Transactional
-    public Response getExportPdfRoute4sheet(@PathParam("examId") long examId,
-            @PathParam("sheetuuid") String sheetname) {
+    public Response getExportPdfRoute4sheet(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId,
+            @Parameter(description = "Name (UUID) of the exam sheet", required = true) @PathParam("sheetuuid") String sheetname) {
         ExportPDFDto exportPDFDto = this.getExportPdf(examId, sheetname);
         return Response.ok().entity(exportPDFDto).build();
     }
@@ -575,11 +611,18 @@ public class ExtendedAPI {
         return ex;
     }
 
+    @Operation(summary = "Compute final notes", description = "Recomputes and persists the final notes of every student for the exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Final notes computed"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @POST
     @Path("computeNode/{examId}")
     @Transactional
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response computeFinalNote4Exam(@PathParam("examId") long examId, @Context SecurityContext ctx) {
+    public Response computeFinalNote4Exam(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Context SecurityContext ctx) {
 
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -589,11 +632,18 @@ public class ExtendedAPI {
         return Response.ok().build();
     }
 
+    @Operation(summary = "Toggle the absent flag of a student", description = "Sets or unsets the absent (ABI) flag on the final result of a student for an exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Absent flag updated"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @PUT
     @Path("toggleAsAbJ/{studentId}/{examId}/{abi}")
     @Transactional
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response toggleAsAbJ(@PathParam("studentId") long studentId, @PathParam("examId") long examId, @PathParam("abi") long abi, @Context SecurityContext ctx) {
+    public Response toggleAsAbJ(@Parameter(description = "ID of the student", required = true) @PathParam("studentId") long studentId, @Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Parameter(description = "Flag to set (2) or unset the absent (ABI) status", required = true) @PathParam("abi") long abi, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -623,10 +673,18 @@ public class ExtendedAPI {
 
     }
 
+    @Operation(summary = "Send results to students", description = "Computes the final notes and sends an email to each student with the configured message and optional PDF attachment.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Result emails sent"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "Current user could not be resolved")
+        }
+    )
     @POST
     @Path("sendResult/{examId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response sendResultToStudent(MailResultDTO dto, @PathParam("examId") long examId,
+    public Response sendResultToStudent(MailResultDTO dto, @Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId,
             @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -699,21 +757,34 @@ public class ExtendedAPI {
         return Response.ok().build();
     }
 
+    @Operation(summary = "Get exam comments", description = "Returns all comments shared for the exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "The comments of the exam")
+        }
+    )
     @GET
     @Path("getComments/{examId}")
     @Transactional
     // @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getComments(@PathParam("examId") long examId, @Context SecurityContext ctx) {
+    public Response getComments(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Context SecurityContext ctx) {
 
         return Response.ok().entity(Comments.findCommentByExamId("" + examId).list()).build();
 
     }
 
+    @Operation(summary = "Get question labels", description = "Returns the labels of the questions of the exam, indexed by question number.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "The question labels"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @Path("getLibelleQuestions/{examId}")
     @Transactional
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getLibelleQuestions(@PathParam("examId") long examId, @Context SecurityContext ctx) {
+    public Response getLibelleQuestions(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -730,11 +801,22 @@ public class ExtendedAPI {
 
     }
 
+    @Operation(summary = "Show exam results", description = "Computes and returns the results of every student for the exam, including notes per question and absent status.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The results of the students",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = StudentResultDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @Path("showResult/{examId}")
     @Transactional
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response showResult(@PathParam("examId") long examId, @Context SecurityContext ctx) {
+    public Response showResult(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -926,7 +1008,7 @@ public class ExtendedAPI {
             }
 
         });
-
+        log.error("studentabi" + studentsAbi.size());
         studentsAbi.forEach(student -> {
             var res = new StudentResultDTO();
             res.setId(student.id);
@@ -947,6 +1029,14 @@ public class ExtendedAPI {
         return Response.ok().entity(results).build();
     }
 
+    @Operation(summary = "Create students in bulk", description = "Creates or updates a list of students and assigns them to the course groups.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Students created"),
+            @APIResponse(responseCode = "400", description = "Invalid student data"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @POST
     @Path("createstudentmasse")
     @Transactional
@@ -998,12 +1088,19 @@ public class ExtendedAPI {
 
     }
 
+    @Operation(summary = "Update a student", description = "Updates the first name, last name and mail of a student identified by its INE.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Student updated"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @PUT
     @Path("updatestudent/{courseid}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Transactional
     public Response updatestudent4Course(fr.istic.service.customdto.StudentDTO student,
-            @PathParam("courseid") long courseid, @Context SecurityContext ctx) {
+            @Parameter(description = "ID of the course", required = true) @PathParam("courseid") long courseid, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseid, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -1015,12 +1112,19 @@ public class ExtendedAPI {
         return Response.ok().entity(st).build();
     }
 
+    @Operation(summary = "Move a student to another group", description = "Removes a student from their current group and adds them to the target group of the course.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Student group updated"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @PUT
     @Path("updatestudentgroup/{courseid}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Transactional
     public Response updatestudentgroup(fr.istic.service.customdto.StudentDTO student,
-            @PathParam("courseid") long courseid, @Context SecurityContext ctx) {
+            @Parameter(description = "ID of the course", required = true) @PathParam("courseid") long courseid, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseid, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -1045,12 +1149,19 @@ public class ExtendedAPI {
         }
     }
 
+    @Operation(summary = "Delete a student from a group", description = "Removes a student from their group and deletes the student from the course.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Student deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @PUT
     @Path("deletestudentgroup/{courseid}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Transactional
     public Response deletestudentgroup(fr.istic.service.customdto.StudentDTO student,
-            @PathParam("courseid") long courseid, @Context SecurityContext ctx) {
+            @Parameter(description = "ID of the course", required = true) @PathParam("courseid") long courseid, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseid, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -1062,12 +1173,19 @@ public class ExtendedAPI {
         return Response.ok().entity(st).build();
     }
 
+    @Operation(summary = "Update the INE of a student", description = "Updates the INE of a student identified by first and last name.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Student INE updated"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @PUT
     @Path("updatestudentine/{courseid}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Transactional
     public Response updatestudentine(fr.istic.service.customdto.StudentDTO student,
-            @PathParam("courseid") long courseid, @Context SecurityContext ctx) {
+            @Parameter(description = "ID of the course", required = true) @PathParam("courseid") long courseid, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseid, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -1078,11 +1196,22 @@ public class ExtendedAPI {
         return Response.ok().entity(st).build();
     }
 
+    @Operation(summary = "Get students of a course", description = "Returns all students enrolled in the course with their group.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The students of the course",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = fr.istic.service.customdto.StudentDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @Path("getstudentcours/{courseid}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Transactional
-    public Response getAllStudent4Course(@PathParam("courseid") long courseid, @Context SecurityContext ctx) {
+    public Response getAllStudent4Course(@Parameter(description = "ID of the course", required = true) @PathParam("courseid") long courseid, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseid, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -1106,11 +1235,19 @@ public class ExtendedAPI {
         return Response.ok().entity(students).build();
     }
 
+    @Operation(summary = "Delete all students of a course", description = "Deletes all groups and students of the course.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Students deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "Current user could not be resolved")
+        }
+    )
     @DELETE
     @Path("deletegroupstudents/{courseid}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Transactional
-    public Response deleteAllStudent4Course(@PathParam("courseid") long courseid, @Context SecurityContext ctx) {
+    public Response deleteAllStudent4Course(@Parameter(description = "ID of the course", required = true) @PathParam("courseid") long courseid, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseid, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -1137,21 +1274,41 @@ public class ExtendedAPI {
         return Response.ok().build();
     }
 
+    @Operation(summary = "Get the best answer for a question", description = "Returns the names of the best answers for a given question number of the exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The names of the best answers",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = String.class))
+            )
+        }
+    )
     @GET
     @Path("getBestAnswer/{examId}/{nume}")
     @Transactional
-    public Response getBestAnswer(@PathParam("examId") long examId, @PathParam("nume") int nume) {
+    public Response getBestAnswer(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Parameter(description = "Question number to retrieve the best answer for", required = true) @PathParam("nume") int nume) {
         List<String> res = StudentResponse.getBestAnswerforQuestionNoAndExamId(examId, nume).list().stream()
                 .map(e -> e.name).collect(Collectors.toList());
 
         return Response.ok().entity(res).build();
     }
 
+    @Operation(summary = "Get the best and worst answers", description = "Returns the best and worst answers for every question of the exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The best and worst solutions per question",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.ARRAY, implementation = WorstAndBestSolution.class))
+            )
+        }
+    )
     @GET
     // @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Path("getAllStarAnswer/{examId}")
     @Transactional
-    public Response getAllStarAnswer(@PathParam("examId") long examId) {
+    public Response getAllStarAnswer(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId) {
         Base64.Encoder encoder = Base64.getEncoder();
 
         Map<Integer, WorstAndBestSolution> res = new HashMap<Integer, WorstAndBestSolution>();
@@ -1183,14 +1340,21 @@ public class ExtendedAPI {
         return Response.ok().entity(res.values()).build();
     }
 
+    @Operation(summary = "Upload a student PDF export", description = "Uploads a multipart PDF file used to build the corrected copies of the exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "PDF uploaded"),
+            @APIResponse(responseCode = "500", description = "Upload failed")
+        }
+    )
     @POST
     @Path("/uploadExportFinalStudent/{examId}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response fileUploadStudentPdf(@MultipartForm MultipartFormDataInput input,
-            @PathParam("examId") long examId) {
+    public Response fileUploadStudentPdf(@RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file,
+            @Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId) {
         try {
-            cacheStudentPdfFService.uploadFile(input, examId);
+            cacheStudentPdfFService.uploadFile(file, examId);
         } catch (Exception e) {
             e.printStackTrace();
             return Response.serverError().build();
@@ -1199,13 +1363,21 @@ public class ExtendedAPI {
         return Response.ok().build();
     }
 
+    @Operation(summary = "Upload a cache file", description = "Uploads a multipart file into the shared cache store.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "File uploaded"),
+            @APIResponse(responseCode = "500", description = "Upload failed")
+        }
+    )
     @POST
     @Path("/uploadCache")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response fileUpload(@MultipartForm MultipartFormDataInput input) {
+    public Response fileUpload(
+            @RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file) {
         try {
-            cacheUploadService.uploadFile(input);
+            cacheUploadService.uploadFile(file);
         } catch (Exception e) {
             e.printStackTrace();
             return Response.serverError().build();
@@ -1214,19 +1386,27 @@ public class ExtendedAPI {
         return Response.ok().build();
     }
 
+    @Operation(summary = "Upload a scan file", description = "Uploads a multipart PDF file and attaches it to the given scan without merging.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Scan uploaded"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "Upload failed")
+        }
+    )
     @POST
     @Path("/uploadScan/{scanId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response scanUpload(@MultipartForm MultipartFormDataInput input, @PathParam("scanId") long scanId,
+    public Response scanUpload(@RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file, @Parameter(description = "ID of the scan", required = true) @PathParam("scanId") long scanId,
             @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, scanId, Scan.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
 
         try {
-            scanService.uploadFile(input, scanId, false);
+            scanService.uploadFile(file, scanId, false);
         } catch (Exception e) {
             e.printStackTrace();
             return Response.serverError().build();
@@ -1235,19 +1415,27 @@ public class ExtendedAPI {
         return Response.ok().build();
     }
 
+    @Operation(summary = "Upload and merge a scan file", description = "Uploads a multipart PDF file and merges it into the given scan.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Scan uploaded and merged"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "Upload failed")
+        }
+    )
     @POST
     @Path("/uploadAndMergeScan/{scanId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response scanAndMergeUpload(@MultipartForm MultipartFormDataInput input, @PathParam("scanId") long scanId,
+    public Response scanAndMergeUpload(@RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file, @Parameter(description = "ID of the scan", required = true) @PathParam("scanId") long scanId,
             @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, scanId, Scan.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
 
         try {
-            scanService.uploadFile(input, scanId, true);
+            scanService.uploadFile(file, scanId, true);
         } catch (Exception e) {
             e.printStackTrace();
             return Response.serverError().build();
@@ -1255,11 +1443,23 @@ public class ExtendedAPI {
         return Response.ok().build();
     }
 
+    @Operation(summary = "Get comments and predictions for a question", description = "Returns the comments and their clustering predictions for a question of the exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The answers with predictions",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = AnswersWithPredictionDto.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "Could not retrieve the predictions")
+        }
+    )
     @GET
     @Path("/getallcommentsandprediction4qId/{qId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getallcommentsandprediction4qId(@PathParam("qId") long qId, @Context SecurityContext ctx) {
+    public Response getallcommentsandprediction4qId(@Parameter(description = "ID of the question", required = true) @PathParam("qId") long qId, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, qId, Question.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -1273,10 +1473,21 @@ public class ExtendedAPI {
         }
     }
 
+    @Operation(summary = "Get cached template page", description = "Returns the content of the cached template page of the exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The cached page content",
+                content = @Content(mediaType = MediaType.TEXT_PLAIN, schema = @Schema(type = SchemaType.STRING))
+            ),
+            @APIResponse(responseCode = "500", description = "Could not retrieve the cached page")
+        }
+    )
     @GET
     @Path("/getCachePageInTemplate/{examId}")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response getCachePageInTemplate(@PathParam("examId") long examId) {
+    public Response getCachePageInTemplate(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId) {
         try {
             return Response
                     .status(Response.Status.OK)
@@ -1291,10 +1502,21 @@ public class ExtendedAPI {
         }
     }
 
+    @Operation(summary = "Get cached aligned page", description = "Returns the content of the cached aligned page of the exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The cached aligned page content",
+                content = @Content(mediaType = MediaType.TEXT_PLAIN, schema = @Schema(type = SchemaType.STRING))
+            ),
+            @APIResponse(responseCode = "500", description = "Could not retrieve the cached page")
+        }
+    )
     @GET
     @Path("/getCacheAlignPage/{examId}/{pageId}")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response getCachePageAlign(@PathParam("examId") long examId, @PathParam("pageId") int pageId) {
+    public Response getCachePageAlign(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Parameter(description = "Page number in the exam", required = true) @PathParam("pageId") int pageId) {
         try {
             return Response
                     .status(Response.Status.OK)
@@ -1330,10 +1552,21 @@ public class ExtendedAPI {
      * }
      */
 
+    @Operation(summary = "Get cached non-aligned page", description = "Returns the content of the cached non-aligned page of the exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The cached non-aligned page content",
+                content = @Content(mediaType = MediaType.TEXT_PLAIN, schema = @Schema(type = SchemaType.STRING))
+            ),
+            @APIResponse(responseCode = "500", description = "Could not retrieve the cached page")
+        }
+    )
     @GET
     @Path("/getCacheNonAlignPage/{examId}/{pageId}")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response getCachePageNoAlign(@PathParam("examId") long examId, @PathParam("pageId") int pageId) {
+    public Response getCachePageNoAlign(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Parameter(description = "Page number in the exam", required = true) @PathParam("pageId") int pageId) {
         try {
             return Response
                     .status(Response.Status.OK)
@@ -1347,10 +1580,21 @@ public class ExtendedAPI {
 
         }
     }
+    @Operation(summary = "Get cache timestamp", description = "Returns the last modification timestamp of the cache for the exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The cache timestamp",
+                content = @Content(mediaType = MediaType.TEXT_PLAIN, schema = @Schema(type = SchemaType.STRING))
+            ),
+            @APIResponse(responseCode = "500", description = "Could not retrieve the cache timestamp")
+        }
+    )
     @GET
     @Path("/getCacheTimeStamp/{examId}")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response getCacheTimeStamp(@PathParam("examId") long examId) {
+    public Response getCacheTimeStamp(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId) {
         try {
             return Response
                     .status(Response.Status.OK)
@@ -1388,10 +1632,21 @@ public class ExtendedAPI {
      * }
      */
 
+    @Operation(summary = "Get a cached file", description = "Streams a cached file (PDF or image) stored in the shared cache as an octet stream.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The cached file content",
+                content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM)
+            ),
+            @APIResponse(responseCode = "204", description = "The file does not exist")
+        }
+    )
     @GET
     @Path("/getCache/{fileName}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getFile(@PathParam("fileName") String fileName) {
+    public Response getFile(@Parameter(description = "Name of the cached file to retrieve", required = true) @PathParam("fileName") String fileName) {
         try {
             return Response.ok(
                     new StreamingOutput() {
@@ -1419,11 +1674,23 @@ public class ExtendedAPI {
         }
     }
 
+    @Operation(summary = "Export a course", description = "Streams a JSON export of the whole course with its students.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The course export as a JSON attachment",
+                content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM)
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "204", description = "The export could not be generated")
+        }
+    )
     @GET
     @Path("/exportCourse/{courseId}")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response exportCourse(@PathParam("courseId") long courseId, @Context SecurityContext ctx) {
+    public Response exportCourse(@Parameter(description = "ID of the course", required = true) @PathParam("courseId") long courseId, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseId, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -1450,11 +1717,23 @@ public class ExtendedAPI {
         }
     }
 
+    @Operation(summary = "Export an exam", description = "Streams a JSON export of the course restricted to the given exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The exam export as a JSON attachment",
+                content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM)
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "204", description = "The export could not be generated")
+        }
+    )
     @GET
     @Path("/exportExam/{courseId}/{examId}")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response exportExam(@PathParam("courseId") long courseId, @PathParam("examId") long examId,
+    public Response exportExam(@Parameter(description = "ID of the course", required = true) @PathParam("courseId") long courseId, @Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId,
             @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseId, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -1482,11 +1761,23 @@ public class ExtendedAPI {
         }
     }
 
+    @Operation(summary = "Get a template PDF", description = "Streams the PDF of the template.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The template PDF",
+                content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM)
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "204", description = "The template PDF does not exist")
+        }
+    )
     @GET
     @Path("/getTemplatePdf/{templateId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getTemplate(@PathParam("templateId") long templateId, @Context SecurityContext ctx) {
+    public Response getTemplate(@Parameter(description = "ID of the template", required = true) @PathParam("templateId") long templateId, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, templateId, Template.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -1527,11 +1818,22 @@ public class ExtendedAPI {
         }
     }
 
+    @Operation(summary = "Get a scan PDF", description = "Streams the PDF of the scan.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The scan PDF",
+                content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM)
+            ),
+            @APIResponse(responseCode = "204", description = "The scan PDF does not exist")
+        }
+    )
     @GET
     @Path("/getScanPdf/{scanId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     // @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getScan(@PathParam("scanId") long scanId, @Context SecurityContext ctx) {
+    public Response getScan(@Parameter(description = "ID of the scan", required = true) @PathParam("scanId") long scanId, @Context SecurityContext ctx) {
         /*
          * if (!securityService.canAccess(ctx, scanId, Scan.class)) {
          * return Response.status(403,
@@ -1575,12 +1877,24 @@ public class ExtendedAPI {
         }
     }
 
+    @Operation(summary = "Export a course without student data", description = "Streams a JSON export of the course without any student data.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The course export as a JSON attachment",
+                content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM)
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "204", description = "The export could not be generated")
+        }
+    )
     @GET
     @Path("/exportCourseWithoutStudentData/{courseId}")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
 
-    public Response exportCourseWithoutStudentData(@PathParam("courseId") long courseId, @Context SecurityContext ctx) {
+    public Response exportCourseWithoutStudentData(@Parameter(description = "ID of the course", required = true) @PathParam("courseId") long courseId, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseId, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -1607,11 +1921,23 @@ public class ExtendedAPI {
         }
     }
 
+    @Operation(summary = "Export an exam without student data", description = "Streams a JSON export of the course restricted to the given exam without any student data.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The exam export as a JSON attachment",
+                content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM)
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "204", description = "The export could not be generated")
+        }
+    )
     @GET
     @Path("/exportExamWithoutStudentData/{courseId}/{examId}")
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response exportExamWithoutStudentData(@PathParam("courseId") long courseId, @PathParam("examId") long examId,
+    public Response exportExamWithoutStudentData(@Parameter(description = "ID of the course", required = true) @PathParam("courseId") long courseId, @Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId,
             @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseId, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -1639,13 +1965,26 @@ public class ExtendedAPI {
         }
     }
 
+    @Operation(summary = "Import a course", description = "Imports a course from an uploaded JSON file, including its students.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The imported course",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CourseDTO.class))
+            ),
+            @APIResponse(responseCode = "204", description = "No course could be created"),
+            @APIResponse(responseCode = "400", description = "Invalid import data"),
+            @APIResponse(responseCode = "500", description = "Import failed")
+        }
+    )
     @POST
     @Path("/importCourse")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
 
-    public Response importCourse(@MultipartForm MultipartFormDataInput input, @Context SecurityContext ctx) {
+    public Response importCourse(@RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file, @Context SecurityContext ctx) {
         var userLogin = Optional
                 .ofNullable(ctx.getUserPrincipal().getName());
         if (!userLogin.isPresent()) {
@@ -1657,7 +1996,7 @@ public class ExtendedAPI {
         }
         if (!userLogin.equals("system")) {
             try {
-                CourseDTO dto = importExportService.importCourse(input, user.get(), true);
+                CourseDTO dto = importExportService.importCourse(file, user.get(), true);
                 if (dto != null) {
                     return Response.ok().entity(dto).build();
                 } else {
@@ -1672,13 +2011,26 @@ public class ExtendedAPI {
         throw new AccountResourceException("User could not be found");
     }
 
+    @Operation(summary = "Import a course without student data", description = "Imports a course from an uploaded JSON file without any student data.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The imported course",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = CourseDTO.class))
+            ),
+            @APIResponse(responseCode = "204", description = "No course could be created"),
+            @APIResponse(responseCode = "400", description = "Invalid import data"),
+            @APIResponse(responseCode = "500", description = "Import failed")
+        }
+    )
     @POST
     @Path("/importCourseWithoutStudentData")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
 
-    public Response importCourseWithoutStudentData(@MultipartForm MultipartFormDataInput input,
+    public Response importCourseWithoutStudentData(@RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file,
             @Context SecurityContext ctx) {
         var userLogin = Optional
                 .ofNullable(ctx.getUserPrincipal().getName());
@@ -1691,7 +2043,7 @@ public class ExtendedAPI {
         }
         if (!userLogin.equals("system")) {
             try {
-                CourseDTO dto = importExportService.importCourse(input, user.get(), false);
+                CourseDTO dto = importExportService.importCourse(file, user.get(), false);
                 if (dto != null) {
                     return Response.ok().entity(dto).build();
                 } else {
@@ -1713,11 +2065,18 @@ public class ExtendedAPI {
      * @return the {@link Response} with status {@code 200 (OK)} and with body all
      *         users.
      */
+    @Operation(summary = "Get the users of a course", description = "Returns the teachers and shared users of the course for the current user.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "The users of the course"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @Path("/getUsers/{courseId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
 
-    public Response getAllUsers(@PathParam("courseId") long courseId, @Context SecurityContext ctx) {
+    public Response getAllUsers(@Parameter(description = "ID of the course", required = true) @PathParam("courseId") long courseId, @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseId, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
@@ -1736,9 +2095,15 @@ public class ExtendedAPI {
      * @return the {@link Response} with status {@code 200 (OK)} and with body all
      *         users.
      */
+    @Operation(summary = "Get the teacher emails of a course", description = "Returns the email addresses of all teachers of the course.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "The teacher email addresses")
+        }
+    )
     @GET
     @Path("/getAllEmailProfs4course/{courseId}")
-    public Response getAllEmailProfs4course(@PathParam("courseId") long courseId) {
+    public Response getAllEmailProfs4course(@Parameter(description = "ID of the course", required = true) @PathParam("courseId") long courseId) {
         var res = this.courseService.getAllProfMail(courseId);
         Response.ResponseBuilder response = Response.ok().entity(res);
         return response.build();
@@ -1752,10 +2117,21 @@ public class ExtendedAPI {
      * @return the {@link Response} with status {@code 200 (OK)} and with body all
      *         users.
      */
+    @Operation(summary = "Update the teachers of a course", description = "Adds and removes teachers shared on the course.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated list of users",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ListUserModelShare.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @PUT
     @Path("/updateProfs/{courseId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response updateProfs(@PathParam("courseId") long courseId, ListUserModelShare updateLists,
+    public Response updateProfs(@Parameter(description = "ID of the course", required = true) @PathParam("courseId") long courseId, ListUserModelShare updateLists,
             @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, courseId, Course.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -1771,6 +2147,17 @@ public class ExtendedAPI {
         return response.build();
     }
 
+    @Operation(summary = "Clean a question correction", description = "Removes the corrections and comments of a question and returns the cleaned question.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "201",
+                description = "The cleaned question",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = QuestionDTO.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Invalid question data")
+        }
+    )
     @POST()
     @Path("/cleanResponse")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
@@ -1810,10 +2197,17 @@ public class ExtendedAPI {
         }
     }
 
+    @Operation(summary = "Clean orphan exam sheets", description = "Deletes the orphan exam sheets of the exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "Orphan sheets deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @DELETE()
     @Path("/cleanExamSheet/{examId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response cleanAllFalseSheet(@PathParam("examId") long examId, @Context UriInfo uriInfo,
+    public Response cleanAllFalseSheet(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Context UriInfo uriInfo,
             @Context SecurityContext ctx) {
         log.debug("REST request to clean all Questions and zone : {}");
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
@@ -1828,10 +2222,22 @@ public class ExtendedAPI {
         return response.build();
     }
 
+    @Operation(summary = "Clean an exam", description = "Deletes all questions, comments and zones of the exam and returns the cleaned exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "201",
+                description = "The cleaned exam",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ExamDTO.class))
+            ),
+            @APIResponse(responseCode = "204", description = "The exam does not exist"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @DELETE()
     @Path("/cleanExam/{examId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response cleanAllQuestionZone4Exam(@PathParam("examId") long examId, @Context UriInfo uriInfo,
+    public Response cleanAllQuestionZone4Exam(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Context UriInfo uriInfo,
             @Context SecurityContext ctx) {
         log.debug("REST request to clean all Questions and zone : {}");
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
@@ -1880,11 +2286,18 @@ public class ExtendedAPI {
 
     }
 
+    @Operation(summary = "Delete an answer and its comments", description = "Deletes a student response and unsets all the comments associated with it.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "Answer deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @DELETE
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Path("/deleteAnswerAndUnsetComment/{studentResponseId}")
     @Transactional
-    public Response deleteAnswerAndUnsetComment(@PathParam("studentResponseId") long studentResponseId,
+    public Response deleteAnswerAndUnsetComment(@Parameter(description = "ID of the student response", required = true) @PathParam("studentResponseId") long studentResponseId,
             @Context UriInfo uriInfo,
             @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, studentResponseId, StudentResponse.class)) {
@@ -1912,11 +2325,18 @@ public class ExtendedAPI {
         return response.build();
     }
 
+    @Operation(summary = "Delete all answers and comments of an exam", description = "Deletes every student response, answer and comment of all questions of the exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "204", description = "Answers and comments deleted"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @DELETE
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Path("/deleteAllAnswerAndComment/{examId}")
     @Transactional
-    public Response deleteAllAnswerAndComment(@PathParam("examId") long examId, @Context UriInfo uriInfo,
+    public Response deleteAllAnswerAndComment(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Context UriInfo uriInfo,
             @Context SecurityContext ctx) {
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
             return Response.status(403, "Current user cannot access to this ressource").build();
@@ -1946,10 +2366,21 @@ public class ExtendedAPI {
         return response.build();
     }
 
+    @Operation(summary = "Check if the exam is fully corrected", description = "Returns whether every question of every sheet of the exam has been corrected.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "True if the exam is fully corrected",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(type = SchemaType.BOOLEAN))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @Path("/getExamStatusFinish/{examId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getExamStatusFinish(@PathParam("examId") final long examId, @Context final UriInfo uriInfo,
+    public Response getExamStatusFinish(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") final long examId, @Context final UriInfo uriInfo,
             @Context final SecurityContext ctx) {
 
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
@@ -1977,10 +2408,21 @@ public class ExtendedAPI {
      *
      * @param examId The ID of the exam
      */
+    @Operation(summary = "Get the marking status of an exam", description = "Returns a summary of the marking progress per question and per sheet of the exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The marking state of the exam",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = MarkingExamStateDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @Path("/getExamStatus/{examId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getExamStatus(@PathParam("examId") final long examId, @Context final UriInfo uriInfo,
+    public Response getExamStatus(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") final long examId, @Context final UriInfo uriInfo,
             @Context final SecurityContext ctx) {
 
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
@@ -2192,11 +2634,22 @@ public class ExtendedAPI {
         return Response.ok().entity(result).build();
     }
 
+    @Operation(summary = "Get the zone and answers of a graded comment", description = "Returns the zone, step and all answers sharing the given graded comment.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The zone information and answers",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ZoneSameCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @Path("/getZone4GradedComment/{examId}/{gradedCommentId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getZone4GradedComment(@PathParam("examId") final long examId,
-            @PathParam("gradedCommentId") final long gradedCommentId, @Context final UriInfo uriInfo,
+    public Response getZone4GradedComment(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") final long examId,
+            @Parameter(description = "ID of the graded comment", required = true) @PathParam("gradedCommentId") final long gradedCommentId, @Context final UriInfo uriInfo,
             @Context final SecurityContext ctx) {
 
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
@@ -2314,11 +2767,22 @@ public class ExtendedAPI {
 
     }
 
+    @Operation(summary = "Get the zone and answers of a hybrid comment", description = "Returns the zone, step and all answers sharing the given hybrid comment for the step value.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The zone information and answers",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ZoneSameCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @Path("/getZone4HybridComment/{examId}/{hybridCommentId}/{stepValue}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getZone4HybridComment(@PathParam("examId") final long examId,
-            @PathParam("hybridCommentId") final long hybridCommentId, @PathParam("stepValue") final int stepValue,
+    public Response getZone4HybridComment(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") final long examId,
+            @Parameter(description = "ID of the hybrid comment", required = true) @PathParam("hybridCommentId") final long hybridCommentId, @Parameter(description = "Step value applied to the hybrid comment", required = true) @PathParam("stepValue") final int stepValue,
             @Context final UriInfo uriInfo,
             @Context final SecurityContext ctx) {
 
@@ -2422,11 +2886,23 @@ public class ExtendedAPI {
 
     }
 
+    @Operation(summary = "Get the zone and answers of a text comment", description = "Returns the zone, step and all answers sharing the given text comment.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The zone information and answers",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ZoneSameCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "204", description = "No answer found for this comment"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @Path("/getZone4TextComment/{examId}/{textCommentId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getZone4TextComment(@PathParam("examId") final long examId,
-            @PathParam("textCommentId") final long textCommentId, @Context final UriInfo uriInfo,
+    public Response getZone4TextComment(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") final long examId,
+            @Parameter(description = "ID of the text comment", required = true) @PathParam("textCommentId") final long textCommentId, @Context final UriInfo uriInfo,
             @Context final SecurityContext ctx) {
 
         if (!securityService.canAccess(ctx, examId, Exam.class)) {
@@ -2504,10 +2980,22 @@ public class ExtendedAPI {
 
     }
 
+    @Operation(summary = "Get the zone and answers with the same mark", description = "Returns the zone, step and all answers with the same grade as the given response.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The zone information and answers",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ZoneSameCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "204", description = "No answer found for this response"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @Path("/getZone4Mark/{examId}/{respid}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getZone4Mark(@PathParam("examId") final long examId, @PathParam("respid") final long respid,
+    public Response getZone4Mark(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") final long examId, @Parameter(description = "ID of the student response", required = true) @PathParam("respid") final long respid,
             @Context final UriInfo uriInfo,
             @Context final SecurityContext ctx) {
 
@@ -2612,10 +3100,22 @@ public class ExtendedAPI {
 
     }
 
+    @Operation(summary = "Get the zone and answers of a question", description = "Returns the zone, step and all answers of every sheet for the given question.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The zone information and answers",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ZoneSameCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "204", description = "No question found"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @GET
     @Path("/getZone4Numero/{examId}/{qid}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response getZone4Question(@PathParam("examId") final long examId, @PathParam("qid") final long qid,
+    public Response getZone4Question(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") final long examId, @Parameter(description = "ID of the question", required = true) @PathParam("qid") final long qid,
             @Context final UriInfo uriInfo,
             @Context final SecurityContext ctx) {
 
@@ -2717,13 +3217,24 @@ public class ExtendedAPI {
 
     }
 
+    @Operation(summary = "Set the step value of a hybrid comment", description = "Sets the step value of a hybrid comment on a student response.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated hybrid comment",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Answer2HybridGradedCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @PUT
     @Transactional()
     @Path("/update-2-hybrid-graded-comments-with-stepvalue/{responseId}/{hybridCommentId}/{stepValue}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response updateAnswerHybridCommentWithStepValue(@PathParam("responseId") final long responseId,
-            @PathParam("hybridCommentId") final long hybridCommentId,
-            @PathParam("stepValue") final int stepValue,
+    public Response updateAnswerHybridCommentWithStepValue(@Parameter(description = "ID of the student response", required = true) @PathParam("responseId") final long responseId,
+            @Parameter(description = "ID of the hybrid comment", required = true) @PathParam("hybridCommentId") final long hybridCommentId,
+            @Parameter(description = "Step value applied to the hybrid comment", required = true) @PathParam("stepValue") final int stepValue,
             @Context final UriInfo uriInfo,
             @Context final SecurityContext ctx) {
         if (!securityService.canAccess(ctx, responseId, StudentResponse.class)) {
@@ -2736,12 +3247,23 @@ public class ExtendedAPI {
 
     }
 
+    @Operation(summary = "Increment the step value of a hybrid comment", description = "Increments the step value of a hybrid comment on a student response.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated hybrid comment",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = Answer2HybridGradedCommentDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @PUT
     @Transactional()
     @Path("/update-2-hybrid-graded-comments/{responseId}/{hybridCommentId}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response updateAnswerHybridCommentWith(@PathParam("responseId") final long responseId,
-            @PathParam("hybridCommentId") final long hybridCommentId,
+    public Response updateAnswerHybridCommentWith(@Parameter(description = "ID of the student response", required = true) @PathParam("responseId") final long responseId,
+            @Parameter(description = "ID of the hybrid comment", required = true) @PathParam("hybridCommentId") final long hybridCommentId,
             @Context final UriInfo uriInfo,
             @Context final SecurityContext ctx) {
         if (!securityService.canAccess(ctx, responseId, StudentResponse.class)) {
@@ -2754,12 +3276,20 @@ public class ExtendedAPI {
 
     }
 
+    @Operation(summary = "Update responses from a cluster", description = "Applies the correction of the template sheet to all copies of the cluster for a question.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Cluster applied"),
+            @APIResponse(responseCode = "204", description = "No response could be updated"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
+        }
+    )
     @POST
     @Transactional()
     @Path("/updateStudentResponse4Cluster/{examId}/{qid}")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
-    public Response updateStudentResponse4Cluster(ClusterDTO clusterDto, @PathParam("examId") final long examId,
-            @PathParam("qid") final long qid,
+    public Response updateStudentResponse4Cluster(ClusterDTO clusterDto, @Parameter(description = "ID of the exam", required = true) @PathParam("examId") final long examId,
+            @Parameter(description = "ID of the question", required = true) @PathParam("qid") final long qid,
             @Context final UriInfo uriInfo,
             @Context final SecurityContext ctx) {
 
@@ -2947,6 +3477,14 @@ public class ExtendedAPI {
     }
 
 
+    @Operation(summary = "Create the notebook exam structure", description = "Creates the exam structure (notebook) from the given answers.")
+    @APIResponses(
+        value = {
+            @APIResponse(responseCode = "200", description = "Notebook structure created"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
+            @APIResponse(responseCode = "500", description = "Could not create the notebook structure")
+        }
+    )
     @POST
     @Path("/createNoteBookExamStructure")
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })

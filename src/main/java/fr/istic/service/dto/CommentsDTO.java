@@ -5,18 +5,24 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.io.Serializable;
 import java.util.Objects;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 /**
  * A DTO for the {@link fr.istic.domain.Comments} entity.
  */
 @RegisterForReflection
+@Schema(description = "Stores the JSON payload of a comment associated with a zone of a student response.")
 public class CommentsDTO implements Serializable {
     
+    @Schema(description = "Unique identifier.")
     public Long id;
 
+    @Schema(description = "Generated identifier of the zone the comment belongs to.")
     public String zonegeneratedid;
 
+    @Schema(description = "JSON payload of the comment.")
     public String jsonData;
 
+    @Schema(description = "Identifier of the related student response.")
     public Long studentResponseId;
 
     @Override
