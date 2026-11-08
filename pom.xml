@@ -17,7 +17,6 @@
         <junit.itReportFolder>${project.testresult.directory}/integrationTest</junit.itReportFolder>
         <junit.utReportFolder>${project.testresult.directory}/test</junit.utReportFolder>
         <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
-        <mapstruct.version>1.7.0.Beta2</mapstruct.version>
         <maven-checkstyle.version>3.1.0</maven-checkstyle.version>
         <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
@@ -134,7 +133,7 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-messaging-rabbitmq</artifactId>
         </dependency>
-<!--        <dependency>
+        <!--        <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm</artifactId>
             <version>9.7.1</version>
@@ -178,21 +177,19 @@
             <artifactId>commons-lang3</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct</artifactId>
-            <version>${mapstruct.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.14.0</version>
         </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct-processor</artifactId>
-            <version>${mapstruct.version}</version>
-
-            <scope>provided</scope>
+            <artifactId>mapstruct</artifactId>
+            <version>1.6.3</version>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkiverse.mapstruct</groupId>
+            <artifactId>quarkus-mapstruct</artifactId>
+            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -434,7 +431,7 @@
                     <groupId>io.quarkus</groupId>
                     <artifactId>quarkus-maven-plugin</artifactId>
                     <version>${quarkus-plugin.version}</version>
-                    		<extensions>true</extensions> <!-- THIS ONE -->
+                    <extensions>true</extensions>                    <!-- THIS ONE -->
                     <executions>
                         <execution>
                             <goals>
@@ -450,6 +447,19 @@
         </pluginManagement>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>1.6.3</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.liquibase</groupId>
                 <artifactId>liquibase-maven-plugin</artifactId>
                 <version>4.31.1</version>
@@ -463,9 +473,6 @@
                 </configuration>
             </plugin>
 
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
             <plugin>
                 <artifactId>maven-checkstyle-plugin</artifactId>
             </plugin>
