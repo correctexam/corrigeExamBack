@@ -28,11 +28,13 @@ public class ScanStreamService {
      */
     @Incoming("scan-status-in")
     public void consumeRabbitMQ(Object status) {
-        byte[] b;
+        byte[] b=null;
         if (status instanceof io.vertx.core.buffer.Buffer) {
             b = ((io.vertx.core.buffer.Buffer) status).getBytes();
         } else if (status instanceof byte[]){
          b  =(byte[]) status;
+        }
+        if (b != null) {
                 try {
                     ScanStatusDto dto = objectMapper.reader().readValue(b, ScanStatusDto.class);
                     System.err.println("receive " + dto.page + " "  + dto.progress+ " " +dto.status);
