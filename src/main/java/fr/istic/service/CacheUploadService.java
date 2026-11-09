@@ -1,21 +1,13 @@
 package fr.istic.service;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.NullInputStream;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.resteasy.reactive.RestForm;
-import org.jboss.resteasy.reactive.server.multipart.FormValue;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
-import jakarta.ws.rs.core.MultivaluedMap;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.InvalidKeyException;
@@ -25,17 +17,16 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.NullInputStream;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.resteasy.reactive.RestForm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.InputStreamReader;
 
 import com.google.gson.stream.JsonReader;
 
@@ -45,6 +36,9 @@ import io.minio.errors.InternalException;
 import io.minio.errors.InvalidResponseException;
 import io.minio.errors.ServerException;
 import io.minio.errors.XmlParserException;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 @Singleton
 public class CacheUploadService {
@@ -85,15 +79,15 @@ public class CacheUploadService {
     }
 
     public void uploadFile(@RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file) {
-        try{
+        try {
             FileInputStream inputStream = new FileInputStream(file.uploadedFile().toFile());
 
             String fileName = file.fileName();
 
-                writeFile(inputStream, fileName, "application/json");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            writeFile(inputStream, fileName, "application/json");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private File writeStreamToTempFile(InputStream inputStream, String tempFileSuffix) throws IOException {
@@ -247,37 +241,62 @@ public class CacheUploadService {
     }
 
     Map<Long, String> pathsqlite = new HashMap<Long, String>();
+    Map<Long, Long> timestampsqlite = new HashMap<Long, Long>();
 
     public String getAlignPageSqlite(long id, int pagefileter, boolean nonalign) throws IOException {
         InputStream inputStream = null;
         String dbpath = "";
-        if (pathsqlite.containsKey(id) && Paths.get(pathsqlite.get(id)).toFile().exists()) {
-            dbpath = pathsqlite.get(id);
-        } else {
             if (this.uses3) {
                 String fileName = "cache/" + id + ".sqlite3";
-                try {
-                    if (this.fichierS3Service.isObjectExist(fileName)) {
-                        inputStream = this.getObject(fileName);
-                        dbpath = this.writeStreamToTempFile(inputStream, id + ".sqlite3").getAbsolutePath();
-                        pathsqlite.put(id, dbpath);
+                var s  =this.fichierS3Service.getObjectTimestamp(fileName);
+
+                if (!pathsqlite.containsKey(id) || !Paths.get(pathsqlite.get(id)).toFile().exists()) {
+                    try {
+                        if (this.fichierS3Service.isObjectExist(fileName)) {
+                            inputStream = this.getObject(fileName);
+                            dbpath = this.writeStreamToTempFile(inputStream, id + ".sqlite3").getAbsolutePath();
+                            pathsqlite.put(id, dbpath);
+                            timestampsqlite.put(id, s);
+                        }
+                    } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
+                        e.printStackTrace();
+                        return "";
                     }
-                } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
-                    e.printStackTrace();
-                    return "";
+                } else{
+                  dbpath = pathsqlite.get(id);                  
+                  var s1 = timestampsqlite.get(id);
+                  Path path = Paths.get(dbpath);
+                  if (s1 == null || s1 < s) {
+                    dbpath = "";
+                    Files.delete(path);
+                    try {
+                        if (this.fichierS3Service.isObjectExist(fileName)) {
+                            inputStream = this.getObject(fileName);
+                            dbpath = this.writeStreamToTempFile(inputStream, id + ".sqlite3").getAbsolutePath();
+                            pathsqlite.put(id, dbpath);
+                            timestampsqlite.put(id, s);
+                        }
+                    } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
+                        e.printStackTrace();
+                        return "";
+                    }
                 }
-            } else {
+
+                } 
+            }
+                
+            else {
                 String fileName = id + ".sqlite3";
                 File customDir = new File(UPLOAD_DIR);
                 fileName = customDir.getAbsolutePath() +
                         File.separator + fileName;
                 if (Paths.get(fileName).toFile().exists()) {
                     dbpath = Paths.get(fileName).toFile().getAbsolutePath();
-                    pathsqlite.put(id, dbpath);
+//                    pathsqlite.put(id, dbpath);
 
                 }
             }
-        }
+        
         if ("".equals(dbpath) || dbpath == null) {
             return "";
         }
@@ -397,32 +416,55 @@ public class CacheUploadService {
 
         InputStream inputStream = null;
         String dbpath = "";
-        if (pathsqlite.containsKey(id) && Paths.get(pathsqlite.get(id)).toFile().exists()) {
-            dbpath = pathsqlite.get(id);
-        } else {
-            if (this.uses3) {
-                String fileName = "cache/" + id + ".sqlite3";
+
+        if (this.uses3) {
+            String fileName = "cache/" + id + ".sqlite3";
+            long s = this.fichierS3Service.getObjectTimestamp(fileName);
+            if (!pathsqlite.containsKey(id) || !Paths.get(pathsqlite.get(id)).toFile().exists()) {
                 try {
                     if (this.fichierS3Service.isObjectExist(fileName)) {
                         inputStream = this.getObject(fileName);
                         dbpath = this.writeStreamToTempFile(inputStream, id + ".sqlite3").getAbsolutePath();
                         pathsqlite.put(id, dbpath);
+                        timestampsqlite.put(id, s);
                     }
                 } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
                     e.printStackTrace();
                     return 0;
                 }
-            } else {
-                String fileName = id + ".sqlite3";
-                File customDir = new File(UPLOAD_DIR);
-                fileName = customDir.getAbsolutePath() +
-                        File.separator + fileName;
-                if (Paths.get(fileName).toFile().exists()) {
-                    dbpath = Paths.get(fileName).toFile().getAbsolutePath();
-                    pathsqlite.put(id, dbpath);
 
+            } else {
+
+                dbpath = pathsqlite.get(id);
+                var s1 = timestampsqlite.get(id);
+                Path path = Paths.get(dbpath);
+                if (s1 == null || s1 < s) {
+                    dbpath = "";
+                    Files.delete(path);
+                    try {
+                        if (this.fichierS3Service.isObjectExist(fileName)) {
+                            inputStream = this.getObject(fileName);
+                            dbpath = this.writeStreamToTempFile(inputStream, id + ".sqlite3").getAbsolutePath();
+                            pathsqlite.put(id, dbpath);
+                            timestampsqlite.put(id, s);
+                        }
+                    } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
+                        e.printStackTrace();
+                        return 0;
+                    }
                 }
+
             }
+
+        } else {
+            String fileName = id + ".sqlite3";
+            File customDir = new File(UPLOAD_DIR);
+            fileName = customDir.getAbsolutePath() +
+                    File.separator + fileName;
+            if (Paths.get(fileName).toFile().exists()) {
+                dbpath = Paths.get(fileName).toFile().getAbsolutePath();
+            }
+
         }
         if ("".equals(dbpath) || dbpath == null) {
             return 0;
@@ -463,104 +505,108 @@ public class CacheUploadService {
         return 0;
     }
 
-    public long getCacheTimeStamp(long id) throws IOException {
-        InputStream inputStream = null;
-        long timestamp = 0;
-        if (this.uses3) {
-            String fileName = "cache/" + id + "indexdb.json";
+    public long getCacheTimeStamp(long id, String cacheType) throws IOException {
+        if (!"sqlite".equals(cacheType)) {
+            InputStream inputStream = null;
+            long timestamp = 0;
+            if (this.uses3) {
+                String fileName = "cache/" + id + "indexdb.json";
 
-            try {
-                if (this.fichierS3Service.isObjectExist(fileName)) {
-                    inputStream = this.getObject(fileName);
-                } else {
-                    fileName = "cache/" + id + "_exam_template_indexdb.json";
-
+                try {
                     if (this.fichierS3Service.isObjectExist(fileName)) {
-
                         inputStream = this.getObject(fileName);
+                    } else {
+                        fileName = "cache/" + id + "_exam_template_indexdb.json";
 
+                        if (this.fichierS3Service.isObjectExist(fileName)) {
+
+                            inputStream = this.getObject(fileName);
+
+                        }
                     }
+                } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
+                    e.printStackTrace();
+                    return 0;
                 }
-            } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
-                e.printStackTrace();
-                return 0;
-            }
-            if (inputStream == null) {
-                return this.getCacheTimeStampSqlite(id);
+                if (inputStream == null) {
+                    return -1;
 
-            }
-
-        } else {
-            String fileName = id + "indexdb.json";
-            File customDir = new File(UPLOAD_DIR);
-            fileName = customDir.getAbsolutePath() +
-                    File.separator + fileName;
-            if (Paths.get(fileName).toFile().exists()) {
-
-                inputStream = Files.newInputStream(Paths.get(fileName));
+                }
 
             } else {
-                fileName = "cache/" + id + "_exam_template_indexdb.json";
+                String fileName = id + "indexdb.json";
+                File customDir = new File(UPLOAD_DIR);
                 fileName = customDir.getAbsolutePath() +
                         File.separator + fileName;
                 if (Paths.get(fileName).toFile().exists()) {
+
                     inputStream = Files.newInputStream(Paths.get(fileName));
+
+                } else {
+                    fileName = "cache/" + id + "_exam_template_indexdb.json";
+                    fileName = customDir.getAbsolutePath() +
+                            File.separator + fileName;
+                    if (Paths.get(fileName).toFile().exists()) {
+                        inputStream = Files.newInputStream(Paths.get(fileName));
+
+                    }
+
+                }
+                if (inputStream == null) {
+                    return -1;
 
                 }
 
             }
-            if (inputStream == null) {
-                return this.getCacheTimeStampSqlite(id);
 
-            }
-
-        }
-
-        JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
-        reader.beginObject();
-        reader.nextName();
-        reader.skipValue();
-        reader.nextName();
-        reader.skipValue();
-        reader.nextName();
-        reader.beginObject();
-        reader.nextName();
-        reader.skipValue();
-        reader.nextName();
-        reader.skipValue();
-        reader.nextName();
-        reader.skipValue();
-        reader.nextName();
-        reader.beginArray();
-
-        // exams
-
-        reader.beginObject();
-        reader.nextName();
-        reader.nextString();
-        reader.nextName();
-        reader.skipValue();
-        reader.nextName();
-        reader.beginArray();
-        while (reader.hasNext()) {
+            JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
             reader.beginObject();
             reader.nextName();
-            reader.nextLong();
-            if (reader.hasNext()) {
+            reader.skipValue();
+            reader.nextName();
+            reader.skipValue();
+            reader.nextName();
+            reader.beginObject();
+            reader.nextName();
+            reader.skipValue();
+            reader.nextName();
+            reader.skipValue();
+            reader.nextName();
+            reader.skipValue();
+            reader.nextName();
+            reader.beginArray();
+
+            // exams
+
+            reader.beginObject();
+            reader.nextName();
+            reader.nextString();
+            reader.nextName();
+            reader.skipValue();
+            reader.nextName();
+            reader.beginArray();
+            while (reader.hasNext()) {
+                reader.beginObject();
                 reader.nextName();
-                timestamp = reader.nextLong();
+                reader.nextLong();
+                if (reader.hasNext()) {
+                    reader.nextName();
+                    timestamp = reader.nextLong();
+                }
+                reader.endObject();
             }
+            reader.endArray();
+
             reader.endObject();
+
+            // reader.endObject();
+
+            reader.close();
+            inputStream.close();
+            return timestamp;
+        } else {
+            return this.getCacheTimeStampSqlite(id);
         }
-        reader.endArray();
-
-        reader.endObject();
-
-        // reader.endObject();
-
-        reader.close();
-        inputStream.close();
-        return timestamp;
 
     }
 

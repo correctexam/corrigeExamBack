@@ -60,7 +60,30 @@ public class FichierS3Service {
         }
     }
 
-    public boolean isObjectExist(String name) {
+    public long getObjectTimestamp(String name) {
+        if (saveasfile) {
+            Path path = Paths.get(name);
+            return Files.exists(path) ? path.toFile().lastModified() : -1;
+
+        } else {
+
+            try {
+                this.createBucketifNotExist();
+                var stat = minioClient.statObject(StatObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(name).build());
+                return stat.lastModified().toEpochSecond();
+            } catch (ErrorResponseException e) {
+                // e.printStackTrace();
+                return -1;
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e.getMessage());
+            }
+        }
+    }
+
+        public boolean isObjectExist(String name) {
         if (saveasfile) {
             Path path = Paths.get(name);
             return Files.exists(path);
@@ -82,6 +105,7 @@ public class FichierS3Service {
             }
         }
     }
+
 
     public InputStream getObject(String name)
             throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException {
