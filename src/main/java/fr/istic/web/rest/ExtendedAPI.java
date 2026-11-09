@@ -1,5 +1,44 @@
 package fr.istic.web.rest;
 
+import static jakarta.ws.rs.core.UriBuilder.fromPath;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.text.DecimalFormat;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.commons.io.IOUtils;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jboss.resteasy.reactive.RestForm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import fr.istic.config.JHipsterProperties;
 import fr.istic.domain.Answer2HybridGradedComment;
 import fr.istic.domain.Comments;
@@ -34,13 +73,6 @@ import fr.istic.service.QuestionService;
 import fr.istic.service.ScanService;
 import fr.istic.service.SecurityService;
 import fr.istic.service.StudentResponseService;
-
-import org.apache.commons.io.IOUtils;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.resteasy.reactive.MultipartForm;
-import org.jboss.resteasy.reactive.RestForm;
-import org.jboss.resteasy.reactive.server.multipart.MultipartFormDataInput;
-
 import fr.istic.service.StudentService;
 import fr.istic.service.UserService;
 import fr.istic.service.ZoneService;
@@ -81,51 +113,26 @@ import fr.istic.service.mapper.QuestionMapper;
 import fr.istic.service.mapper.TextCommentMapper;
 import fr.istic.service.mapper.ZoneMapper;
 import fr.istic.web.util.HeaderUtil;
-import io.netty.handler.codec.http.multipart.FileUpload;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.*;
-import org.eclipse.microprofile.openapi.annotations.Operation;
-import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
-import org.eclipse.microprofile.openapi.annotations.media.Content;
-import org.eclipse.microprofile.openapi.annotations.media.Schema;
-import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
-import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
-import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
-import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.text.DecimalFormat;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.Map.Entry;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import static jakarta.ws.rs.core.UriBuilder.fromPath;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.StreamingOutput;
+import jakarta.ws.rs.core.UriInfo;
 
 
 /**
@@ -1592,13 +1599,15 @@ public class ExtendedAPI {
         }
     )
     @GET
-    @Path("/getCacheTimeStamp/{examId}")
+    @Path("/getCacheTimeStamp/{examId}/{cacheType}")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response getCacheTimeStamp(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId) {
-        try {
+    public Response getCacheTimeStamp(
+        @Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId,
+        @Parameter(description = "IType of the cache (e.g., 'sqlite', 'indexdb')", required = true) @PathParam("cacheType") String cacheType) {
+            try{
             return Response
                     .status(Response.Status.OK)
-                    .entity(cacheUploadService.getCacheTimeStamp(examId))
+                    .entity(cacheUploadService.getCacheTimeStamp(examId,cacheType))
                     .type(MediaType.TEXT_PLAIN)
                     .build();
 
