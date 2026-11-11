@@ -248,8 +248,7 @@ public class FichierS3Service {
                 objects.add(new StorageObject(item.objectName(),
                         item.lastModified() != null ? item.lastModified().toInstant() : null, item.size()));
             }
-        } catch (MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException
-                | IOException e) {
+        } catch (MinioException e) {
             throw new StorageException(prefix, "Could not list objects of bucket " + bucketName, e);
         }
         return objects;
