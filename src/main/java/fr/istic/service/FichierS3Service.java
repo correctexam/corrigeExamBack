@@ -210,16 +210,19 @@ public class FichierS3Service {
             InternalException, InvalidResponseException, NoSuchAlgorithmException, ServerException, XmlParserException,
             IllegalArgumentException, IOException {
         if (saveasfile) {
-
+            // Local file storage: the object key is the relative file path
+            try {
+                Files.deleteIfExists(Paths.get(name));
+            } catch (IOException e) {
+                throw new StorageException(name, "Could not delete local file", e);
+            }
         } else {
-
+            // Removing a missing object is not an error on S3/MinIO: this call is idempotent
             try {
                 this.minioClient.removeObject(RemoveObjectArgs.builder().bucket(bucketName).object(name).build());
             } catch (MinioException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                throw new StorageException(name, "Could not delete object from bucket " + bucketName, e);
             }
         }
-
     }
 }

@@ -1,11 +1,5 @@
 package fr.istic.service;
 
-import io.minio.errors.ErrorResponseException;
-import io.minio.errors.InsufficientDataException;
-import io.minio.errors.InternalException;
-import io.minio.errors.InvalidResponseException;
-import io.minio.errors.ServerException;
-import io.minio.errors.XmlParserException;
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.Answer2HybridGradedComment;
 import fr.istic.domain.Comments;
@@ -29,6 +23,7 @@ import fr.istic.service.customdto.answernotebooks.QuestionNoteBook;
 import fr.istic.service.dto.CourseDTO;
 import fr.istic.service.dto.ExamDTO;
 import fr.istic.service.mapper.ExamMapper;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,10 +32,8 @@ import jakarta.inject.Inject;
 import jakarta.persistence.criteria.CriteriaBuilder.In;
 import jakarta.transaction.Transactional;
 
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -66,6 +59,12 @@ public class ExamService {
     @Inject
     QuestionService questionService;
 
+    @Inject
+    StorageDeletionService storageDeletionService;
+
+    @ConfigProperty(name = "correctexam.uses3", defaultValue = "false")
+    boolean uses3;
+
     @Transactional
     public ExamDTO persistOrUpdate(ExamDTO examDTO) {
         log.debug("Request to save Exam : {}", examDTO);
@@ -77,19 +76,29 @@ public class ExamService {
     /**
      * Delete the Exam by id.
      *
+     * <p>The database is cleaned in two transactions ({@link #prepareDeleteExam(long)} then
+     * {@link #deleteExam(long, List)}). The files of the exam (scan, template, caches) are removed
+     * from the object storage only after the exam itself has been deleted and committed, so that a
+     * rollback never leaves an exam whose files are gone.</p>
+     *
      * @param id the id of the entity.
      */
     public void delete(Long id) {
         log.debug("Request to delete Exam : {}", id);
-        this.prepareDeleteExam(id);
-        this.deleteExam(id);
-
-
+        List<String> storageKeys = this.prepareDeleteExam(id);
+        this.deleteExam(id, storageKeys);
     }
 
+    /**
+     * Deletes the entities attached to an exam and collects the keys of its stored objects.
+     * Nothing is removed from the object storage here.
+     *
+     * @return the keys of the storage objects to delete once the exam deletion has committed
+     */
     @Transactional
-    public void prepareDeleteExam(long id){
-             Exam.findByIdOptional(id).ifPresent(exam -> {
+    public List<String> prepareDeleteExam(long id){
+        List<String> storageKeys = new ArrayList<>();
+        Exam.findByIdOptional(id).ifPresent(exam -> {
             ExamSheet.getAll4ExamIdEvenOrphan(id).list().forEach(sr -> sr.cleanBeforDelete());
             /*StudentResponse.getAll4ExamIdEvenOrphan(id).list().forEach(sr -> {
                 sr.clearComments();
@@ -103,36 +112,29 @@ public class ExamService {
             this.deleteQuestionCommentAndZone(id);
             Exam e = Exam.findById(id);
 
-            if (e.scanfile != null && this.fichierS3Service.isObjectExist("scan/" + e.scanfile.id + ".pdf")) {
-                try {
-                    this.fichierS3Service.deleteObject("scan/" + e.scanfile.id + ".pdf");
-                } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
-                        | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
-                        | IllegalArgumentException | IOException e1) {
-                    e1.printStackTrace();
-                }
+            if (this.uses3 && e.scanfile != null) {
+                storageKeys.add("scan/" + e.scanfile.id + ".pdf");
             }
-            if (e.template != null && this.fichierS3Service.isObjectExist("template/" + e.template.id + ".pdf")) {
-                try {
-                    this.fichierS3Service.deleteObject("template/" + e.template.id + ".pdf");
-                } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException | InternalException
-                        | InvalidResponseException | NoSuchAlgorithmException | ServerException | XmlParserException
-                        | IllegalArgumentException | IOException e1) {
-                    e1.printStackTrace();
-                }
+            if (this.uses3 && e.template != null) {
+                storageKeys.add("template/" + e.template.id + ".pdf");
             }
             Comments.deleteCommentByExamId("" + id);
-            this.cacheService.deleteFile(id);
+            storageKeys.addAll(this.cacheService.listCacheObjectKeys(id));
+            this.cacheService.deleteLocalCacheFiles(id);
         });
-
+        return storageKeys;
     }
 
 
+    /**
+     * Deletes the exam and schedules the deletion of its storage objects after the commit.
+     */
     @Transactional
-    protected void deleteExam(long id){
-            var e = Exam.findById(id);
+    protected void deleteExam(long id, List<String> storageKeys){
+        Exam.findByIdOptional(id).ifPresent(e -> {
             e.delete();
-
+            this.storageDeletionService.deleteAfterCommit(storageKeys);
+        });
     }
 
     @Transactional

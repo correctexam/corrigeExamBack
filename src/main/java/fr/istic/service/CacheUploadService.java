@@ -17,8 +17,10 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
@@ -70,8 +72,9 @@ public class CacheUploadService {
             try {
                 this.fichierS3Service.deleteObject(name);
             } catch (ErrorResponseException | InsufficientDataException | InternalException
-                    | InvalidResponseException | ServerException | XmlParserException e) {
-                e.printStackTrace();
+                    | InvalidResponseException | ServerException | XmlParserException | StorageException e) {
+                // putObject overwrites the object anyway: a failed delete must not abort the upload
+                log.warn("Could not delete {} before overwriting it", name, e);
             }
 
         }
@@ -114,58 +117,64 @@ public class CacheUploadService {
         }
     }
 
-    protected void deleteFile(long id) {
+    /**
+     * Returns the keys of the existing S3 cache objects of an exam (JSON index caches,
+     * their parts and the SQLite cache). Read-only: nothing is deleted here, so that the
+     * caller can delete the objects only once the database transaction has committed.
+     *
+     * @return the keys, or an empty list when S3 is not used
+     */
+    public List<String> listCacheObjectKeys(long examId) {
+        List<String> keys = new ArrayList<>();
+        if (!this.uses3) {
+            return keys;
+        }
+        for (String candidate : List.of("cache/" + examId + "indexdb.json",
+                "cache/" + examId + "_exam_template_indexdb.json",
+                "cache/" + examId + ".sqlite3")) {
+            if (this.fichierS3Service.isObjectExist(candidate)) {
+                keys.add(candidate);
+            }
+        }
+        long k = 1;
+        String part = "cache/" + examId + "_part_" + k + "_indexdb.json";
+        while (this.fichierS3Service.isObjectExist(part)) {
+            keys.add(part);
+            k = k + 1;
+            part = "cache/" + examId + "_part_" + k + "_indexdb.json";
+        }
+        return keys;
+    }
 
+    /**
+     * Deletes the cache files of an exam stored on the local file system (when S3 is not used).
+     */
+    protected void deleteLocalCacheFiles(long id) {
         if (this.uses3) {
-            // String fileName = id + "indexdb.json";
-            String fileName = "cache/" + id + "indexdb.json";
-            try {
-                if (this.fichierS3Service.isObjectExist(fileName)) {
-                    fichierS3Service.deleteObject(fileName);
-                } else {
-                    fileName = "cache/" + id + "_exam_template_indexdb.json";
-                    if (this.fichierS3Service.isObjectExist(fileName)) {
-                        fichierS3Service.deleteObject(fileName);
-                        long k = 1;
-                        fileName = "cache/" + id + "_part_" + k + "_indexdb.json";
-                        while (this.fichierS3Service.isObjectExist(fileName)) {
-                            fichierS3Service.deleteObject(fileName);
-                            k = k + 1;
-                            fileName = "cache/" + id + "_part_" + k + "_indexdb.json";
-                        }
-                    }
+            return;
+        }
+        File customDir = new File(UPLOAD_DIR);
+        if (!customDir.exists()) {
+            customDir.mkdirs();
+        }
+        String fileName = "cache" + File.separator + id + "indexdb.json";
 
-                }
-            } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | ErrorResponseException
-                    | InsufficientDataException | InternalException | InvalidResponseException | ServerException
-                    | XmlParserException | IOException e) {
-                e.printStackTrace();
-            }
+        fileName = customDir.getAbsolutePath() +
+                File.separator + fileName;
+        if (Paths.get(fileName).toFile().exists()) {
+            Paths.get(fileName).toFile().delete();
         } else {
-            File customDir = new File(UPLOAD_DIR);
-            if (!customDir.exists()) {
-                customDir.mkdirs();
-            }
-            String fileName = "cache" + File.separator + id + "indexdb.json";
-
+            long k = 1;
             fileName = customDir.getAbsolutePath() +
-                    File.separator + fileName;
-            if (Paths.get(fileName).toFile().exists()) {
+                    File.separator + "cache" + File.separator + id + "_part_" + k + "_indexdb.json";
+            while (Paths.get(fileName).toFile().exists()) {
                 Paths.get(fileName).toFile().delete();
-            } else {
-                long k = 1;
+                k = k + 1;
                 fileName = customDir.getAbsolutePath() +
                         File.separator + "cache" + File.separator + id + "_part_" + k + "_indexdb.json";
-                while (Paths.get(fileName).toFile().exists()) {
-                    Paths.get(fileName).toFile().delete();
-                    k = k + 1;
-                    fileName = "cache" + File.separator + id + "_part_" + k + "_indexdb.json";
-                }
-
             }
 
         }
-
     }
 
     protected void writeFile(InputStream inputStream, String fileName, String contenttype)
