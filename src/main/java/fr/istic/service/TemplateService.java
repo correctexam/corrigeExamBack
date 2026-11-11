@@ -92,7 +92,8 @@ public class TemplateService {
             template.delete();
             if (this.uses3) {
                 // removed from S3 only once the deletion is committed
-                this.storageDeletionService.deleteAfterCommit(List.of("template/" + template.id + ".pdf"));
+                this.storageDeletionService.deleteAfterCommit(
+                        List.of("template/" + template.id + ".pdf", "template/" + template.id + ".zip"));
             }
         });
 

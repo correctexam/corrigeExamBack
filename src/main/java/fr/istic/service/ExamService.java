@@ -117,6 +117,7 @@ public class ExamService {
             }
             if (this.uses3 && e.template != null) {
                 storageKeys.add("template/" + e.template.id + ".pdf");
+                storageKeys.add("template/" + e.template.id + ".zip");
             }
             Comments.deleteCommentByExamId("" + id);
             storageKeys.addAll(this.cacheService.listCacheObjectKeys(id));
