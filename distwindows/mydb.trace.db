@@ -1,3 +1,0 @@
-2025-03-11 11:05:50.724828+01:00 jdbc[3]: exception
-org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "DATABASECHANGELOGLOCK" not found (this database is empty); SQL statement:
-SELECT COUNT(*) FROM PUBLIC.DATABASECHANGELOGLOCK [42104-224]
