@@ -6,12 +6,6 @@ import fr.istic.service.dto.ScanDTO;
 import fr.istic.service.dto.ScanDTOContent;
 import fr.istic.service.mapper.ScanContentMapper;
 import fr.istic.service.mapper.ScanMapper;
-import io.minio.errors.ErrorResponseException;
-import io.minio.errors.InsufficientDataException;
-import io.minio.errors.InternalException;
-import io.minio.errors.InvalidResponseException;
-import io.minio.errors.ServerException;
-import io.minio.errors.XmlParserException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -60,6 +54,9 @@ public class ScanService {
 
     @Inject
     FichierS3Service fichierS3Service;
+
+    @Inject
+    StorageDeletionService storageDeletionService;
 
     @ConfigProperty(name = "correctexam.uses3", defaultValue = "false")
     boolean uses3;
@@ -125,20 +122,11 @@ public class ScanService {
         log.debug("Request to delete Scan : {}", id);
         Optional<Scan> scanop = Scan.findByIdOptional(id);
         scanop.ifPresent(scan -> {
-            if (this.uses3) {
-
-                if (this.fichierS3Service.isObjectExist("scan/" + scan.id + ".pdf")) {
-                    try {
-                        this.fichierS3Service.deleteObject("scan/" + scan.id + ".pdf");
-                    } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException | IOException
-                            | ErrorResponseException | InsufficientDataException | InternalException
-                            | InvalidResponseException | ServerException | XmlParserException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
             scan.delete();
+            if (this.uses3) {
+                // removed from S3 only once the deletion is committed
+                this.storageDeletionService.deleteAfterCommit(List.of("scan/" + scan.id + ".pdf"));
+            }
         });
     }
 
