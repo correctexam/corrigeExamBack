@@ -33,6 +33,10 @@ Main feature are:
 The project was initially generated with JHipster 6.10.5 and JHipster Quarkus 1.1.1, then upgraded manually; the JHipster links below are kept for reference ([documentation archive](https://www.jhipster.tech/documentation-archive/v6.10.5)).
 
 
+### Architecture decisions
+
+Architecture decisions are recorded in [`docs/adr`](docs/adr/README.md), e.g. [ADR 0001 — scan alignment in the browser or in the Rust worker](docs/adr/0001-alignement-des-scans-client-ou-serveur.md).
+
 ### Build and deploy
 
 Documentation to deploy your own instance is available [here](https://correctexam.readthedocs.io/en/latest/Install.html)
