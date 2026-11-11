@@ -9,6 +9,8 @@ import fr.istic.service.ScanStreamService;
 import fr.istic.service.customdto.ScanRequestDto;
 import fr.istic.service.customdto.ScanStatusDto;
 import jakarta.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -28,6 +30,9 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("/api/scansalign")
 @Consumes(MediaType.APPLICATION_JSON)
 public class ScanAlignResource {
+
+    private final Logger log = LoggerFactory.getLogger(ScanAlignResource.class);
+
 
     // 1. Injecter l'émetteur pour envoyer vers RabbitMQ
     @Channel("scan-request-out")
@@ -51,15 +56,8 @@ public class ScanAlignResource {
         }
     )
     public void createScanJob(@Valid ScanRequestDto request) {
-        System.out.println("Envoi du job RabbitMQ pour examID: " + request.examID);
-        System.out.println("Envoi du job RabbitMQ pour pagesToManage: " + request.pagesToManage);
-        System.out.println("Envoi du job RabbitMQ pour scan_id: " + request.scanID);
-        System.out.println("Envoi du job RabbitMQ pour templateID: " + request.templateID);
-        System.out.println("Envoi du job RabbitMQ pour algo: " + request.algo);
-        System.out.println("Envoi du job RabbitMQ pour heightresolution: " + request.heightresolution);
-        System.out.println("Envoi du job RabbitMQ pour corner_square_size: " + request.corner_square_size);
-        System.out.println("Envoi du job RabbitMQ pour min_radius: " + request.min_radius);
-
+        log.info("Submitting scan alignment job: exam {}, template {}, scan {}, pages '{}', algo {}",
+                request.examID, request.templateID, request.scanID, request.pagesToManage, request.algo);
         requestEmitter.send(request);
     }
 
@@ -71,15 +69,14 @@ public class ScanAlignResource {
     @GET
     @Path("/{id}/events")
     @Produces(MediaType.SERVER_SENT_EVENTS) // Indique que c'est du streaming
-    @Operation(summary = "Stream scan alignment progress", description = "Opens a Server-Sent Events connection that streams the real-time progress of the scan alignment job.")
+    @Operation(summary = "Stream scan alignment progress", description = "Opens a Server-Sent Events connection that streams the real-time progress of the scan alignment jobs of an exam. The first event has the status 'connected': submit the job only after receiving it. The stream ends on the client side after a 'finished' or 'error' status.")
     @APIResponses(
         value = {
             @APIResponse(responseCode = "200", description = "Stream of scan status events")
         }
     )
-    public Multi<ScanStatusDto> streamScanProgress(@Parameter(description = "ID of the scan", required = true) @PathParam("id") int exam_id) {
-        System.out.println("Client connecté pour recevoir les événements SSE du scan_id: " + exam_id);
-//        throw new UnsupportedOperationException("Not implemented yet");
+    public Multi<ScanStatusDto> streamScanProgress(@Parameter(description = "ID of the exam", required = true) @PathParam("id") int exam_id) {
+        log.debug("SSE client subscribed to the alignment statuses of exam {}", exam_id);
         return streamService.streamStatus(exam_id);
     }
 }
