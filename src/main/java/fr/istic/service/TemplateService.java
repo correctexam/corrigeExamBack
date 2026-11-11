@@ -1,11 +1,5 @@
 package fr.istic.service;
 
-import io.minio.errors.ErrorResponseException;
-import io.minio.errors.InsufficientDataException;
-import io.minio.errors.InternalException;
-import io.minio.errors.InvalidResponseException;
-import io.minio.errors.ServerException;
-import io.minio.errors.XmlParserException;
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.Template;
 import fr.istic.service.customdto.TemplateCaseDTO;
@@ -26,6 +20,7 @@ import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -36,6 +31,9 @@ public class TemplateService {
 
     @Inject
     FichierS3Service fichierS3Service;
+
+    @Inject
+    StorageDeletionService storageDeletionService;
 
     @Inject
     TemplateMapper templateMapper;
@@ -91,20 +89,12 @@ public class TemplateService {
         log.debug("Request to delete Template : {}", id);
         Optional<Template> templateop = Template.findByIdOptional(id);
         templateop.ifPresent(template -> {
-            if (this.uses3) {
-                if (this.fichierS3Service.isObjectExist("template/" + template.id + ".pdf")) {
-                    try {
-                        this.fichierS3Service.deleteObject("template/" + template.id + ".pdf");
-                    } catch (InvalidKeyException | ErrorResponseException | InsufficientDataException
-                            | InternalException | InvalidResponseException | NoSuchAlgorithmException | ServerException
-                            | XmlParserException | IllegalArgumentException | IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-
-                }
-            }
             template.delete();
+            if (this.uses3) {
+                // removed from S3 only once the deletion is committed
+                this.storageDeletionService.deleteAfterCommit(
+                        List.of("template/" + template.id + ".pdf", "template/" + template.id + ".zip"));
+            }
         });
 
     }
