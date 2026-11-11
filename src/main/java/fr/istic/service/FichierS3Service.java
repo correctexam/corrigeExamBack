@@ -9,6 +9,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -19,10 +22,12 @@ import org.slf4j.LoggerFactory;
 
 import io.minio.BucketExistsArgs;
 import io.minio.GetObjectArgs;
+import io.minio.ListObjectsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
+import io.minio.Result;
 import io.minio.StatObjectArgs;
 import io.minio.UploadObjectArgs;
 import io.minio.errors.ErrorResponseException;
@@ -32,6 +37,7 @@ import io.minio.errors.InvalidResponseException;
 import io.minio.errors.MinioException;
 import io.minio.errors.ServerException;
 import io.minio.errors.XmlParserException;
+import io.minio.messages.Item;
 
 @Singleton
 public class FichierS3Service {
@@ -204,6 +210,49 @@ public class FichierS3Service {
                 throw new IllegalStateException(e);
             }
         }
+    }
+
+    /**
+     * Lists the objects whose key starts with the given prefix (recursively).
+     * In {@code saveasfile} mode, the prefix must be a top-level folder (e.g. {@code "scan/"})
+     * and the local files below it are returned with '/'-separated keys.
+     *
+     * @throws StorageException when the storage cannot be listed
+     */
+    public List<StorageObject> listObjects(String prefix) {
+        List<StorageObject> objects = new ArrayList<>();
+        if (saveasfile) {
+            Path root = Paths.get(prefix);
+            if (!Files.isDirectory(root)) {
+                return objects;
+            }
+            Path base = Paths.get("").toAbsolutePath();
+            try (Stream<Path> files = Files.walk(root)) {
+                for (Path file : (Iterable<Path>) files.filter(Files::isRegularFile)::iterator) {
+                    String key = base.relativize(file.toAbsolutePath()).toString().replace('\\', '/');
+                    objects.add(new StorageObject(key, Files.getLastModifiedTime(file).toInstant(), Files.size(file)));
+                }
+            } catch (IOException e) {
+                throw new StorageException(prefix, "Could not list local files", e);
+            }
+            return objects;
+        }
+        try {
+            Iterable<Result<Item>> results = minioClient.listObjects(
+                    ListObjectsArgs.builder().bucket(bucketName).prefix(prefix).recursive(true).build());
+            for (Result<Item> result : results) {
+                Item item = result.get();
+                if (item.isDir()) {
+                    continue;
+                }
+                objects.add(new StorageObject(item.objectName(),
+                        item.lastModified() != null ? item.lastModified().toInstant() : null, item.size()));
+            }
+        } catch (MinioException | InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException
+                | IOException e) {
+            throw new StorageException(prefix, "Could not list objects of bucket " + bucketName, e);
+        }
+        return objects;
     }
 
     public void deleteObject(String name) throws InvalidKeyException, ErrorResponseException, InsufficientDataException,
