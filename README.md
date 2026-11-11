@@ -22,7 +22,15 @@ Main feature are:
 ### Technical stack
 
 
-This application was generated using JHipster 6.10.5 and JHipster Quarkus 1.1.1 (manually upgraded to quarkus 2.9.2.Final), you can find documentation and help at [https://www.jhipster.tech/documentation-archive/v6.10.5](https://www.jhipster.tech/documentation-archive/v6.10.5).
+- Java 17+ (enforced range: 17 to 25), Maven wrapper (`./mvnw`)
+- Quarkus 3.40 (see `quarkus.platform.version` in `pom.xml`): REST + Jackson, Hibernate ORM with Panache, MapStruct, Liquibase, SmallRye JWT, Micrometer, OpenAPI
+- MySQL / MariaDB in dev and prod, H2 for tests and the standalone build
+- MinIO (S3 API) for PDFs, scans and caches (`correctexam.uses3`, `correctexam.bucketname`)
+- RabbitMQ (`quarkus-messaging-rabbitmq`) to send server-side scan alignment jobs (`scan_jobs_queue`) to the `pdf_to_webp` worker
+- Authentication: JWT, CAS and Shibboleth
+- Front-end: [corrigeExamFront](https://github.com/correctexam/corrigeExamFront) (Angular)
+
+The project was initially generated with JHipster 6.10.5 and JHipster Quarkus 1.1.1, then upgraded manually; the JHipster links below are kept for reference ([documentation archive](https://www.jhipster.tech/documentation-archive/v6.10.5)).
 
 
 ### Build and deploy
@@ -53,7 +61,15 @@ sudo systemctl start mariadb
 sudo mysql_secure_installation
 
 sudo mysql -u root
-CREATE DATABASE gradeScopeIstic;
+CREATE DATABASE correctexam;
+```
+
+The `dev` profile expects the database `correctexam` on `localhost:3308` (user `root`, see `%dev.quarkus.datasource.*` in `src/main/resources/application.properties`); the `prod` profile uses `gradeScopeIstic` on port 3306. Adapt the port or these properties to your installation.
+
+Server-side scan alignment also requires RabbitMQ (`rabbitmq-host`, `rabbitmq-port` properties):
+
+```
+podman run -d -p 5672:5672 -p 15672:15672 -e RABBITMQ_DEFAULT_USER=rabbitmq -e RABBITMQ_DEFAULT_PASS=rabbitmq rabbitmq:management
 ```
 
 The first run of the back-end must initial and populate the DB with fake data. To do so, run:
