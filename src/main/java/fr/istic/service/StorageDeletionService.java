@@ -27,7 +27,8 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class StorageDeletionService {
 
-    private final Logger log = LoggerFactory.getLogger(StorageDeletionService.class);
+    // package-private and not final so that unit tests can capture the orphan reports
+    Logger log = LoggerFactory.getLogger(StorageDeletionService.class);
 
     @Inject
     TransactionSynchronizationRegistry transactionSynchronizationRegistry;
