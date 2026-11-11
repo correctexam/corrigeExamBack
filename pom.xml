@@ -185,10 +185,11 @@
             <artifactId>quarkus-junit-mockito</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Version managed by the Quarkus BOM: REST Assured must match the Groovy version of the BOM
+             (REST Assured 5.x + Groovy 5 throws a NullPointerException on every GET request). -->
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>5.5.6</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -368,6 +369,8 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven-surefire-plugin.version}</version>
                     <configuration>
+                        <!-- full stack traces in the reports (otherwise only the test class frames are kept) -->
+                        <trimStackTrace>false</trimStackTrace>
                         <systemPropertyVariables>
                             <!--   <jacoco-agent.destfile>${jacoco.utReportFile}</jacoco-agent.destfile>-->
                             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
