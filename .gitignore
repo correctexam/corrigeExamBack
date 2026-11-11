@@ -147,3 +147,25 @@ Desktop.ini
 .eslintcache
 
 danenv/
+######################
+# Local artefacts (T12)
+######################
+# Coverage / dependency reports
+jacoco.exec
+/deps
+# Scala Metals / Bloop (VS Code Java tooling)
+.metals/
+.bloop/
+.apt_generated_tests/
+# Quarkus / Panache build marker
+panache-archive.marker
+# DB Browser for SQLite projects (H2/SQLite files are covered by *.db)
+*.sqbpro
+# Local object storage when correctexam.saveasfile=true
+/cache/
+/scan/
+/template/
+# Keys and keyrings must never be committed
+*.gpg
+# Seed database shipped with the Windows standalone bundle (intentionally versioned)
+!distwindows/mydb.mv.db
