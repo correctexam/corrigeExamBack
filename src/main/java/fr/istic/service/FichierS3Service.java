@@ -53,6 +53,22 @@ public class FichierS3Service {
 
     private final Logger log = LoggerFactory.getLogger(FichierS3Service.class);
 
+    /**
+     * Local file of the object {@code key} in {@code saveasfile} mode (relative to the working directory).
+     * Refuses keys that would point outside it, such as {@code cache/../../x} or an absolute path.
+     */
+    static Path localPath(String key) {
+        if (key == null || key.isEmpty() || key.indexOf('\0') >= 0 || Paths.get(key).isAbsolute()) {
+            throw new IllegalArgumentException("Invalid storage key: " + key);
+        }
+        Path base = Paths.get("").toAbsolutePath().normalize();
+        Path path = base.resolve(key).normalize();
+        if (!path.startsWith(base) || path.equals(base)) {
+            throw new IllegalArgumentException("Invalid storage key: " + key);
+        }
+        return path;
+    }
+
     private void createBucketifNotExist() {
         try {
             boolean found = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
@@ -68,7 +84,7 @@ public class FichierS3Service {
 
     public long getObjectTimestamp(String name) {
         if (saveasfile) {
-            Path path = Paths.get(name);
+            Path path = localPath(name);
             return Files.exists(path) ? path.toFile().lastModified() : -1;
 
         } else {
@@ -91,7 +107,7 @@ public class FichierS3Service {
 
         public boolean isObjectExist(String name) {
         if (saveasfile) {
-            Path path = Paths.get(name);
+            Path path = localPath(name);
             return Files.exists(path);
 
         } else {
@@ -116,7 +132,7 @@ public class FichierS3Service {
     public InputStream getObject(String name)
             throws InvalidKeyException, NoSuchAlgorithmException, IllegalArgumentException, IOException {
         if (saveasfile) {
-            Path path = Paths.get(name);
+            Path path = localPath(name);
             return Files.newInputStream(path);
         } else {
 
@@ -162,7 +178,7 @@ public class FichierS3Service {
             if (!Files.exists(pathc)){
                 Files.createDirectory(pathc);
             }
-            Path path = Paths.get(name);
+            Path path = localPath(name);
             OutputStream outputStream = Files.newOutputStream(path);
             outputStream.write(Files.readAllBytes(Paths.get(filename)));
             outputStream.close();
@@ -186,7 +202,7 @@ public class FichierS3Service {
             }
 
 
-            Path path = Paths.get(name);
+            Path path = localPath(name);
             OutputStream outputStream = Files.newOutputStream(path);
             outputStream.write(bytes);
             outputStream.close();

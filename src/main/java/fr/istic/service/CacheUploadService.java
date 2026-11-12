@@ -193,14 +193,9 @@ public class CacheUploadService {
             if (!customDir.exists()) {
                 customDir.mkdirs();
             }
-            fileName = customDir.getAbsolutePath() +
-                    File.separator + fileName;
-            if (Paths.get(fileName).toFile().exists()) {
-                Paths.get(fileName).toFile().delete();
-            }
-
-            Files.write(Paths.get(fileName), bytes,
-                    StandardOpenOption.CREATE_NEW);
+            Path target = CacheFileNames.resolveInside(customDir.toPath(), fileName);
+            Files.deleteIfExists(target);
+            Files.write(target, bytes, StandardOpenOption.CREATE_NEW);
 
         }
 
@@ -237,13 +232,12 @@ public class CacheUploadService {
                 customDir1.mkdirs();
             }
 
-            fileName = customDir1.getAbsolutePath() +
-                    File.separator + fileName;
-            if (!Paths.get(fileName).toFile().exists()) {
-                log.error("pas de fichier " + fileName);
+            Path source = CacheFileNames.resolveInside(customDir1.toPath(), fileName);
+            if (!Files.exists(source)) {
+                log.error("pas de fichier " + source);
                 throw new Exception("No such file");
             }
-            return Files.newInputStream(Paths.get(fileName));
+            return Files.newInputStream(source);
 
         }
 

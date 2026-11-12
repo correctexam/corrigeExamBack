@@ -119,6 +119,7 @@ public class AccountResource {
     )
     @POST
     @Path("/account")
+    @Authenticated
     public Response saveAccount(@Valid UserDTO userDTO, @Context SecurityContext ctx) {
         var userLogin = Optional
             .ofNullable(ctx.getUserPrincipal().getName())
@@ -243,6 +244,7 @@ public class AccountResource {
     )
     @POST
     @Path("/account/change-password")
+    @Authenticated
     public Response changePassword(PasswordChangeDTO passwordChangeDto, @Context SecurityContext ctx) {
         var userLogin = Optional
             .ofNullable(ctx.getUserPrincipal().getName())
