@@ -17,6 +17,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.InvalidKeyException;
@@ -165,14 +166,9 @@ public class CacheStudentPdfFService {
             if (!customDir1.exists()) {
                 customDir1.mkdirs();
             }
-            fileName = customDir1.getAbsolutePath() +
-                    File.separator + fileName;
-            if (Paths.get(fileName).toFile().exists()) {
-                Paths.get(fileName).toFile().delete();
-            }
-
-            Files.write(Paths.get(fileName), bytes,
-                    StandardOpenOption.CREATE_NEW);
+            Path target = CacheFileNames.resolveInside(customDir1.toPath(), fileName);
+            Files.deleteIfExists(target);
+            Files.write(target, bytes, StandardOpenOption.CREATE_NEW);
 
         }
 
@@ -208,9 +204,9 @@ public class CacheStudentPdfFService {
             if (!customDir1.exists()) {
                 customDir1.mkdirs();
             }
-            fileName = customDir1.getAbsolutePath() +
-                    File.separator + fileName;
-            if (!Paths.get(fileName).toFile().exists()) {
+            Path source = CacheFileNames.resolveInside(customDir1.toPath(), fileName);
+            fileName = source.toString();
+            if (!Files.exists(source)) {
                 log.error("pas de fichier " + fileName);
                 throw new Exception("No such file");
             }
