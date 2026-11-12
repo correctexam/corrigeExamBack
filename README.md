@@ -109,6 +109,10 @@ To ensure everything worked, run:
 
     java -jar target/quarkus-app/*.jar
 
+**Before any deployment reachable from a network**, generate a JWT key pair of your own and pass it with
+`JWT_PRIVATE_KEY_LOCATION` / `JWT_PUBLIC_KEY_LOCATION`: the application refuses to start with the development
+pair of the repository. See [docs/security/jwt-keys.md](docs/security/jwt-keys.md).
+
 Refer to [Using JHipster in production][] for more details.
 
 #### Packaging as native executable

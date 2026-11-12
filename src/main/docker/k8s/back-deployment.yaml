@@ -40,6 +40,11 @@ spec:
             - -Dquarkus.minio.access-key=minioadmin
             - -Dquarkus.minio.secret-key=minioadmin
           env:
+            # JWT key pair of this deployment (docs/security/jwt-keys.md), from the correctexam-jwt secret
+            - name: JWT_PRIVATE_KEY_LOCATION
+              value: file:/run/secrets/jwt/privateKey.pem
+            - name: JWT_PUBLIC_KEY_LOCATION
+              value: file:/run/secrets/jwt/publicKey.pem
             - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
               value: "true"
             - name: SPRING_PROFILES_ACTIVE
@@ -49,5 +54,13 @@ spec:
           ports:
             - containerPort: 8080
           resources: {}
+          volumeMounts:
+            - name: jwt-keys
+              mountPath: /run/secrets/jwt
+              readOnly: true
+      volumes:
+        - name: jwt-keys
+          secret:
+            secretName: correctexam-jwt
       restartPolicy: Always
 status: {}

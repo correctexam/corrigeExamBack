@@ -2,12 +2,7 @@ package fr.istic.security.jwt;
 
 import fr.istic.config.JHipsterProperties;
 import io.quarkus.security.runtime.QuarkusSecurityIdentity;
-import java.io.InputStream;
 import java.security.Key;
-import java.security.KeyFactory;
-import java.security.PrivateKey;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
 import jakarta.annotation.PostConstruct;
@@ -39,7 +34,7 @@ public class TokenProvider {
     @Inject
     public TokenProvider(JHipsterProperties jHipsterProperties)
         throws Exception {
-        this.key = readPrivateKey(jHipsterProperties.security().authentication().jwt().privateKey().location());
+        this.key = PemKeys.privateKey(PemKeys.read(jHipsterProperties.security().authentication().jwt().privateKey().location()));
         this.issuer = jHipsterProperties.security().authentication().jwt().issuer();
         this.tokenValidityInMilliseconds = jHipsterProperties.security().authentication().jwt().tokenValidityInSeconds() * 1000;
         this.tokenValidityInMillisecondsForRememberMe =
@@ -78,33 +73,5 @@ public class TokenProvider {
         } catch (JoseException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public static PrivateKey readPrivateKey(final String pemResName) throws Exception {
-        InputStream contentIS = TokenProvider.class.getResourceAsStream(pemResName);
-        byte[] tmp = new byte[4096];
-        int length = contentIS.read(tmp);
-        return decodePrivateKey(new String(tmp, 0, length, "UTF-8"));
-    }
-
-    public static PrivateKey decodePrivateKey(final String pemEncoded) throws Exception {
-        byte[] encodedBytes = toEncodedBytes(pemEncoded);
-
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encodedBytes);
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        return kf.generatePrivate(keySpec);
-    }
-
-    private static byte[] toEncodedBytes(final String pemEncoded) {
-        final String normalizedPem = removeBeginEnd(pemEncoded);
-        return Base64.getDecoder().decode(normalizedPem);
-    }
-
-    private static String removeBeginEnd(String pem) {
-        pem = pem.replaceAll("-----BEGIN (.*)-----", "");
-        pem = pem.replaceAll("-----END (.*)----", "");
-        pem = pem.replaceAll("\r\n", "");
-        pem = pem.replaceAll("\n", "");
-        return pem.trim();
     }
 }
