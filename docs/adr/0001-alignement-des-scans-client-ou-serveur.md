@@ -55,6 +55,16 @@ Front ◀──SSE GET /api/scansalign/{examId}/events── Quarkus ◀── e
 
 **`ScanStatusDto`** : `exam_id`, `page`, `status` (`running` par page, `finished` en fin de job), `progress` (0–100) et `details`. Le front considère le job terminé sur `finished` ou dès que `progress >= 100`.
 
+**Suivi d'un job en cours** (reprise après rechargement, autre onglet, autre enseignant) :
+
+- le back garde en mémoire le dernier état connu du job de chaque examen (`ScanAlignJobRegistry`), alimenté par le `POST` (`submitted`) et par les statuts du worker (`running`, `finished`, `error`) ;
+- `GET /api/scansalign/{examId}/status` (`@RolesAllowed` + `canAccess` sur l'examen) renvoie ce `ScanAlignJobDto` (`exam_id`, `status`, `pages_to_manage`, `page`, `progress`, `details`, `submitted_at`, `updated_at`), ou 204 s'il n'y a pas de job connu ;
+- un client qui se raccroche ouvre le flux SSE, puis relit cet état à la réception de `connected` : il obtient l'avancement courant et ne rate pas un job terminé entre-temps ;
+- `POST /api/scansalign` répond 409 (avec l'état du job) tant qu'un job de l'examen est actif : deux jobs réécriraient le même `cache/{examId}.sqlite3` ;
+- un job actif sans statut pendant `correctexam.scanalign.stale-after` (15 min par défaut) passe en `error` ; un job terminé reste visible pendant `correctexam.scanalign.retention` (1 h). Sans nouvelles pendant son délai d'inactivité, le front interroge cet état avant d'abandonner : un job en file d'attente derrière un gros examen n'est plus abandonné à tort.
+
+Côté front, l'écran d'alignement se raccroche automatiquement au job en cours, et la vue de l'examen affiche un overlay bloquant tant qu'il n'est pas terminé, puis importe le cache produit.
+
 **Configuration** : `mp.messaging.outgoing.scan-request-out.*` et `mp.messaging.incoming.scan-status-in.*` dans `application.properties`, côté worker les options `--mq-server-host`, `--server-url` (MinIO) et `--bucket-name`.
 
 ## Conséquences
@@ -73,6 +83,7 @@ Front ◀──SSE GET /api/scansalign/{examId}/events── Quarkus ◀── e
   - le worker ne publie aucun statut d'erreur : en cas d'échec, le message est acquitté (`ack`) et seulement loggé, donc le front attend indéfiniment, faute de timeout ;
   - le flux SSE est « chaud », sans rejeu (`BroadcastProcessor`), et le front l'ouvre *après* le `POST` : un job très court peut se terminer avant que le client ne s'abonne ;
   - le message final est publié avec la clé de routage `scan.status.{scan_id}` au lieu de `{exam_id}`. C'est sans effet aujourd'hui (filtre `#`), mais incohérent.
+- L'état des jobs est en mémoire dans le back : après un redémarrage, un job en cours redevient visible au statut suivant du worker (sans `pages_to_manage`) ; avec plusieurs instances du back, chacune ne voit que les statuts qu'elle consomme (file `scan_status_java_listener` partagée). Le jour où le back sera multi-instance (voir T7), l'état devra passer en base ou chaque instance devra avoir sa propre file liée à `scan_status_exchange`.
 - Sécurité : `ScanAlignResource` n'a ni `@RolesAllowed` ni contrôle `SecurityService.canAccess` sur l'examen, et la politique HTTP `/api/*` est commentée. Ajouté à T10.
 
 ## Alternatives écartées
