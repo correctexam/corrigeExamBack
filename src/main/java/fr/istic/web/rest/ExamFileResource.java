@@ -3,6 +3,7 @@ package fr.istic.web.rest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.OptionalLong;
 
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
@@ -18,6 +19,7 @@ import fr.istic.domain.Exam;
 import fr.istic.domain.Scan;
 import fr.istic.domain.Template;
 import fr.istic.security.AuthoritiesConstants;
+import fr.istic.service.CacheFileNames;
 import fr.istic.service.CacheStudentPdfFService;
 import fr.istic.service.CacheUploadService;
 import fr.istic.service.FichierS3Service;
@@ -71,15 +73,25 @@ public class ExamFileResource {
     @APIResponses(
         value = {
             @APIResponse(responseCode = "200", description = "PDF uploaded"),
+            @APIResponse(responseCode = "400", description = "Invalid file name: {sheet name}.pdf expected"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
             @APIResponse(responseCode = "500", description = "Upload failed")
         }
     )
     @POST
     @Path("/uploadExportFinalStudent/{examId}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
     public Response fileUploadStudentPdf(@RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file,
-            @Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId) {
+            @Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId,
+            @Context SecurityContext ctx) {
+        if (file == null || !CacheFileNames.isStudentPdf(file.fileName())) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         try {
             cacheStudentPdfFService.uploadFile(file, examId);
         } catch (Exception e) {
@@ -94,15 +106,25 @@ public class ExamFileResource {
     @APIResponses(
         value = {
             @APIResponse(responseCode = "200", description = "File uploaded"),
+            @APIResponse(responseCode = "400", description = "Invalid file name: not an exam cache file"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource"),
             @APIResponse(responseCode = "500", description = "Upload failed")
         }
     )
     @POST
     @Path("/uploadCache")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
     public Response fileUpload(
-            @RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file) {
+            @RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file, @Context SecurityContext ctx) {
+        OptionalLong examId = CacheFileNames.examIdOfCacheFile(file == null ? null : file.fileName());
+        if (examId.isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        if (!securityService.canAccess(ctx, examId.getAsLong(), Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         try {
             cacheUploadService.uploadFile(file);
         } catch (Exception e) {
@@ -183,8 +205,13 @@ public class ExamFileResource {
     )
     @GET
     @Path("/getCachePageInTemplate/{examId}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Produces(MediaType.TEXT_PLAIN)
-    public Response getCachePageInTemplate(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId) {
+    public Response getCachePageInTemplate(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId,
+            @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         try {
             return Response
                     .status(Response.Status.OK)
@@ -290,10 +317,15 @@ public class ExamFileResource {
     )
     @GET
     @Path("/getCacheTimeStamp/{examId}/{cacheType}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Produces(MediaType.TEXT_PLAIN)
     public Response getCacheTimeStamp(
         @Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId,
-        @Parameter(description = "IType of the cache (e.g., 'sqlite', 'indexdb')", required = true) @PathParam("cacheType") String cacheType) {
+        @Parameter(description = "IType of the cache (e.g., 'sqlite', 'indexdb')", required = true) @PathParam("cacheType") String cacheType,
+        @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
             try{
             return Response
                     .status(Response.Status.OK)
@@ -339,13 +371,24 @@ public class ExamFileResource {
                 description = "The cached file content",
                 content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM)
             ),
-            @APIResponse(responseCode = "204", description = "The file does not exist")
+            @APIResponse(responseCode = "204", description = "The file does not exist"),
+            @APIResponse(responseCode = "400", description = "Invalid file name: not an exam cache file"),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this resource")
         }
     )
     @GET
     @Path("/getCache/{fileName}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getFile(@Parameter(description = "Name of the cached file to retrieve", required = true) @PathParam("fileName") String fileName) {
+    public Response getFile(@Parameter(description = "Name of the cached file to retrieve", required = true) @PathParam("fileName") String fileName,
+            @Context SecurityContext ctx) {
+        OptionalLong examId = CacheFileNames.examIdOfCacheFile(fileName);
+        if (examId.isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        if (!securityService.canAccess(ctx, examId.getAsLong(), Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         try {
             return Response.ok(
                     new StreamingOutput() {

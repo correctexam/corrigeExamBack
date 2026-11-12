@@ -302,6 +302,7 @@ public class CommentsResource {
     )
     @GET
     @Path("/migrate/{exId}")
+    @RolesAllowed(AuthoritiesConstants.ADMIN)
     @Produces(MediaType.TEXT_PLAIN)
     public String migrateExamSheets4ExamId(
         @Parameter(description = "Id of the exam to migrate", required = true) @PathParam("exId") Long exId,
