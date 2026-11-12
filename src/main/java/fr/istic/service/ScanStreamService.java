@@ -3,6 +3,7 @@ package fr.istic.service;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.operators.multi.processors.BroadcastProcessor;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 import java.io.IOException;
 
@@ -20,7 +21,9 @@ import fr.istic.service.customdto.ScanStatusDto;
  *
  * <p>The stream is hot and does not replay past events: a client must subscribe
  * <b>before</b> submitting the job. Every subscription therefore starts with a
- * {@code connected} event, which tells the client that it can submit the job safely.</p>
+ * {@code connected} event, which tells the client that it can submit the job safely.
+ * A client that follows a job it did not submit reads the job state from
+ * {@link ScanAlignJobRegistry} once it has received this event.</p>
  */
 @ApplicationScoped
 public class ScanStreamService {
@@ -30,9 +33,12 @@ public class ScanStreamService {
     // Flux "chaud" (hot stream) qui diffuse à tous les abonnés
     private final BroadcastProcessor<ScanStatusDto> statusProcessor = BroadcastProcessor.create();
     private final ObjectMapper objectMapper;
+    private final ScanAlignJobRegistry jobRegistry;
 
-    public ScanStreamService() {
+    @Inject
+    public ScanStreamService(ScanAlignJobRegistry jobRegistry) {
         this.objectMapper = new ObjectMapper();
+        this.jobRegistry = jobRegistry;
     }
 
     /**
@@ -59,6 +65,9 @@ public class ScanStreamService {
             } else {
                 log.debug("Scan status for exam {}: page {} {} {}%", dto.examId, dto.page, dto.status, dto.progress);
             }
+            // the registry first: a client that reads the job state after receiving this
+            // status must not see an older state
+            jobRegistry.onStatus(dto);
             statusProcessor.onNext(dto);
         } catch (IOException e) {
             log.error("Invalid scan status message: {}", new String(b, java.nio.charset.StandardCharsets.UTF_8), e);

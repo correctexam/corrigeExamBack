@@ -1,8 +1,10 @@
 package fr.istic.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +18,8 @@ import fr.istic.service.customdto.ScanStatusDto;
  */
 class ScanStreamServiceTest {
 
+    private final ScanAlignJobRegistry registry = new ScanAlignJobRegistry(Duration.ofMinutes(15), Duration.ofHours(1));
+
     private static byte[] status(int examId, int page, String status, int progress) {
         return ("{\"exam_id\":" + examId + ",\"page\":" + page + ",\"status\":\"" + status + "\",\"progress\":"
                 + progress + ",\"details\":\"\"}").getBytes(StandardCharsets.UTF_8);
@@ -23,7 +27,7 @@ class ScanStreamServiceTest {
 
     @Test
     void firstEventIsConnectedThenOnlyTheStatusesOfTheExam() {
-        ScanStreamService service = new ScanStreamService();
+        ScanStreamService service = new ScanStreamService(registry);
         List<ScanStatusDto> received = new ArrayList<>();
         service.streamStatus(12).subscribe().with(received::add);
 
@@ -38,7 +42,7 @@ class ScanStreamServiceTest {
 
     @Test
     void invalidOrUnknownMessagesAreIgnored() {
-        ScanStreamService service = new ScanStreamService();
+        ScanStreamService service = new ScanStreamService(registry);
         List<ScanStatusDto> received = new ArrayList<>();
         service.streamStatus(1).subscribe().with(received::add);
 
@@ -46,5 +50,18 @@ class ScanStreamServiceTest {
         service.consumeRabbitMQ(42);
 
         assertEquals(1, received.size(), "only the connected event");
+    }
+
+    @Test
+    void statusesUpdateTheJobRegistry() {
+        ScanStreamService service = new ScanStreamService(registry);
+
+        service.consumeRabbitMQ(status(7, 3, ScanStatusDto.STATUS_RUNNING, 30));
+
+        var job = registry.find(7).orElseThrow();
+        assertEquals(ScanStatusDto.STATUS_RUNNING, job.status);
+        assertEquals(3, job.page);
+        assertEquals(30, job.progress);
+        assertTrue(registry.find(8).isEmpty());
     }
 }
