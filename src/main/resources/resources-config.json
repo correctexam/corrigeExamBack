@@ -1,7 +1,7 @@
 {
   "resources": [
     {
-      "pattern": "jwt/privateKey.pem"
+      "pattern": "jwt/dev-only/.*\\.pem"
     },
     {
       "pattern": "org/apache/pdfbox/resources/afm/*"
