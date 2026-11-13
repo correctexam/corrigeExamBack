@@ -25,6 +25,9 @@ public class ScanDTO implements Serializable {
     @Schema(description = "MIME content type of the scan file.")
     public String contentContentType;
 
+    @Schema(description = "Number of pages of the scan PDF; null when it has not been computed yet (see GET /api/scans/{id}/pagecount).", readOnly = true)
+    public Integer pageCount;
+
 
     @Override
     public boolean equals(Object o) {
