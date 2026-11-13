@@ -37,6 +37,6 @@ public interface GradedCommentMapper extends EntityMapper<GradedCommentDTO, Grad
 
     @Named("grade2gradequarter")
     public static int point2quarterpoint(double grade) {
-        return Double.valueOf(grade *4).intValue();
+        return (int) Math.round(grade * 4);
     }
 }

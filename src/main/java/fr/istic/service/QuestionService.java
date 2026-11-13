@@ -261,7 +261,9 @@ public class QuestionService {
                     Comment comment = new Comment();
                     comment.setText(t.text);
                     comment.setDescription(t.description);
-                    if (!"QCM".equals(q.type.algoName) && q.step > 0) {
+                    if (QcmDslGrading.isDsl(q)) {
+                        comment.setNoteComments(QcmDslGrading.optionPoints(q, t));
+                    } else if (!"QCM".equals(q.type.algoName) && q.step > 0) {
                         if (q.gradeType == GradeType.POSITIVE) {
                             comment.setNoteComments(t.gradequarter / 4.0 / q.step);
                         } else if (q.gradeType == GradeType.NEGATIVE) {
@@ -331,6 +333,9 @@ public class QuestionService {
                 && !"QCM".equals(resp.question.type.algoName)) {
             return this.computeNote4Hybrid(resp)/4;
 
+        } else if (QcmDslGrading.isDsl(resp.question)) {
+            // Grading DSL (ADR 0002): hundredths of a point
+            return QcmDslGrading.quarternote(resp.question, resp.gradedcomments) / 4.0;
         } else if ("QCM".equals(resp.question.type.algoName) && resp.question.step !=null && resp.question.step > 0) {
             int currentNote = 0;
             for (var g : resp.gradedcomments) {
