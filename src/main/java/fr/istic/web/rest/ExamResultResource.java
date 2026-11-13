@@ -36,6 +36,7 @@ import fr.istic.domain.StudentResponse;
 import fr.istic.domain.User;
 import fr.istic.domain.enumeration.GradeType;
 import fr.istic.security.AuthoritiesConstants;
+import fr.istic.service.QcmDslGrading;
 import fr.istic.service.CacheStudentPdfFService;
 import fr.istic.service.FinalNoteService;
 import fr.istic.service.MailService;
@@ -348,7 +349,14 @@ public class ExamResultResource {
                     resp.forEach(resp1 -> {
                         // log.error("resp1 " + resp1.id);
 
-                        if ("QCM".equals(resp1.question.type.algoName) && resp1.question.step < 0) {
+                        if (QcmDslGrading.isDsl(resp1.question)) {
+                            // Grading DSL (ADR 0002): hundredths of a point, like hybrid notes
+                            res.getNotequestions().put(resp1.question.numero,
+                                    df.format(
+                                            resp1.quarternote.doubleValue() / 400));
+                        } else if ("QCM".equals(resp1.question.type.algoName)
+                                && (resp1.question.step == null || resp1.question.step <= 0)) {
+                            // <= 0: with step = 0 the generic branch below divided by zero
                             res.getNotequestions().put(resp1.question.numero,
                                     df.format(
                                             resp1.quarternote.doubleValue() / 4));
@@ -389,7 +397,14 @@ public class ExamResultResource {
                     resp.forEach(resp1 -> {
                         // log.error("resp1 " + resp1.id);
 
-                        if ("QCM".equals(resp1.question.type.algoName) && resp1.question.step < 0) {
+                        if (QcmDslGrading.isDsl(resp1.question)) {
+                            // Grading DSL (ADR 0002): hundredths of a point, like hybrid notes
+                            res.getNotequestions().put(resp1.question.numero,
+                                    df.format(
+                                            resp1.quarternote.doubleValue() / 400));
+                        } else if ("QCM".equals(resp1.question.type.algoName)
+                                && (resp1.question.step == null || resp1.question.step <= 0)) {
+                            // <= 0: with step = 0 the generic branch below divided by zero
                             res.getNotequestions().put(resp1.question.numero,
                                     df.format(
                                             resp1.quarternote.doubleValue() / 4));

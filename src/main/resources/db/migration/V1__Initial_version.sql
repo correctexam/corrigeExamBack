@@ -979,6 +979,7 @@ alter table prediction add constraint FK1xsmwx00gk7213kwfeah9lcjx foreign key (q
 alter table prediction add constraint FK8nv2hkm3mhxll6be9mwj5402t foreign key (sheet_id) references exam_sheet (id);
 
 alter table scan add column page_count integer;
+alter table question modify valid_expression varchar(1024);
 
 COMMIT;
 

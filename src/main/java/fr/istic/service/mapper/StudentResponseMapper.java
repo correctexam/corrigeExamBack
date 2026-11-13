@@ -47,7 +47,7 @@ public interface StudentResponseMapper extends EntityMapper<StudentResponseDTO, 
 
     @Named("note2quarternote")
     public static int point2quarterpoint(double note) {
-        return Double.valueOf(note *4).intValue();
+        return (int) Math.round(note * 4);
     }
     @Named("correctedByTranslation")
     public static String correctedByTranslation(User correctedBy) {

@@ -184,3 +184,6 @@ alter table prediction add constraint FK8nv2hkm3mhxll6be9mwj5402t foreign key (s
 
 1.7
 alter table exam add column nbgrader bit  not null DEFAULT 0;
+
+-- T20: grading DSL for QCM questions (see docs/db/T20-question-valid-expression.sql)
+ALTER TABLE question MODIFY valid_expression VARCHAR(1024) NULL;
