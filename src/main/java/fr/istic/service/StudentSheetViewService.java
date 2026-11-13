@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fr.istic.domain.Answer2HybridGradedComment;
+import fr.istic.domain.Comments;
 import fr.istic.domain.Exam;
 import fr.istic.domain.ExamSheet;
 import fr.istic.domain.FinalResult;
@@ -138,6 +139,13 @@ public class StudentSheetViewService {
                 }
             }
         }
+        // Annotations: zone ids are {examId}_{sheetId}_{numero}_{index}; LIKE treats '_' as a wildcard, hence the filter
+        String prefix = ex.id + "_" + sheet.id + "_";
+        Comments.findCommentsbyZonegeneratedidPrefix(prefix).list().stream()
+                .filter(c -> c.zonegeneratedid != null && c.zonegeneratedid.startsWith(prefix))
+                .filter(c -> c.jsonData != null && !c.jsonData.isBlank())
+                .forEach(c -> dto.annotations.put(c.zonegeneratedid.substring(prefix.length()), c.jsonData));
+
         if (!graders.isEmpty()) {
             dto.contactEmails.addAll(graders);
         } else if (ex.course != null) {
