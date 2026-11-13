@@ -35,6 +35,9 @@ public class MailService {
     @Location("mail/passwordResetEmail")
      MailTemplate passwordResetEmail;
 
+    @Location("mail/studentPortalLink")
+    MailTemplate studentPortalLink;
+
      @Inject
     ReactiveMailer reactiveMailer;
 
@@ -62,6 +65,21 @@ public class MailService {
             );
     }
 
+
+    /** Link to the student portal (ADR 0003), in French or English. The address is not logged. */
+    public CompletionStage<Void> sendStudentPortalLink(String email, String link, long minutes, String lang) {
+        String language = "en".equals(lang) ? "en" : "fr";
+        String subject = "en".equals(language) ? "Your CorrectExam sheets" : "Vos copies CorrectExam";
+        return studentPortalLink
+            .to(email)
+            .subject(subject)
+            .data("link", link)
+            .data("minutes", minutes)
+            .data("lang", language)
+            .send()
+            .subscribeAsCompletionStage()
+            .thenAccept(it -> log.debug("Sent a student portal link"));
+    }
 
     public CompletionStage<Void> sendEmail(String mail, String body, String subject) {
         return reactiveMailer.send(Mail.withText(mail,subject,body)).subscribeAsCompletionStage().thenAccept(

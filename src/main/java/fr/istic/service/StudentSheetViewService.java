@@ -76,11 +76,16 @@ public class StudentSheetViewService {
      */
     @Transactional
     public Optional<StudentSheetViewDTO> view(String uuid, boolean withCorrections) {
-        Optional<ExamSheet> found = findSheet(uuid);
-        if (found.isEmpty()) {
+        return findSheet(uuid).flatMap(sheet -> view(sheet, withCorrections));
+    }
+
+    /** Same as {@link #view(String, boolean)} for a sheet already found (student portal). */
+    @Transactional
+    public Optional<StudentSheetViewDTO> view(ExamSheet found, boolean withCorrections) {
+        ExamSheet sheet = ExamSheet.findById(found.id);
+        if (sheet == null) {
             return Optional.empty();
         }
-        ExamSheet sheet = found.get();
         Optional<Exam> exam = examOf(sheet);
         if (exam.isEmpty()) {
             return Optional.empty();
