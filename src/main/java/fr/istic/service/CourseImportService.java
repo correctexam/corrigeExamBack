@@ -1,5 +1,6 @@
 package fr.istic.service;
 
+import fr.istic.domain.enumeration.StudentAccess;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -116,6 +117,15 @@ public class CourseImportService {
             _course.getAsJsonArray("exams").forEach(gr -> {
                 Exam exam = new Exam();
                 exam.name = gr.getAsJsonObject().get("name").getAsString();
+                // Student access (ADR 0003): kept when exported, else the default of a new exam
+                var studentAccessJ = gr.getAsJsonObject().get("studentAccess");
+                if (studentAccessJ != null && !studentAccessJ.isJsonNull()) {
+                    try {
+                        exam.studentAccess = StudentAccess.valueOf(studentAccessJ.getAsString());
+                    } catch (IllegalArgumentException e) {
+                        log.warn("Unknown student access {} in the imported course: default kept", studentAccessJ.getAsString());
+                    }
+                }
                 if (gr.getAsJsonObject().get("nbgrader") != null){
                     exam.nbgrader = gr.getAsJsonObject().get("nbgrader").getAsBoolean();
                 } else {

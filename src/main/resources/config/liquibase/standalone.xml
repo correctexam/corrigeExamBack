@@ -685,5 +685,6 @@
 
     <include file="config/liquibase/changelog/20261113120000_added_student_response_manually_graded.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20261113000000_added_scan_page_count.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20261113180000_added_exam_student_access.xml" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>

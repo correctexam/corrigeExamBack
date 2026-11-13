@@ -127,6 +127,7 @@ public class CourseExportService {
             examJ.addProperty("uuid", examU.toString());
             examJ.addProperty("name", exam.name);
             examJ.addProperty("nbgrader", exam.nbgrader);
+            examJ.addProperty("studentAccess", exam.studentAccess != null ? exam.studentAccess.name() : null);
             exams.add(examJ);
             examsUID.put(exam.id, examU);
         });

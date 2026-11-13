@@ -189,3 +189,7 @@ alter table exam add column nbgrader bit  not null DEFAULT 0;
 ALTER TABLE student_response ADD COLUMN manually_graded BIT(1) NOT NULL DEFAULT 0, ALGORITHM=INSTANT;
 -- T18: number of pages of a scan (see docs/db/T18-scan-page-count.sql)
 ALTER TABLE scan ADD COLUMN page_count INT NULL, ALGORITHM=INSTANT;
+
+-- T21: student portal (see docs/db/T21-exam-student-access.sql)
+ALTER TABLE exam ADD COLUMN student_access VARCHAR(16) NOT NULL DEFAULT 'GRADED', ALGORITHM=INSTANT;
+ALTER TABLE exam ALTER COLUMN student_access SET DEFAULT 'SHEET';

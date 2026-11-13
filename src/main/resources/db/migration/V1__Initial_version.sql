@@ -982,6 +982,9 @@ alter table scan add column page_count integer;
 ALTER TABLE student_response ADD COLUMN manually_graded BIT(1) NOT NULL DEFAULT 0, ALGORITHM=INSTANT;
 ALTER TABLE question MODIFY valid_expression VARCHAR(1024) NULL;
 
+alter table exam add column student_access varchar(16) not null default 'GRADED';
+alter table exam alter column student_access set default 'SHEET';
+
 COMMIT;
 
 

@@ -1,6 +1,7 @@
 package fr.istic.service.dto;
 
 
+import fr.istic.domain.enumeration.StudentAccess;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
@@ -23,6 +24,10 @@ public class ExamDTO implements Serializable {
     @Column(name = "nbgrader")
     @Schema(description = "Whether the exam is graded by the built-in grader.", defaultValue="true")
     public Boolean nbgrader=true;
+
+    @Schema(description = "What the students see from the student portal: HIDDEN, SHEET (scan only) or GRADED "
+            + "(annotations and grade). Omitted or null in an update: unchanged (see PUT /api/exams/{id}/student-access).")
+    public StudentAccess studentAccess;
 
 
     @Schema(description = "Identifier of the related template.")
