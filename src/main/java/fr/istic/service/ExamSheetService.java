@@ -265,6 +265,8 @@ public class ExamSheetService {
                     sr.gradedcomments.remove(comment);
                     comment.studentResponses.remove(sr);
                 }
+                // Applied by a grader to similar answers: a manual correction
+                sr.manuallyGraded = true;
                 sr.lastModifiedDate = Instant.now();
                 sr.correctedBy = updatedBy;
                 sr = StudentResponse.persistOrUpdate(sr);
@@ -285,6 +287,7 @@ public class ExamSheetService {
                 sr.star = false;
                 sr.lastModifiedDate = Instant.now();
                 sr.correctedBy = updatedBy;
+                sr.manuallyGraded = true;
                 sr.gradedcomments.add(comment);
                 comment.studentResponses.add(sr);
                 sr = StudentResponse.persistOrUpdate(sr);

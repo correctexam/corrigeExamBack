@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        T19a: a response changed by hand is kept by the QCM autocorrection.
+        The precondition makes the change set a no-op on a database where the column was
+        already added by hand (production: docs/db/T19a-student-response-manually-graded.sql).
+    -->
+    <changeSet id="20261113120000-1" author="barais">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="student_response" columnName="manually_graded"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="student_response">
+            <column name="manually_graded" type="BIT(1)" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>
