@@ -985,6 +985,9 @@ ALTER TABLE question MODIFY valid_expression VARCHAR(1024) NULL;
 alter table exam add column student_access varchar(16) not null default 'GRADED';
 alter table exam alter column student_access set default 'SHEET';
 
+CREATE TABLE student_access_token (id BIGINT NOT NULL AUTO_INCREMENT, email VARCHAR(254) NOT NULL, token_hash VARCHAR(64) NOT NULL, created_at DATETIME(6) NOT NULL, expires_at DATETIME(6) NOT NULL, used_at DATETIME(6) NULL, PRIMARY KEY (id), CONSTRAINT ux_student_access_token_hash UNIQUE (token_hash), INDEX idx_student_access_token_expires (expires_at));
+CREATE TABLE student_portal_request (id BIGINT NOT NULL AUTO_INCREMENT, email_hash VARCHAR(64) NOT NULL, ip_hash VARCHAR(64) NOT NULL, challenge_hash VARCHAR(64) NOT NULL, created_at DATETIME(6) NOT NULL, PRIMARY KEY (id), CONSTRAINT ux_student_portal_request_challenge UNIQUE (challenge_hash), INDEX idx_student_portal_request_email (email_hash, created_at), INDEX idx_student_portal_request_ip (ip_hash, created_at));
+
 COMMIT;
 
 
