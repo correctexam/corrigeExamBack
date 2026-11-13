@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Number of pages of a scan PDF, cached at upload/merge time (T18).
+        Nullable: existing scans get it lazily through GET /api/scans/{id}/pagecount.
+        The precondition makes the change set a no-op on a database where the column
+        was already added by hand (production: docs/db/T18-scan-page-count.sql).
+    -->
+    <changeSet id="20261113000000-1" author="barais">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="scan" columnName="page_count"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="scan">
+            <column name="page_count" type="INT"/>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

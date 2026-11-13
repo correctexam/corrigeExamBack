@@ -8,7 +8,6 @@ import fr.istic.service.mapper.ScanContentMapper;
 import fr.istic.service.mapper.ScanMapper;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.pdfbox.io.RandomAccessReadBufferedFile;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.multipdf.PDFMergerUtility.DocumentMergeMode;
@@ -24,7 +23,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -233,18 +231,20 @@ public class ScanService {
         return dtos;
     }
 
-    public void uploadFile(@RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file, long examId,
-            boolean merge) {
-        try {
-            FileInputStream inputStream = new FileInputStream(file.uploadedFile().toFile());
-
-            if (this.hasScanFile(examId) && merge) {
-                mergeFile(inputStream, "application/pdf", examId);
-            } else {
-                writeFile(inputStream, "application/pdf", examId);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    /**
+     * Stores the uploaded PDF as the file of the scan, or appends it to the existing file when {@code merge} is true,
+     * and records the resulting number of pages in {@code scan.page_count}.
+     *
+     * @throws IOException      when the uploaded or the stored file cannot be read or written
+     * @throws StorageException when the object storage rejects the upload
+     */
+    public void uploadFile(@RestForm("file") org.jboss.resteasy.reactive.multipart.FileUpload file, long scanId,
+            boolean merge) throws IOException {
+        java.nio.file.Path uploaded = file.uploadedFile();
+        if (merge && this.hasScanFile(scanId)) {
+            mergeFile(uploaded, "application/pdf", scanId);
+        } else {
+            writeFile(uploaded, "application/pdf", scanId);
         }
     }
 
@@ -271,71 +271,73 @@ public class ScanService {
         return this.fichierS3Service.getObject(fileName);
     }
 
-    protected void mergeFile(InputStream inputStream, String contenttype, long scanId)
+    protected void mergeFile(java.nio.file.Path toadd, String contenttype, long scanId)
             throws IOException {
+        String fileName = "scan/" + scanId + ".pdf";
+        java.nio.file.Path scan = Files.createTempFile("scan" + scanId, ".pdf");
+        java.nio.file.Path res = Files.createTempFile("res" + scanId, ".pdf");
         try {
-            PDFMergerUtility merger = new PDFMergerUtility();
-            java.nio.file.Path toadd = Files.createTempFile("toadd" + scanId, ".pdf");
-            java.nio.file.Path scan = Files.createTempFile("scan" + scanId, ".pdf");
-            java.nio.file.Path res = Files.createTempFile("res" + scanId, ".pdf");
-            FileOutputStream fo = new FileOutputStream(res.toFile());
-            FileUtils.copyInputStreamToFile(inputStream, toadd.toFile());
-            FileUtils.copyInputStreamToFile(this.getScanFile(scanId), scan.toFile());
-
-            PDDocument src = org.apache.pdfbox.Loader.loadPDF(new RandomAccessReadBufferedFile(scan.toFile()),
-                    org.apache.pdfbox.io.IOUtils.createTempFileOnlyStreamCache());
-            PDDocument dst = org.apache.pdfbox.Loader.loadPDF(new RandomAccessReadBufferedFile(toadd.toFile()),
-                    org.apache.pdfbox.io.IOUtils.createTempFileOnlyStreamCache());
-            merger.setDocumentMergeMode(DocumentMergeMode.PDFBOX_LEGACY_MODE);
-            merger.appendDocument(src, dst);
-            src.save(fo);
-            fo.close();
-
-            scan.toFile().delete();
-            toadd.toFile().delete();
-
-            // byte[] bytes = IOUtils.toByteArray(new FileInputStream(res.toFile()));
-            if (this.uses3) {
-                String fileName = "scan/" + scanId + ".pdf";
-                try {
-                    this.uploadObject(fileName, res.toFile().getAbsoluteFile().getAbsolutePath(), contenttype);
-                    res.toFile().delete();
-
-                } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                byte[] bytes = IOUtils.toByteArray(new FileInputStream(res.toFile()));
-                this.updateContent(scanId, bytes);
-                res.toFile().delete();
+            try (InputStream existing = this.getScanFile(scanId)) {
+                FileUtils.copyInputStreamToFile(existing, scan.toFile());
+            } catch (InvalidKeyException | NoSuchAlgorithmException e) {
+                throw new StorageException(fileName, "Could not read the scan to merge", e);
             }
 
-        } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
-            e.printStackTrace();
+            int pageCount;
+            try (PDDocument src = org.apache.pdfbox.Loader.loadPDF(new RandomAccessReadBufferedFile(scan.toFile()),
+                    org.apache.pdfbox.io.IOUtils.createTempFileOnlyStreamCache());
+                    PDDocument dst = org.apache.pdfbox.Loader.loadPDF(new RandomAccessReadBufferedFile(toadd.toFile()),
+                            org.apache.pdfbox.io.IOUtils.createTempFileOnlyStreamCache());
+                    FileOutputStream fo = new FileOutputStream(res.toFile())) {
+                PDFMergerUtility merger = new PDFMergerUtility();
+                merger.setDocumentMergeMode(DocumentMergeMode.PDFBOX_LEGACY_MODE);
+                merger.appendDocument(src, dst);
+                // The merged document is already loaded: counting its pages costs nothing
+                pageCount = src.getNumberOfPages();
+                src.save(fo);
+            }
+
+            if (this.uses3) {
+                try {
+                    this.uploadObject(fileName, res.toFile().getAbsolutePath(), contenttype);
+                } catch (InvalidKeyException | NoSuchAlgorithmException e) {
+                    throw new StorageException(fileName, "Could not upload the merged scan", e);
+                }
+            } else {
+                this.updateContent(scanId, Files.readAllBytes(res));
+            }
+            this.updatePageCount(scanId, pageCount);
+        } finally {
+            Files.deleteIfExists(scan);
+            Files.deleteIfExists(res);
         }
-
-        // Base64.Decoder encoder = Base64.getDecoder();
-        // byte[] b64bytes = encoder.decode(bytes);
-
     }
 
-    protected void writeFile(InputStream inputStream, String contenttype, long scanId)
+    protected void writeFile(java.nio.file.Path pdf, String contenttype, long scanId)
             throws IOException {
-        byte[] bytes = IOUtils.toByteArray(inputStream);
-
-        // Base64.Decoder encoder = Base64.getDecoder();
-        // byte[] b64bytes = encoder.decode(bytes);
-
+        // Counted before the upload: the file is local, and a non-PDF file must not block the upload
+        Integer pageCount = ScanPageCountService.countPagesOrNull(pdf, scanId);
         if (this.uses3) {
             String fileName = "scan/" + scanId + ".pdf";
             try {
-                this.putObject(fileName, bytes, contenttype);
-            } catch (InvalidKeyException | NoSuchAlgorithmException | IllegalArgumentException e) {
-                e.printStackTrace();
+                // Streams the uploaded file instead of loading it in memory
+                this.uploadObject(fileName, pdf.toAbsolutePath().toString(), contenttype);
+            } catch (InvalidKeyException | NoSuchAlgorithmException e) {
+                throw new StorageException(fileName, "Could not upload the scan", e);
             }
         } else {
-            this.updateContent(scanId, bytes);
+            this.updateContent(scanId, Files.readAllBytes(pdf));
+        }
+        // Null when the count failed: GET /api/scans/{id}/pagecount will try again
+        this.updatePageCount(scanId, pageCount);
+    }
 
+    /** Records the number of pages of the scan file; null means unknown. */
+    @Transactional
+    protected void updatePageCount(long scanId, Integer pageCount) {
+        Scan s = Scan.findById(scanId);
+        if (s != null) {
+            s.pageCount = pageCount;
         }
     }
 
