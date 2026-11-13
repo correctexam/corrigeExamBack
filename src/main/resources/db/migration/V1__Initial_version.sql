@@ -980,6 +980,8 @@ alter table prediction add constraint FK8nv2hkm3mhxll6be9mwj5402t foreign key (s
 
 alter table scan add column page_count integer;
 
+ALTER TABLE student_response ADD COLUMN manually_graded BIT(1) NOT NULL DEFAULT 0, ALGORITHM=INSTANT;
+
 COMMIT;
 
 

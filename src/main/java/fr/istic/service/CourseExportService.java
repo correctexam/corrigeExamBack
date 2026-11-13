@@ -375,6 +375,7 @@ public class CourseExportService {
                     studentResponseJ.addProperty("uuid", studentResponseU.toString());
                     studentResponseJ.addProperty("star", studentResponse.star);
                     studentResponseJ.addProperty("worststar", studentResponse.worststar);
+                    studentResponseJ.addProperty("manuallyGraded", studentResponse.manuallyGraded);
                     studentResponseJ.addProperty("quarternote", studentResponse.quarternote);
                     studentResponses.add(studentResponseJ);
                     studentResponsesUID.put(studentResponse.id, studentResponseU);

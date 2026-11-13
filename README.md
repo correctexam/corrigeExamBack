@@ -185,5 +185,7 @@ alter table prediction add constraint FK8nv2hkm3mhxll6be9mwj5402t foreign key (s
 1.7
 alter table exam add column nbgrader bit  not null DEFAULT 0;
 
+-- T19a: QCM corrections made by hand (see docs/db/T19a-student-response-manually-graded.sql)
+ALTER TABLE student_response ADD COLUMN manually_graded BIT(1) NOT NULL DEFAULT 0, ALGORITHM=INSTANT;
 -- T18: number of pages of a scan (see docs/db/T18-scan-page-count.sql)
 ALTER TABLE scan ADD COLUMN page_count INT NULL, ALGORITHM=INSTANT;

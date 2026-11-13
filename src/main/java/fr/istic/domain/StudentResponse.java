@@ -46,6 +46,21 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
     @Column(name = "lastmodified")
     public Instant lastModifiedDate = Instant.now();
 
+    /**
+     * True when a grader changed the response by hand (option added or removed). The QCM autocorrection leaves
+     * these responses untouched, unless the grader explicitly asks to correct everything again.
+     * A null value in an update means "keep the current value" (clients that do not know the field).
+     */
+    @Column(name = "manually_graded", nullable = false)
+    public Boolean manuallyGraded = false;
+
+    @PrePersist
+    void defaultManuallyGraded() {
+        if (manuallyGraded == null) {
+            manuallyGraded = false;
+        }
+    }
+
 
     @OneToMany(mappedBy = "studentResponse", cascade = {CascadeType.REMOVE})
     public Set<Comments> comments = new HashSet<>();
@@ -184,6 +199,9 @@ public class StudentResponse extends PanacheEntityBase implements Serializable {
             entity.sheet = studentResponse.sheet;
             entity.correctedBy = studentResponse.correctedBy;
             entity.lastModifiedDate = studentResponse.lastModifiedDate;
+            if (studentResponse.manuallyGraded != null) {
+                entity.manuallyGraded = studentResponse.manuallyGraded;
+            }
 
             var ts  = studentResponse.textcomments.stream().map(te -> te.id).collect(Collectors.toList());
             entity.textcomments.removeIf(t -> !ts.contains(t.id));

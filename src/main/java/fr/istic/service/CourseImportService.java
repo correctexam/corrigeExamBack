@@ -431,6 +431,10 @@ public class CourseImportService {
                     if (gr.getAsJsonObject().get("worststar") != null) {
                         studentResponse.worststar = gr.getAsJsonObject().get("worststar").getAsBoolean();
                     }
+                    if (gr.getAsJsonObject().get("manuallyGraded") != null
+                            && !gr.getAsJsonObject().get("manuallyGraded").isJsonNull()) {
+                        studentResponse.manuallyGraded = gr.getAsJsonObject().get("manuallyGraded").getAsBoolean();
+                    }
                     if (gr.getAsJsonObject().get("quarternote") != null) {
                         studentResponse.quarternote = gr.getAsJsonObject().get("quarternote").getAsInt();
                     }
