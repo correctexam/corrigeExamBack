@@ -45,7 +45,9 @@ public class StudentPortalService {
         INVALID_EMAIL,
         INVALID_CAPTCHA,
         TOO_MANY_REQUESTS,
-        DISABLED
+        DISABLED,
+        /** The request could not be recorded (database): nothing is sent, the caller may try again later. */
+        UNAVAILABLE
     }
 
     private final SecureRandom random = new SecureRandom();
@@ -87,6 +89,7 @@ public class StudentPortalService {
         }
         Optional<String> challenge = altchaService.verify(altchaPayload);
         if (challenge.isEmpty()) {
+            log.debug("Student portal request refused: ALTCHA solution not verified");
             return LinkOutcome.INVALID_CAPTCHA;
         }
 
@@ -99,14 +102,29 @@ public class StudentPortalService {
         try {
             decision = QuarkusTransaction.requiringNew().call(() -> decide(email, emailHash, ipHash, challengeHash, now));
         } catch (RuntimeException e) {
-            // The same solution sent twice at the same time: the unique challenge_hash refuses the second one
-            log.debug("Student portal request refused: {}", e.toString());
-            return LinkOutcome.INVALID_CAPTCHA;
+            if (isConstraintViolation(e)) {
+                // The same solution sent twice at the same time: the unique challenge_hash refuses the second one
+                log.debug("Student portal request refused: {}", e.toString());
+                return LinkOutcome.INVALID_CAPTCHA;
+            }
+            // Missing table (docs/db/T21-student-portal.sql not run), database down...: not the fault of the student
+            log.error("Student portal request could not be recorded", e);
+            return LinkOutcome.UNAVAILABLE;
         }
         if (decision.token() != null) {
             sendLink(email, decision.token(), lang);
         }
         return decision.outcome();
+    }
+
+    private static boolean isConstraintViolation(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            if (t instanceof org.hibernate.exception.ConstraintViolationException
+                    || t instanceof java.sql.SQLIntegrityConstraintViolationException) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Decision decide(String email, String emailHash, String ipHash, String challengeHash, Instant now) {
