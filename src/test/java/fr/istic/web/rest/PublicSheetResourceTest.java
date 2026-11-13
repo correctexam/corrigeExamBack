@@ -66,6 +66,10 @@ class PublicSheetResourceTest {
             question.gradeType = GradeType.DIRECT;
             question.exam = exam;
             question.zone = zone;
+            question.canExceedTheMax = false;
+            question.canBeNegative = false;
+            question.mustBeIgnoreInGlobalScale = false;
+            question.randomHorizontalCorrection = false;
             question.persist();
 
             ExamSheet sheet = sheet(scan, uuid, 0);
