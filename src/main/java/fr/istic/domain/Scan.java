@@ -39,6 +39,13 @@ public class Scan extends PanacheEntityBase implements Serializable {
     @Column(name = "content_content_type")
       public String contentContentType;
 
+    /**
+     * Number of pages of the scan PDF, cached when the file is uploaded or merged.
+     * Null when it has not been computed yet (scans uploaded before this column existed).
+     */
+    @Column(name = "page_count")
+    public Integer pageCount;
+
     @OneToMany(mappedBy = "scan",cascade = CascadeType.REMOVE)
     @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     public Set<ExamSheet> sheets = new HashSet<>();
@@ -68,6 +75,7 @@ public class Scan extends PanacheEntityBase implements Serializable {
             ", name='" + name + "'" +
             ", content='" + content + "'" +
             ", contentContentType='" + contentContentType + "'" +
+            ", pageCount=" + pageCount +
             "}";
     }
 
