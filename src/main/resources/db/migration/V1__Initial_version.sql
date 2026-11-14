@@ -979,8 +979,13 @@ alter table prediction add constraint FK1xsmwx00gk7213kwfeah9lcjx foreign key (q
 alter table prediction add constraint FK8nv2hkm3mhxll6be9mwj5402t foreign key (sheet_id) references exam_sheet (id);
 
 alter table scan add column page_count integer;
-
 ALTER TABLE student_response ADD COLUMN manually_graded BIT(1) NOT NULL DEFAULT 0, ALGORITHM=INSTANT;
+ALTER TABLE question MODIFY valid_expression VARCHAR(1024) NULL;
+
+ALTER TABLE exam ADD COLUMN student_access VARCHAR(16) NOT NULL DEFAULT 'GRADED', ALGORITHM=INSTANT;
+ALTER TABLE exam ALTER COLUMN student_access SET DEFAULT 'SHEET';
+
+
 
 COMMIT;
 
