@@ -102,6 +102,11 @@ public class Comments extends PanacheEntityBase implements Serializable {
         return find("select c from Comments c where c.zonegeneratedid =?1", zonegeneratedid);
     }
 
+    /** Comments whose zone id starts with {@code prefix}; '_' is a LIKE wildcard, so callers filter the result. */
+    public static PanacheQuery<Comments> findCommentsbyZonegeneratedidPrefix(String prefix) {
+        return find("select c from Comments c where c.zonegeneratedid like ?1", prefix + "%");
+    }
+
     public static PanacheQuery<Comments> canAccess(long commentId, List<String> examIdList) {
         return find("select c from Comments c where c.id =?1 and (SUBSTRING(c.zonegeneratedid, 1, LOCATE('_',c.zonegeneratedid,1) -1 ) in ?2)", commentId, examIdList);
     }

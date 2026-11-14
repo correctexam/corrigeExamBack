@@ -1,5 +1,6 @@
 package fr.istic.service;
 
+import fr.istic.domain.enumeration.StudentAccess;
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.Answer2HybridGradedComment;
 import fr.istic.domain.Comments;
@@ -71,6 +72,23 @@ public class ExamService {
         var exam = examMapper.toEntity(examDTO);
         exam = Exam.persistOrUpdate(exam);
         return examMapper.toDto(exam);
+    }
+
+    /**
+     * Changes what the students of the exam can see from the student portal (ADR 0003).
+     *
+     * @return the updated exam, or empty when it does not exist
+     */
+    @Transactional
+    public Optional<ExamDTO> updateStudentAccess(long examId, StudentAccess studentAccess) {
+        Optional<Exam> exam = Exam.findByIdOptional(examId);
+        exam.ifPresent(e -> {
+            if (e.studentAccess != studentAccess) {
+                log.info("Student access of exam {}: {} -> {}", examId, e.studentAccess, studentAccess);
+                e.studentAccess = studentAccess;
+            }
+        });
+        return exam.map(examMapper::toDto);
     }
 
     /**
