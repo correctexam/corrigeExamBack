@@ -48,6 +48,9 @@ public class StudentSheetViewDTO {
     @Schema(description = "Hybrid comments applied to each answer (step value > 0), by answer id.")
     public Map<Long, List<HybridCommentApplied>> hybridComments = new HashMap<>();
 
+    @Schema(description = "Handwritten annotations of the graders (SVG), by zone: {numero}_{index of the zone in the question}.")
+    public Map<String, String> annotations = new HashMap<>();
+
     @Schema(description = "E-mail addresses to contact about the grading: graders, else the teachers of the course.")
     public List<String> contactEmails = new ArrayList<>();
 

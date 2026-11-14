@@ -1,6 +1,6 @@
 # ADR 0003 — Portail étudiant : accès aux copies par lien magique et publication contrôlée par l'enseignant
 
-- **Statut** : accepté (13/11/2026) ; le choix du captcha reste à valider (voir § 4)
+- **Statut** : accepté (13/11/2026) ; captcha ALTCHA retenu (14/11/2026)
 - **Décideurs** : équipe CorrectExam (DiverSE / IRISA / Univ. Rennes)
 - **Dépôts concernés** : `corrigeExamBack`, `corrigeExamFront`
 - **Tâche** : T21 (prolonge T10c)
@@ -42,14 +42,22 @@ Ils restent valides et montrent la copie corrigée, comme aujourd'hui : ce sont 
 2. `POST /api/public/my/link` répond **toujours** la même chose, en un temps comparable, que l'adresse soit connue ou non (pas d'énumération des inscrits). Si au moins une fiche `Student` porte cette adresse (comparaison sans casse ni espaces), un mail contenant un lien `/my/{jeton}` est envoyé.
 3. Jeton : 256 bits aléatoires, stocké **haché** (SHA-256) dans `student_access_token` (adresse, hash, expiration, date d'utilisation), **à usage unique**, valable `correctexam.student-portal.token-ttl` (défaut 30 min).
 4. `POST /api/public/my/session` échange le jeton contre un JWT de session de `correctexam.student-portal.session-ttl` (défaut 2 h), sans rafraîchissement, avec le rôle **`ROLE_STUDENT`** et l'adresse en sujet. Les endpoints enseignants (`@RolesAllowed(USER, ADMIN)`) lui restent fermés ; `EndpointSecurityTest` le vérifie.
-5. Endpoints étudiants (`@RolesAllowed(STUDENT)`) : liste de ses copies (`/api/student/me/sheets`), une copie filtrée selon `studentAccess`, ses pages, ses données personnelles (`/api/student/me/data`, avec export JSON).
+5. Endpoints étudiants (`@RolesAllowed(STUDENT)`) : liste de ses copies (`/api/student/me/sheets`), une copie filtrée selon `studentAccess` (`/sheets/{sheetId}`, ses pages, les réponses étoilées si `GRADED`), ses données personnelles (`/api/student/me/data`, examens masqués compris, sans note sauf `GRADED`).
+   - Une copie y est désignée par son **identifiant**, jamais par son UUID : l'UUID ouvre la copie corrigée par `/copie/{uuid}` quel que soit l'état de publication.
+   - L'accès est vérifié par le service (copie d'une fiche `Student` portant l'adresse de la session, examen non masqué) ; `SecurityService.canAccess`, propre aux enseignants, ne s'applique pas.
+   - Une session étudiante est authentifiée : les endpoints du compte enseignant passent de `@Authenticated` à `@RolesAllowed(USER, ADMIN)`.
 6. Toutes les adresses sont acceptées (pas de restriction de domaine). Protection contre les abus : captcha + limite de demandes par adresse et par IP, comptée en base (fonctionne avec plusieurs instances).
 7. Correspondance par e-mail **uniquement** (pas d'INE ni de login CAS). Pour la fiabiliser, l'import et la saisie des étudiants signalent les adresses vides, invalides ou en double.
 8. `correctexam.student-portal.enabled` permet de désactiver le portail (version autonome sans serveur de mail).
 
-### 4. Captcha (à valider)
+### 4. Captcha
 
-Recommandation : **ALTCHA** (preuve de travail, bibliothèque libre, défi signé et vérifié par le back) : aucun service tiers, pas de cookie ni de suivi (RGPD), fonctionne aussi en version autonome. Alternatives : Cloudflare Turnstile (le front est servi par Cloudflare Pages ; service tiers), hCaptcha, reCAPTCHA (service tiers, suivi).
+**ALTCHA** (retenu) (preuve de travail, bibliothèque libre, défi signé et vérifié par le back) : aucun service tiers, pas de cookie ni de suivi (RGPD), fonctionne aussi en version autonome. Alternatives écartées : Cloudflare Turnstile (le front est servi par Cloudflare Pages ; service tiers), hCaptcha, reCAPTCHA (service tiers, suivi).
+
+- Défi signé par HMAC-SHA256 avec `correctexam.student-portal.altcha-hmac-key` (**même clé sur toutes les instances** ; aléatoire par instance si absente), expiration dans le sel (10 min), difficulté `altcha-max-number` (100 000).
+- Une solution n'est acceptée qu'une fois : `student_portal_request.challenge_hash` est unique.
+- Les adresses e-mail et IP des demandes sont pseudonymisées (HMAC) ; demandes et jetons sont purgés après un jour.
+- Derrière un proxy inverse, la limite par IP suppose `quarkus.http.proxy.proxy-address-forwarding=true`.
 
 ## Conséquences
 

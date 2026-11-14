@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import fr.istic.domain.Comments;
 import fr.istic.domain.Course;
 import fr.istic.domain.Exam;
 import fr.istic.domain.ExamSheet;
@@ -66,6 +67,10 @@ class PublicSheetResourceTest {
             question.gradeType = GradeType.DIRECT;
             question.exam = exam;
             question.zone = zone;
+            question.canExceedTheMax = false;
+            question.canBeNegative = false;
+            question.mustBeIgnoreInGlobalScale = false;
+            question.randomHorizontalCorrection = false;
             question.persist();
 
             ExamSheet sheet = sheet(scan, uuid, 0);
@@ -76,6 +81,12 @@ class PublicSheetResourceTest {
 
             response(question, sheet, 6, false);
             response(question, other, 8, true);
+
+            // Annotations of zone 0 of question 1: on the sheet, on the other sheet, and on a sheet whose id
+            // starts with the id of the sheet (the LIKE of the query must not take it)
+            annotation(exam.id + "_" + sheet.id + "_1_0", "<svg>mine</svg>");
+            annotation(exam.id + "_" + other.id + "_1_0", "<svg>other</svg>");
+            annotation(exam.id + "_" + sheet.id + "0_1_0", "<svg>lookalike</svg>");
 
             FinalResult result = new FinalResult();
             result.student = student;
@@ -117,6 +128,13 @@ class PublicSheetResourceTest {
         response.persist();
     }
 
+    private static void annotation(String zone, String svg) {
+        Comments comments = new Comments();
+        comments.zonegeneratedid = zone;
+        comments.jsonData = svg;
+        comments.persist();
+    }
+
     @Test
     void returnsTheSheetOfTheUuidOnly() {
         given()
@@ -134,6 +152,8 @@ class PublicSheetResourceTest {
             .body("questions", hasSize(1))
             .body("responses", hasSize(1))
             .body("responses[0].note", equalTo(1.5f))
+            .body("annotations.size()", equalTo(1))
+            .body("annotations.'1_0'", equalTo("<svg>mine</svg>"))
             // Nothing that identifies the student beyond the name, nothing of the other sheet
             .body(not(containsString("INE-")))
             .body(not(containsString("@example.org")))

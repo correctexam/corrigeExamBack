@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="{lang}">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>CorrectExam</title>
+</head>
+<body>
+{#if lang == 'en'}
+<p>Hello,</p>
+<p>A link to your CorrectExam sheets was requested for this e-mail address. It is valid for {minutes} minutes and can be used once:</p>
+<p><a href="{link}">See my sheets</a></p>
+<p>If you did not request it, you can ignore this e-mail: nobody can use it without access to your mailbox.</p>
+<p><em>CorrectExam</em></p>
+{#else}
+<p>Bonjour,</p>
+<p>Un lien vers vos copies CorrectExam a été demandé pour cette adresse. Il est valable {minutes} minutes et ne peut servir qu'une fois :</p>
+<p><a href="{link}">Voir mes copies</a></p>
+<p>Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : personne ne peut s'en servir sans accès à votre messagerie.</p>
+<p><em>CorrectExam</em></p>
+{/if}
+</body>
+</html>
