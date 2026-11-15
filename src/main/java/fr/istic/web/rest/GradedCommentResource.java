@@ -198,6 +198,7 @@ public class GradedCommentResource {
         }
     )
     @GET
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getAllGradedComments(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of GradedComments");
         var page = pageRequest.toPage();
@@ -262,7 +263,7 @@ public class GradedCommentResource {
     )
     @GET
     @Path("/{id}")
-
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getGradedComment(
         @Parameter(description = "Id of the graded comment to retrieve", required = true) @PathParam("id") Long id,
         @Context SecurityContext ctx

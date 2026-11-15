@@ -92,7 +92,11 @@ public class CourseSharingResource {
     )
     @GET
     @Path("/getAllEmailProfs4course/{courseId}")
-    public Response getAllEmailProfs4course(@Parameter(description = "ID of the course", required = true) @PathParam("courseId") long courseId) {
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getAllEmailProfs4course(@Parameter(description = "ID of the course", required = true) @PathParam("courseId") long courseId, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, courseId, Course.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         var res = this.courseService.getAllProfMail(courseId);
         Response.ResponseBuilder response = Response.ok().entity(res);
         return response.build();

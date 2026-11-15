@@ -254,6 +254,10 @@ class StudentPortalResourceTest {
         String token = sessionFor(email);
         given().auth().oauth2(token).when().put("/api/exams/1/student-access/GRADED").then().statusCode(403);
         given().auth().oauth2(token).when().get("/api/account").then().statusCode(403);
+        // Instructor reads, formerly open to anyone (T10c)
+        given().auth().oauth2(token).when().get("/api/exams/1").then().statusCode(403);
+        given().auth().oauth2(token).when().get("/api/questions?examId=1").then().statusCode(403);
+        given().auth().oauth2(token).when().get("/api/getCacheAlignPage/1/1").then().statusCode(403);
         given().when().get("/api/student/me/sheets").then().statusCode(401);
     }
 }

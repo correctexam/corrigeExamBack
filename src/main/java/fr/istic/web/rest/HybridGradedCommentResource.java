@@ -207,6 +207,7 @@ public class HybridGradedCommentResource {
         }
     )
     @GET
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getAllHybridGradedComments(
         @BeanParam PageRequestVM pageRequest,
         @BeanParam SortRequestVM sortRequest,
@@ -221,9 +222,9 @@ public class HybridGradedCommentResource {
 
          if (param.containsKey("questionId") ) {
             List questionId = (List) param.get("questionId");
-            /* if (!securityService.canAccess(ctx, Long.parseLong("" + questionId.get(0)), Question.class  )){
+            if (!securityService.canAccess(ctx, Long.parseLong("" + questionId.get(0)), Question.class)) {
                 return Response.status(403, "Current user cannot access to this ressource").build();
-            }*/
+            }
             result = hybridGradedCommentService.findHybridGradedCommentByQuestionId(page, Long.parseLong("" + questionId.get(0)));
         }
         else{
@@ -275,9 +276,14 @@ public class HybridGradedCommentResource {
     )
     @GET
     @Path("/{id}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getHybridGradedComment(
-        @Parameter(description = "Id of the hybrid graded comment to retrieve", required = true) @PathParam("id") Long id
+        @Parameter(description = "Id of the hybrid graded comment to retrieve", required = true) @PathParam("id") Long id,
+        @Context SecurityContext ctx
     ) {
+        if (!securityService.canAccess(ctx, id, HybridGradedComment.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         log.debug("REST request to get HybridGradedComment : {}", id);
         Optional<HybridGradedCommentDTO> hybridGradedCommentDTO = hybridGradedCommentService.findOne(id);
         return ResponseUtil.wrapOrNotFound(hybridGradedCommentDTO);

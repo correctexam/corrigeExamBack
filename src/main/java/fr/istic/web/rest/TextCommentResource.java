@@ -1,5 +1,6 @@
 package fr.istic.web.rest;
 
+import fr.istic.domain.Question;
 import static jakarta.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.service.TextCommentService;
@@ -198,7 +199,11 @@ public class TextCommentResource {
         }
     )
     @GET
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getAllTextComments(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
+        if (!securityService.canAccessParam(ctx, uriInfo.getQueryParameters(), "questionId", Question.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         log.debug("REST request to get a page of TextComments");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();

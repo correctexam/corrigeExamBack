@@ -51,54 +51,11 @@ class EndpointSecurityTest {
         "GET /management/threaddump"
     );
 
-    /**
-     * Not restricted yet (T10c): reads used, for most of them, by the anonymous student copy view
-     * (/copie/{uuid}), which must move to an access by sheet UUID; and the scan alignment job and its SSE stream.
-     */
-    private static final Set<String> TO_RESTRICT_T10C = Set.of(
-        "GET /api/answer-2-hybrid-graded-comments",
-        "GET /api/answer-2-hybrid-graded-comments/{id}",
-        "GET /api/comments",
-        "GET /api/comments/{id}",
-        "GET /api/exam-sheets",
-        "GET /api/exams",
-        "GET /api/exams/{id}",
-        "GET /api/exportpdf4sheet/{examId}/{sheetuuid}",
-        "GET /api/final-results",
-        "GET /api/final-results/{id}",
-        "GET /api/getAllEmailProfs4course/{courseId}",
-        "GET /api/getAllStarAnswer/{examId}",
-        "GET /api/getBestAnswer/{examId}/{nume}",
-        "GET /api/getCacheAlignPage/{examId}/{pageId}",
-        "GET /api/getCacheNonAlignPage/{examId}/{pageId}",
-        "GET /api/getComments/{examId}",
-        "GET /api/getScanPdf/{scanId}",
-        "GET /api/graded-comments",
-        "GET /api/graded-comments/{id}",
-        "GET /api/hybrid-graded-comments",
-        "GET /api/hybrid-graded-comments/{id}",
-        "GET /api/questions",
-        "GET /api/scans",
-        "GET /api/scans/{id}",
-        "GET /api/scansalign/{id}/events",
-        "GET /api/student-responses",
-        "GET /api/students",
-        "GET /api/students/{id}",
-        "GET /api/templates/{id}",
-        "GET /api/text-comments",
-        "GET /api/zones/byExam/{examid}",
-        "GET /api/zones/studentAnswer/{id}",
-        "GET /api/zones/studentAnswer4exam/{examid}",
-        "GET /api/zones/{id}",
-        "POST /api/scansalign"
-    );
-
     @Test
     void everyEndpointDeclaresWhoMayCallIt() {
         Set<String> expected = new TreeSet<>();
         expected.addAll(PUBLIC);
         expected.addAll(ADMIN_PATH_POLICY);
-        expected.addAll(TO_RESTRICT_T10C);
 
         assertEquals(expected, undeclaredEndpoints());
     }
