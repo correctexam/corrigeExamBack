@@ -1,5 +1,6 @@
 package fr.istic.web.rest;
 
+import fr.istic.domain.enumeration.StudentAccess;
 import static fr.istic.service.FinalNoteService.VALUEFORABJ;
 
 import java.io.InputStream;
@@ -37,6 +38,7 @@ import fr.istic.domain.User;
 import fr.istic.domain.enumeration.GradeType;
 import fr.istic.security.AuthoritiesConstants;
 import fr.istic.service.CacheStudentPdfFService;
+import fr.istic.service.ExamService;
 import fr.istic.service.FinalNoteService;
 import fr.istic.service.MailService;
 import fr.istic.service.SecurityService;
@@ -88,6 +90,9 @@ public class ExamResultResource {
 
     @Inject
     FinalNoteService finalNoteService;
+
+    @Inject
+    ExamService examService;
 
     @Operation(summary = "Compute final notes", description = "Recomputes and persists the final notes of every student for the exam.")
     @APIResponses(
@@ -232,6 +237,10 @@ public class ExamResultResource {
             }
         });
 
+        if (dto.getSheetuuid() == null) {
+            // Results sent to every student: the corrected sheets are published in the student portal too (ADR 0003)
+            examService.updateStudentAccess(examId, StudentAccess.GRADED);
+        }
         return Response.ok().build();
     }
 

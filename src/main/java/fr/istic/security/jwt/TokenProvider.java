@@ -2,7 +2,10 @@ package fr.istic.security.jwt;
 
 import fr.istic.config.JHipsterProperties;
 import io.quarkus.security.runtime.QuarkusSecurityIdentity;
+import fr.istic.security.AuthoritiesConstants;
 import java.security.Key;
+import java.time.Instant;
+import java.util.List;
 import java.util.Date;
 import java.util.UUID;
 import jakarta.annotation.PostConstruct;
@@ -62,6 +65,25 @@ public class TokenProvider {
         claims.setIssuer(this.issuer);
         claims.setExpirationTime(NumericDate.fromMilliseconds(validity.getTime()));
 
+        return sign(claims);
+    }
+
+    /**
+     * Session of a student opened by the link sent to their e-mail address (ADR 0003): subject = the e-mail address,
+     * single role ROLE_STUDENT (only /api/student/me accepts it), no refresh.
+     */
+    public String createStudentToken(String email, Instant expiresAt) {
+        JwtClaims claims = new JwtClaims();
+        claims.setSubject(email);
+        claims.setClaim(AUTHORITIES_KEY, AuthoritiesConstants.STUDENT);
+        claims.setClaim(GROUPS_KEY, List.of(AuthoritiesConstants.STUDENT));
+        claims.setIssuedAtToNow();
+        claims.setIssuer(this.issuer);
+        claims.setExpirationTime(NumericDate.fromMilliseconds(expiresAt.toEpochMilli()));
+        return sign(claims);
+    }
+
+    private String sign(JwtClaims claims) {
         JsonWebSignature jws = new JsonWebSignature();
         jws.setPayload(claims.toJson());
         jws.setKey(key);

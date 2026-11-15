@@ -267,6 +267,72 @@ public class StudentResponseResourceTest {
         assertThat(testStudentResponseDTO.worststar).isEqualTo(UPDATED_WORSTSTAR);
     }
 
+    private StudentResponseDTO put(StudentResponseDTO dto) {
+        return given()
+            .auth()
+            .preemptive()
+            .oauth2(adminToken)
+            .contentType(APPLICATION_JSON)
+            .accept(APPLICATION_JSON)
+            .body(dto)
+            .when()
+            .put("/api/student-responses")
+            .then()
+            .statusCode(OK.getStatusCode())
+            .extract().as(ENTITY_TYPE);
+    }
+
+    private StudentResponseDTO get(long id) {
+        return given()
+            .auth()
+            .preemptive()
+            .oauth2(adminToken)
+            .accept(APPLICATION_JSON)
+            .when()
+            .get("/api/student-responses/{id}", id)
+            .then()
+            .statusCode(OK.getStatusCode())
+            .extract().as(ENTITY_TYPE);
+    }
+
+    /** T19a: the flag is false by default, kept by an update that omits it, and changed only on purpose. */
+    @Test
+    public void manuallyGradedIsKeptWhenAnUpdateOmitsIt() {
+        studentResponseDTO = given()
+            .auth()
+            .preemptive()
+            .oauth2(adminToken)
+            .contentType(APPLICATION_JSON)
+            .accept(APPLICATION_JSON)
+            .body(studentResponseDTO)
+            .when()
+            .post("/api/student-responses")
+            .then()
+            .statusCode(CREATED.getStatusCode())
+            .extract().as(ENTITY_TYPE);
+        assertThat(get(studentResponseDTO.id).manuallyGraded).isFalse();
+
+        var dto = get(studentResponseDTO.id);
+        dto.manuallyGraded = true;
+        put(dto);
+        assertThat(get(studentResponseDTO.id).manuallyGraded).isTrue();
+
+        // A client that does not know the field (older front-end, autocorrection) must not unlock the response
+        dto = get(studentResponseDTO.id);
+        dto.manuallyGraded = null;
+        dto.note = UPDATED_NOTE;
+        put(dto);
+        var kept = get(studentResponseDTO.id);
+        assertThat(kept.manuallyGraded).isTrue();
+        assertThat(kept.note).isEqualTo(UPDATED_NOTE);
+
+        // "Back to the automatic detection"
+        dto = get(studentResponseDTO.id);
+        dto.manuallyGraded = false;
+        put(dto);
+        assertThat(get(studentResponseDTO.id).manuallyGraded).isFalse();
+    }
+
     @Test
     public void updateNonExistingStudentResponse() {
         var databaseSizeBeforeUpdate = given()

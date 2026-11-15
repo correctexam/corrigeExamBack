@@ -14,6 +14,7 @@ public interface ScanMapper extends EntityMapper<ScanDTO, Scan> {
 
 
     @Mapping(target = "sheets", ignore = true)
+    @Mapping(target = "pageCount", ignore = true)
     @Mapping(target = "content", ignore = true)
     Scan toEntity(ScanDTO scanDTO);
 

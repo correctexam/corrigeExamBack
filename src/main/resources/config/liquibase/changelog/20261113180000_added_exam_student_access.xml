@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        T21 / ADR 0003: what the students of an exam can see from the student portal.
+        Existing exams become GRADED (their results may already have been sent); new exams default to SHEET.
+        Skipped (and marked as run) when the column was already added by hand
+        (production: docs/db/T21-exam-student-access.sql).
+    -->
+    <changeSet id="20261113180000-1" author="barais">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="exam" columnName="student_access"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="exam">
+            <column name="student_access" type="VARCHAR(16)" defaultValue="GRADED">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <addDefaultValue tableName="exam" columnName="student_access" defaultValue="SHEET"/>
+    </changeSet>
+</databaseChangeLog>

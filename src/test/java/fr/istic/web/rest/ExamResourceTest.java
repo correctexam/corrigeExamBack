@@ -1,5 +1,6 @@
 package fr.istic.web.rest;
 
+import fr.istic.domain.enumeration.StudentAccess;
 import static io.restassured.RestAssured.given;
 import static io.restassured.config.ObjectMapperConfig.objectMapperConfig;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -472,6 +473,90 @@ public class ExamResourceTest {
             .body("id", is(examDTO.id.intValue()))
 
                 .body("name", is(DEFAULT_NAME));
+    }
+
+    private ExamDTO createExamForTest() {
+        return given()
+            .auth()
+            .preemptive()
+            .oauth2(adminToken)
+            .contentType(APPLICATION_JSON)
+            .accept(APPLICATION_JSON)
+            .body(examDTO)
+            .when()
+            .post("/api/exams")
+            .then()
+            .statusCode(CREATED.getStatusCode())
+            .extract().as(ENTITY_TYPE);
+    }
+
+    private ExamDTO getExamForTest(long id) {
+        return given()
+            .auth()
+            .preemptive()
+            .oauth2(adminToken)
+            .accept(APPLICATION_JSON)
+            .when()
+            .get("/api/exams/{id}", id)
+            .then()
+            .statusCode(OK.getStatusCode())
+            .extract().as(ENTITY_TYPE);
+    }
+
+    /** T21 / ADR 0003: a new exam shows the scanned sheet only; the instructor publishes the corrections. */
+    @Test
+    public void studentAccessDefaultsToSheetAndIsChangedOnPurpose() {
+        examDTO = createExamForTest();
+        assertThat(getExamForTest(examDTO.id).studentAccess).isEqualTo(StudentAccess.SHEET);
+
+        var published = given()
+            .auth()
+            .preemptive()
+            .oauth2(adminToken)
+            .accept(APPLICATION_JSON)
+            .when()
+            .put("/api/exams/{id}/student-access/{access}", examDTO.id, "GRADED")
+            .then()
+            .statusCode(OK.getStatusCode())
+            .extract().as(ENTITY_TYPE);
+        assertThat(published.studentAccess).isEqualTo(StudentAccess.GRADED);
+
+        // An update that does not carry the field (older front-end) keeps it
+        var exam = getExamForTest(examDTO.id);
+        exam.studentAccess = null;
+        exam.name = UPDATED_NAME;
+        given()
+            .auth()
+            .preemptive()
+            .oauth2(adminToken)
+            .contentType(APPLICATION_JSON)
+            .accept(APPLICATION_JSON)
+            .body(exam)
+            .when()
+            .put("/api/exams")
+            .then()
+            .statusCode(OK.getStatusCode());
+        var kept = getExamForTest(examDTO.id);
+        assertThat(kept.studentAccess).isEqualTo(StudentAccess.GRADED);
+        assertThat(kept.name).isEqualTo(UPDATED_NAME);
+    }
+
+    @Test
+    public void studentAccessOfAnUnknownExamOrValueIsNotFound() {
+        examDTO = createExamForTest();
+        given()
+            .auth()
+            .preemptive()
+            .oauth2(adminToken)
+            .when()
+            .put("/api/exams/{id}/student-access/{access}", examDTO.id, "PUBLIC")
+            .then()
+            .statusCode(NOT_FOUND.getStatusCode());
+        given()
+            .when()
+            .put("/api/exams/{id}/student-access/{access}", examDTO.id, "GRADED")
+            .then()
+            .statusCode(UNAUTHORIZED.getStatusCode());
     }
 
     @Test

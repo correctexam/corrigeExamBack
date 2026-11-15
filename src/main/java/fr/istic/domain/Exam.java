@@ -1,4 +1,5 @@
 package fr.istic.domain;
+import fr.istic.domain.enumeration.StudentAccess;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -32,6 +33,18 @@ public class Exam extends PanacheEntityBase implements Serializable {
 
     @Column(name = "nbgrader")
     public Boolean nbgrader=true;
+
+    /** What the students can see from the student portal (ADR 0003). Null in an update: unchanged. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "student_access", nullable = false, length = 16)
+    public StudentAccess studentAccess = StudentAccess.SHEET;
+
+    @PrePersist
+    void defaultStudentAccess() {
+        if (studentAccess == null) {
+            studentAccess = StudentAccess.SHEET;
+        }
+    }
 
 
     @OneToOne(cascade = CascadeType.REMOVE)
@@ -108,6 +121,9 @@ public class Exam extends PanacheEntityBase implements Serializable {
         if (entity != null) {
             entity.name = exam.name;
             entity.nbgrader = exam.nbgrader;
+            if (exam.studentAccess != null) {
+                entity.studentAccess = exam.studentAccess;
+            }
             entity.template = exam.template;
             entity.idzone = exam.idzone;
             entity.namezone = exam.namezone;

@@ -1,5 +1,6 @@
 package fr.istic.web.rest;
 
+import fr.istic.domain.enumeration.StudentAccess;
 import static jakarta.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.domain.Authority;
@@ -335,5 +336,34 @@ public class ExamResource {
 
         Optional<ExamDTO> examDTO = examService.findOne(id);
         return ResponseUtil.wrapOrNotFound(examDTO);
+    }
+
+    @Operation(summary = "Set what the students of an exam can see",
+        description = "Sets the student access of the exam (ADR 0003): HIDDEN (not listed in the student portal), "
+            + "SHEET (scanned sheet only) or GRADED (annotations, comments and grade). "
+            + "Links sent by e-mail (/copie/{uuid}) are not restricted.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated exam",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ExamDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this exam"),
+            @APIResponse(responseCode = "404", description = "The exam, or the access value, does not exist")
+        }
+    )
+    @PUT
+    @Path("/{id}/student-access/{access}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response updateStudentAccess(
+            @Parameter(description = "Id of the exam", required = true) @PathParam("id") long id,
+            @Parameter(description = "HIDDEN, SHEET or GRADED", required = true) @PathParam("access") StudentAccess access,
+            @Context SecurityContext ctx) {
+        log.debug("REST request to set the student access of Exam {} to {}", id, access);
+        if (!securityService.canAccess(ctx, id, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        return ResponseUtil.wrapOrNotFound(examService.updateStudentAccess(id, access));
     }
 }

@@ -46,6 +46,10 @@ public class StudentResponseDTO implements Serializable {
     @Schema(description = "Date of the last modification of the answer.")
     public Instant lastModifiedDate;
 
+    @Schema(description = "True when a grader changed the answer by hand: the QCM autocorrection keeps it. "
+            + "Omitted or null in an update: the current value is kept.")
+    public Boolean manuallyGraded;
+
     @Schema(description = "Set of text comments on the answer.")
     public Set<TextCommentDTO> textcomments = new HashSet<>();
     @Schema(description = "Set of graded comments on the answer.")

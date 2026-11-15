@@ -49,6 +49,9 @@ public class StudentResponseService {
             sr.gradedcomments.addAll(studentResponse.gradedcomments);
             sr.textcomments.clear();
             sr.textcomments.addAll(studentResponse.textcomments);
+            if (studentResponse.manuallyGraded != null) {
+                sr.manuallyGraded = studentResponse.manuallyGraded;
+            }
             sr.lastModifiedDate = Instant.now();
             sr.correctedBy = updatedBy;
             studentResponse = StudentResponse.persistOrUpdate(sr);

@@ -1,5 +1,7 @@
 package fr.istic.web.rest;
 
+import fr.istic.security.AuthoritiesConstants;
+import jakarta.annotation.security.RolesAllowed;
 import fr.istic.domain.User;
 import fr.istic.service.InvalidPasswordException;
 import fr.istic.service.MailService;
@@ -13,7 +15,6 @@ import fr.istic.web.rest.errors.LoginAlreadyUsedException;
 import fr.istic.web.rest.vm.KeyAndPasswordVM;
 import fr.istic.web.rest.vm.ManagedUserVM;
 
-import io.quarkus.security.Authenticated;
 import io.smallrye.common.annotation.Blocking;
 
 import java.security.Principal;
@@ -90,7 +91,8 @@ public class AccountResource {
     )
     @GET
     @Path("/account")
-    @Authenticated
+    // Instructors only: a student portal session (ROLE_STUDENT) is authenticated but has no account (ADR 0003)
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public UserDTO getAccount(@Context SecurityContext ctx) {
         return userService
             .getUserWithAuthoritiesByLogin(ctx.getUserPrincipal().getName())
@@ -119,7 +121,8 @@ public class AccountResource {
     )
     @POST
     @Path("/account")
-    @Authenticated
+    // Instructors only: a student portal session (ROLE_STUDENT) is authenticated but has no account (ADR 0003)
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response saveAccount(@Valid UserDTO userDTO, @Context SecurityContext ctx) {
         var userLogin = Optional
             .ofNullable(ctx.getUserPrincipal().getName())
@@ -244,7 +247,8 @@ public class AccountResource {
     )
     @POST
     @Path("/account/change-password")
-    @Authenticated
+    // Instructors only: a student portal session (ROLE_STUDENT) is authenticated but has no account (ADR 0003)
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response changePassword(PasswordChangeDTO passwordChangeDto, @Context SecurityContext ctx) {
         var userLogin = Optional
             .ofNullable(ctx.getUserPrincipal().getName())

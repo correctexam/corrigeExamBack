@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        T21 / ADR 0003: links sent to the students (hashed tokens) and link requests (rate limit, captcha replay).
+        Skipped (and marked as run) when the tables were already created by hand
+        (production: docs/db/T21-student-portal.sql).
+    -->
+    <changeSet id="20261114090000-1" author="barais">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="student_access_token"/>
+            </not>
+        </preConditions>
+        <createTable tableName="student_access_token">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(254)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="token_hash" type="VARCHAR(64)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="ux_student_access_token_hash"/>
+            </column>
+            <column name="created_at" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="used_at" type="datetime(6)"/>
+        </createTable>
+        <createIndex tableName="student_access_token" indexName="idx_student_access_token_expires">
+            <column name="expires_at"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="20261114090000-2" author="barais">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="student_portal_request"/>
+            </not>
+        </preConditions>
+        <createTable tableName="student_portal_request">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="email_hash" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ip_hash" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="challenge_hash" type="VARCHAR(64)">
+                <constraints nullable="false" unique="true" uniqueConstraintName="ux_student_portal_request_challenge"/>
+            </column>
+            <column name="created_at" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="student_portal_request" indexName="idx_student_portal_request_email">
+            <column name="email_hash"/>
+            <column name="created_at"/>
+        </createIndex>
+        <createIndex tableName="student_portal_request" indexName="idx_student_portal_request_ip">
+            <column name="ip_hash"/>
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

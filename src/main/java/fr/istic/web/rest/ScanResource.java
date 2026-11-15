@@ -2,7 +2,10 @@ package fr.istic.web.rest;
 
 import static jakarta.ws.rs.core.UriBuilder.fromPath;
 
+import fr.istic.service.ScanPageCountException;
+import fr.istic.service.ScanPageCountService;
 import fr.istic.service.ScanService;
+import fr.istic.service.customdto.ScanPageCountDto;
 import fr.istic.service.SecurityService;
 import fr.istic.web.rest.errors.BadRequestAlertException;
 import fr.istic.web.util.HeaderUtil;
@@ -65,6 +68,8 @@ public class ScanResource {
     ScanService scanService;
     @Inject
     SecurityService securityService;
+    @Inject
+    ScanPageCountService scanPageCountService;
 
     /**
      * {@code POST  /scans} : Create a new scan.
@@ -227,5 +232,52 @@ public class ScanResource {
         log.debug("REST request to get Scan : {}", id);
         Optional<ScanDTO> scanDTO = scanService.findOne(id);
         return ResponseUtil.wrapOrNotFound(scanDTO);
+    }
+
+    /**
+     * {@code GET  /scans/:id/pagecount} : number of pages of the scan PDF.
+     * Read from the database; computed once (and stored) for scans uploaded before the count was recorded.
+     */
+    @GET
+    @Path("/{id}/pagecount")
+    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
+    @Operation(summary = "Get the number of pages of a scan",
+        description = "Returns the number of pages of the scan PDF. The value is stored when the PDF is uploaded; "
+            + "for older scans it is computed on the first call (no page rendering) and then stored.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The number of pages",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ScanPageCountDto.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this scan"),
+            @APIResponse(responseCode = "404", description = "The scan, or its PDF, does not exist"),
+            @APIResponse(responseCode = "422", description = "The scan file is not a readable PDF"),
+            @APIResponse(responseCode = "503", description = "The file storage is unavailable or busy; retry later")
+        }
+    )
+    public Response getScanPageCount(@Parameter(description = "ID of the scan", required = true) @PathParam("id") long id,
+            @Context SecurityContext ctx) {
+        log.debug("REST request to get the page count of Scan : {}", id);
+        if (!securityService.canAccess(ctx, id, Scan.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        try {
+            return Response.ok(new ScanPageCountDto(id, scanPageCountService.getPageCount(id))).build();
+        } catch (ScanPageCountException e) {
+            switch (e.getReason()) {
+                case SCAN_NOT_FOUND:
+                case FILE_NOT_FOUND:
+                    log.debug("No page count for scan {}: {}", id, e.getMessage());
+                    return Response.status(Response.Status.NOT_FOUND).build();
+                case INVALID_PDF:
+                    log.warn("Could not count the pages of scan {}: {}", id, e.getMessage(), e);
+                    return Response.status(422).build();
+                default:
+                    log.error("Could not count the pages of scan {}: {}", id, e.getMessage(), e);
+                    return Response.status(Response.Status.SERVICE_UNAVAILABLE).header("Retry-After", "30").build();
+            }
+        }
     }
 }
