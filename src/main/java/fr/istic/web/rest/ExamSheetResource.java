@@ -1,5 +1,7 @@
 package fr.istic.web.rest;
 
+import fr.istic.domain.Exam;
+import fr.istic.domain.Scan;
 import static jakarta.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.domain.Authority;
@@ -508,8 +510,13 @@ public class ExamSheetResource {
         }
     )
     @GET
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getAllExamSheets(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest,
             @Context UriInfo uriInfo, @Context SecurityContext ctx) {
+        if (!securityService.canAccessParam(ctx, uriInfo.getQueryParameters(), "scanId", Scan.class)
+                || !securityService.canAccessParam(ctx, uriInfo.getQueryParameters(), "examId", Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         log.debug("REST request to get a page of ExamSheets");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
@@ -520,6 +527,9 @@ public class ExamSheetResource {
         if (param.containsKey("name")) {
             List name = (List) param.get("name");
             result = examSheetService.findExamSheetByName(page, "" + name.get(0));
+            if (result.content.stream().anyMatch(sheet -> !securityService.canAccess(ctx, sheet.id, ExamSheet.class))) {
+                return Response.status(403, "Current user cannot access to this ressource").build();
+            }
         } else {
             if (ctx.getUserPrincipal().getName() != null) {
 

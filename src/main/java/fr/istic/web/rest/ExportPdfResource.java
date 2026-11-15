@@ -84,8 +84,12 @@ public class ExportPdfResource {
     @GET
     @Path("exportpdf4sheet/{examId}/{sheetuuid}")
     @Transactional
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getExportPdfRoute4sheet(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId,
-            @Parameter(description = "Name (UUID) of the exam sheet", required = true) @PathParam("sheetuuid") String sheetname) {
+            @Parameter(description = "Name (UUID) of the exam sheet", required = true) @PathParam("sheetuuid") String sheetname, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         ExportPDFDto exportPDFDto = exportPdfService.getExportPdf(examId, sheetname);
         return Response.ok().entity(exportPDFDto).build();
     }

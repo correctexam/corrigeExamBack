@@ -87,3 +87,12 @@ Ils restent valides et montrent la copie corrigée, comme aujourd'hui : ce sont 
 3. Back : lien magique, session `ROLE_STUDENT`, captcha, `/api/student/me/*`.
 4. Front : sélecteur de publication côté enseignant, avertissements sur les adresses des étudiants.
 5. Front : vue de copie sur les nouveaux endpoints, portail `/my`.
+6. Back : fermeture des lectures restées ouvertes (voir ci-dessous), une fois le front de l'étape 5 déployé.
+
+## Fermeture des lectures ouvertes (étape 6)
+
+Toutes les lectures utilisées auparavant par la vue élève anonyme demandent une session enseignant (`ROLE_USER` ou `ROLE_ADMIN`) et un accès à l'entité filtrée (`SecurityService.canAccess`, ou `canAccessParam` pour les listes filtrées par un identifiant). `EndpointSecurityTest` ne liste plus aucun endpoint « à restreindre ».
+
+- Les liens vers les réponses étoilées de la page enseignant (`getAllStarAnswer`) mènent à la vue de correction (`/answer/{examId}/{numero}/{copie}`) et non plus à `/reponse/{base64}`, que la vue élève n'accepte plus.
+- `GET /api/scans` sans filtre est réservé aux administrateurs.
+- **Exception assumée** : le flux SSE `GET /api/scansalign/{id}/events` reste public (`@PermitAll`). `EventSource` ne peut pas envoyer l'en-tête `Authorization`, et le flux ne porte que des statuts de progression d'un job d'alignement (examen, page, statut, avancement), sans donnée d'étudiant. Le lancement du job (`POST /api/scansalign`) exige une session enseignant et l'accès à l'examen, au scan et au modèle. Un client SSE fondé sur `fetch` permettrait de fermer aussi ce flux si besoin.

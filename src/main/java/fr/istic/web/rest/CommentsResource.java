@@ -1,5 +1,6 @@
 package fr.istic.web.rest;
 
+import fr.istic.domain.Exam;
 import static jakarta.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.domain.Authority;
@@ -214,6 +215,7 @@ public class CommentsResource {
         }
     )
     @GET
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getAllComments(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest,
             @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of Comments");
@@ -223,6 +225,10 @@ public class CommentsResource {
         MultivaluedMap param = uriInfo.getQueryParameters();
         if (param.containsKey("zonegeneratedid")) {
             List<String> zonegeneratedid = (List<String>) param.get("zonegeneratedid");
+            // Zone ids start with the exam id: {examId}_{sheetId}_{numero}_{index}
+            if (!securityService.canAccess(ctx, examIdOfZone(zonegeneratedid.get(0)), Exam.class)) {
+                return Response.status(403, "Current user cannot access to this ressource").build();
+            }
             result = commentsService.findCommentsbyZonegeneratedid(page, zonegeneratedid.get(0));
         } else {
             if (ctx.getUserPrincipal().getName() != null) {
@@ -273,7 +279,7 @@ public class CommentsResource {
     )
     @GET
     @Path("/{id}")
-
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getComments(
         @Parameter(description = "Id of the comment to retrieve", required = true) @PathParam("id") Long id,
         @Context SecurityContext ctx
@@ -359,4 +365,17 @@ public class CommentsResource {
         return result.toString();
     }
 
+
+    /** Exam id at the start of a generated zone id ({examId}_{sheetId}_{numero}_{index}), -1 if malformed. */
+    static long examIdOfZone(String zonegeneratedid) {
+        if (zonegeneratedid == null) {
+            return -1;
+        }
+        int end = zonegeneratedid.indexOf('_');
+        try {
+            return Long.parseLong(end < 0 ? zonegeneratedid : zonegeneratedid.substring(0, end));
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
 }

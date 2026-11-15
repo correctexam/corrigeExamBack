@@ -253,8 +253,11 @@ public class ExamResultResource {
     @GET
     @Path("getComments/{examId}")
     @Transactional
-    // @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getComments(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
 
         return Response.ok().entity(Comments.findCommentByExamId("" + examId).list()).build();
 

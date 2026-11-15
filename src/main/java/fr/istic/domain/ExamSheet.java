@@ -1,4 +1,5 @@
 package fr.istic.domain;
+import io.quarkus.panache.common.Sort;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -121,7 +122,9 @@ public class ExamSheet extends PanacheEntityBase implements Serializable {
 
     public static PanacheQuery<ExamSheet> findExamSheetByScanAndPageminAndPagemax(Long scanId, Integer pagemin,
             Integer pagemax) {
-        return find("select e from ExamSheet e where e.scan.id =?1 and  e.pagemin = ?2 and e.pagemax = ?3", scanId,pagemin,pagemax);
+        // Sorted by id: with duplicates (created before the lock of ExamSheetService), every caller gets the oldest
+        // first. A Sort, not an ORDER BY in the query, so that count() stays valid.
+        return find("scan.id = ?1 and pagemin = ?2 and pagemax = ?3", Sort.by("id"), scanId, pagemin, pagemax);
     }
 
 
@@ -130,7 +133,7 @@ public class ExamSheet extends PanacheEntityBase implements Serializable {
     }
 
     public static PanacheQuery<ExamSheet> findExamSheetByScanWithoutMinusOne( long scanId) {
-        return find("select e from ExamSheet e where e.scan.id =?1 and  e.pagemin <> -1 and e.pagemax <> -1", scanId);
+        return find("scan.id = ?1 and pagemin <> -1 and pagemax <> -1", Sort.by("pagemin").and("id"), scanId);
     }
 
 

@@ -191,7 +191,11 @@ public class StudentResource {
         }
     )
     @GET
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getAllStudents(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Parameter(description = "Flag to eager load entities from relationships (many-to-many)", required = false) @QueryParam(value = "eagerload") boolean eagerload, @Context SecurityContext ctx) {
+        if (!securityService.canAccessParam(ctx, uriInfo.getQueryParameters(), "sheetId", ExamSheet.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         log.debug("REST request to get a page of Students");
         var page = pageRequest.toPage();
 
@@ -258,7 +262,7 @@ public class StudentResource {
     )
     @GET
     @Path("/{id}")
-
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getStudent(@Parameter(description = "Id of the student to retrieve", required = true) @PathParam("id") Long id, @Context SecurityContext ctx ) {
         log.debug("REST request to get Student : {}", id);
         if (!securityService.canAccess(ctx, id, Student.class )){

@@ -211,7 +211,11 @@ public class TemplateResource {
     )
     @GET
     @Path("/{id}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getTemplate(@Parameter(description = "Id of the template to retrieve", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, id, Template.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         log.debug("REST request to get Template : {}", id);
         Optional<TemplateDTO> templateDTO = templateService.findOne(id);
         return ResponseUtil.wrapOrNotFound(templateDTO);
