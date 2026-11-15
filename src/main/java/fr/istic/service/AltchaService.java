@@ -103,15 +103,22 @@ public class AltchaService {
             String signature = payload.path("signature").asText("");
             JsonNode numberNode = payload.path("number");
             if (!ALGORITHM.equals(algorithm) || challenge.isEmpty() || salt.isEmpty() || !numberNode.canConvertToLong()) {
+                log.debug("ALTCHA payload refused: incomplete");
                 return Optional.empty();
             }
             long number = numberNode.asLong();
             if (number < 0 || number > maxNumber || expired(salt)) {
+                log.debug("ALTCHA payload refused: number out of range or challenge expired");
                 return Optional.empty();
             }
             boolean solved = constantTimeEquals(sha256Hex(salt + number), challenge);
+            // Not signed: challenge made by another instance with another key (ALTCHA_HMAC_KEY) or before a restart
             boolean signed = constantTimeEquals(hmacHex(challenge), signature);
-            return solved && signed ? Optional.of(challenge) : Optional.empty();
+            if (!solved || !signed) {
+                log.debug("ALTCHA payload refused: solved={}, signed={}", solved, signed);
+                return Optional.empty();
+            }
+            return Optional.of(challenge);
         } catch (IllegalArgumentException | java.io.IOException e) {
             log.debug("Malformed ALTCHA payload: {}", e.toString());
             return Optional.empty();

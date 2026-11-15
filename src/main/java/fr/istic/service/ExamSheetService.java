@@ -6,6 +6,7 @@ import fr.istic.domain.ExamSheet;
 import fr.istic.domain.GradedComment;
 import fr.istic.domain.HybridGradedComment;
 import fr.istic.domain.Question;
+import fr.istic.domain.Scan;
 import fr.istic.domain.Student;
 import fr.istic.domain.StudentResponse;
 import fr.istic.domain.TextComment;
@@ -20,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 
 import java.time.Instant;
@@ -99,8 +101,20 @@ public class ExamSheetService {
                 .map(examSheet -> examSheetMapper.toDto((ExamSheet) examSheet));
     }
 
+    /**
+     * Serialises the creation of the sheets of a scan. The sheets are created on demand by GET requests, which several
+     * graders (or tabs, or a fast navigation) send at the same time: without this lock, two transactions can both see
+     * no sheet for a page range and both create one. The row lock on the scan holds until the commit, on every
+     * instance of the back-end. It must be the first statement of the transaction, so that the reads that follow see
+     * the sheets committed by the transaction that held the lock before.
+     */
+    private void lockSheetsOfScan(Long scanId) {
+        Scan.findById(scanId, LockModeType.PESSIMISTIC_WRITE);
+    }
+
     public Paged<ExamSheetDTO> findOrCreateExamSheetByPageMinAndPageMax(Page page, Long scanId, Integer pagemin,
             Integer pagemax) throws Exception {
+        lockSheetsOfScan(scanId);
         long p = ExamSheet.findExamSheetByScanAndPageminAndPagemax(scanId, pagemin, pagemax).count();
         if (p == 0) {
             ExamSheetDTO dto = new ExamSheetDTO();
@@ -121,6 +135,7 @@ public class ExamSheetService {
 
     public Paged<ExamSheetDTO> findOrCreateExamSheetByName(Page page, Long scanId, Integer pageInTemplate,
             Integer pageInScan) throws Exception {
+        lockSheetsOfScan(scanId);
 
         long nbrpage = ExamSheet.findExamSheetByScanWithoutMinusOne(scanId).count();
 

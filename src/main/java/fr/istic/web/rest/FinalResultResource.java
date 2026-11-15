@@ -185,6 +185,7 @@ public class FinalResultResource {
         }
     )
     @GET
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getAllFinalResults(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of FinalResults");
         var page = pageRequest.toPage();
@@ -195,6 +196,9 @@ public class FinalResultResource {
         if (param.containsKey("examId") && param.containsKey("studentId")) {
             List examId = (List) param.get("examId");
             List studentId = (List) param.get("studentId");
+            if (!securityService.canAccess(ctx, Long.parseLong("" + examId.get(0)), Exam.class)) {
+                return Response.status(403, "Current user cannot access to this ressource").build();
+            }
 
             result = finalResultService.findFinalResultbyExamIdAndStudentId(page, Long.parseLong("" + examId.get(0)),
             Long.parseLong("" + studentId.get(0)));
@@ -245,6 +249,7 @@ public class FinalResultResource {
     )
     @GET
     @Path("/{id}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getFinalResult(@Parameter(description = "Id of the final result to retrieve", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get FinalResult : {}", id);
         if (!securityService.canAccess(ctx, id, FinalResult.class)) {

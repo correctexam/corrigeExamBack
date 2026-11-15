@@ -211,6 +211,7 @@ public class Answer2HybridGradedCommentResource {
         }
     )
     @GET
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getAllAnswer2HybridGradedComments(
         @BeanParam PageRequestVM pageRequest,
         @BeanParam SortRequestVM sortRequest,
@@ -228,9 +229,9 @@ public class Answer2HybridGradedCommentResource {
 
          if (param.containsKey("answerId") ) {
             List answerId = (List) param.get("answerId");
-/*            if (!securityService.canAccess(ctx, Long.parseLong("" + answerId.get(0)), StudentResponse.class  )){
+            if (!securityService.canAccess(ctx, Long.parseLong("" + answerId.get(0)), StudentResponse.class)) {
                 return Response.status(403, "Current user cannot access to this ressource").build();
-            } */
+            }
             result = answer2HybridGradedCommentService.findAllAnswerHybridGradedCommentByAnswerId(page, Long.parseLong("" + answerId.get(0)));
         }
         else{
@@ -283,9 +284,14 @@ public class Answer2HybridGradedCommentResource {
     )
     @GET
     @Path("/{id}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getAnswer2HybridGradedComment(
-        @Parameter(description = "Id of the answer to hybrid graded comment to retrieve", required = true) @PathParam("iAnswer2HybridGradedCommentd") Long id
+        @Parameter(description = "Id of the answer to hybrid graded comment to retrieve", required = true) @PathParam("id") Long id,
+        @Context SecurityContext ctx
     ) {
+        if (!securityService.canAccess(ctx, id, Answer2HybridGradedComment.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         log.debug("REST request to get Answer2HybridGradedComment : {}", id);
         Optional<Answer2HybridGradedCommentDTO> answer2HybridGradedCommentDTO = answer2HybridGradedCommentService.findOne(id);
         return ResponseUtil.wrapOrNotFound(answer2HybridGradedCommentDTO);

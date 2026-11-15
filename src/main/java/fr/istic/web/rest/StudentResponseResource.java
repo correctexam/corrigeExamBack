@@ -1,5 +1,6 @@
 package fr.istic.web.rest;
 
+import fr.istic.domain.Question;
 import static jakarta.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.service.StudentResponseService;
@@ -205,8 +206,13 @@ public class StudentResponseResource {
         }
     )
     @GET
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getAllStudentResponses(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest,
             @Context UriInfo uriInfo, @Context SecurityContext ctx) {
+        if (!securityService.canAccessParam(ctx, uriInfo.getQueryParameters(), "sheetId", ExamSheet.class)
+                || !securityService.canAccessParam(ctx, uriInfo.getQueryParameters(), "questionId", Question.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         log.debug("REST request to get a page of StudentResponses");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();

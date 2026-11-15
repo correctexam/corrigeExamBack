@@ -208,9 +208,12 @@ public class ZoneResource {
     )
     @GET
     @Path("/{id}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getZone(@Parameter(description = "Id of the zone to retrieve", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get Zone : {}", id);
-        // No scurity for voir copies
+        if (!securityService.canAccess(ctx, id, Zone.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         Optional<ZoneDTO> zoneDTO = zoneService.findOne(id);
         return ResponseUtil.wrapOrNotFound(zoneDTO);
     }
@@ -233,9 +236,12 @@ public class ZoneResource {
     )
     @GET
     @Path("/byExam/{examid}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getZoneByExam(@Parameter(description = "Id of the exam", required = true) @PathParam("examid") Long examid, @Context SecurityContext ctx) {
         log.debug("REST request to get Zone : {}", examid);
-        // No scurity for voir copies
+        if (!securityService.canAccess(ctx, examid, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         ZoneDTO[] zoneDTOs = zoneService.getZone4Exam(examid);
         var response = Response.ok().entity(zoneDTOs);
         return response.build();
@@ -257,6 +263,7 @@ public class ZoneResource {
     )
     @GET
     @Path("/studentAnswer/{id}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getNumberOfStudentResponse4Zone(@Parameter(description = "Id of the zone", required = true) @PathParam("id") Long zoneid, @Context SecurityContext ctx) {
         log.debug("REST request to get studentAnswer for Zone : {}", zoneid);
         if (!securityService.canAccess(ctx, zoneid, Zone.class  )){
@@ -283,6 +290,7 @@ public class ZoneResource {
     )
     @GET
     @Path("/studentAnswer4exam/{examid}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getNumberOfStudentResponse4Exam(@Parameter(description = "Id of the exam", required = true) @PathParam("examid") Long examid, @Context SecurityContext ctx) {
         log.debug("REST request to get studentAnswer for Zone : {}", examid);
         if (!securityService.canAccess(ctx, examid, Exam.class  )){

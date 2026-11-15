@@ -1,5 +1,7 @@
 package fr.istic.web.rest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -53,6 +55,8 @@ import jakarta.ws.rs.core.StreamingOutput;
 @Consumes(MediaType.APPLICATION_JSON)
 @ApplicationScoped
 public class ExamFileResource {
+
+    private static final Logger log = LoggerFactory.getLogger(ExamFileResource.class);
 
     @Inject
     SecurityService securityService;
@@ -240,7 +244,11 @@ public class ExamFileResource {
     @GET
     @Path("/getCacheAlignPage/{examId}/{pageId}")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response getCachePageAlign(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Parameter(description = "Page number in the exam", required = true) @PathParam("pageId") int pageId) {
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getCachePageAlign(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Parameter(description = "Page number in the exam", required = true) @PathParam("pageId") int pageId, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         try {
             return Response
                     .status(Response.Status.OK)
@@ -249,7 +257,7 @@ public class ExamFileResource {
                     .build();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Could not read page {} of the cache of exam {}: {}", pageId, examId, e.toString());
             return Response.serverError().build();
 
         }
@@ -290,7 +298,11 @@ public class ExamFileResource {
     @GET
     @Path("/getCacheNonAlignPage/{examId}/{pageId}")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response getCachePageNoAlign(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Parameter(description = "Page number in the exam", required = true) @PathParam("pageId") int pageId) {
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getCachePageNoAlign(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Parameter(description = "Page number in the exam", required = true) @PathParam("pageId") int pageId, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         try {
             return Response
                     .status(Response.Status.OK)
@@ -299,7 +311,7 @@ public class ExamFileResource {
                     .build();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Could not read page {} of the cache of exam {}: {}", pageId, examId, e.toString());
             return Response.serverError().build();
 
         }
@@ -467,8 +479,7 @@ public class ExamFileResource {
         }
 
         catch (Exception e) {
-
-            e.printStackTrace();
+            log.error("Could not check the PDF of template {}: {}", templateId, e.toString());
             return Response.noContent().build();
         }
     }
@@ -487,14 +498,11 @@ public class ExamFileResource {
     @GET
     @Path("/getScanPdf/{scanId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    // @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getScan(@Parameter(description = "ID of the scan", required = true) @PathParam("scanId") long scanId, @Context SecurityContext ctx) {
-        /*
-         * if (!securityService.canAccess(ctx, scanId, Scan.class)) {
-         * return Response.status(403,
-         * "Current user cannot access to this ressource").build();
-         * }
-         */
+        if (!securityService.canAccess(ctx, scanId, Scan.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         try {
             if (this.fichierS3Service.isObjectExist("scan/" + scanId + ".pdf")) {
 
@@ -507,7 +515,7 @@ public class ExamFileResource {
 
                                     source = fichierS3Service.getObject("scan/" + scanId + ".pdf");
                                 } catch (Exception e) {
-                                    e.printStackTrace();
+                                    log.error("Could not read the PDF of scan {}: {}", scanId, e.toString());
                                     return;
                                 }
                                 byte[] buf = new byte[8192];
@@ -526,8 +534,7 @@ public class ExamFileResource {
         }
 
         catch (Exception e) {
-
-            e.printStackTrace();
+            log.error("Could not check the PDF of scan {}: {}", scanId, e.toString());
             return Response.noContent().build();
         }
     }

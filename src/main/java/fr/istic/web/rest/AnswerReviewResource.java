@@ -1,6 +1,6 @@
 package fr.istic.web.rest;
 
-import java.util.Base64;
+import fr.istic.domain.Exam;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +68,11 @@ public class AnswerReviewResource {
     @GET
     @Path("getBestAnswer/{examId}/{nume}")
     @Transactional
-    public Response getBestAnswer(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Parameter(description = "Question number to retrieve the best answer for", required = true) @PathParam("nume") int nume) {
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getBestAnswer(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Parameter(description = "Question number to retrieve the best answer for", required = true) @PathParam("nume") int nume, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         List<String> res = StudentResponse.getBestAnswerforQuestionNoAndExamId(examId, nume).list().stream()
                 .map(e -> e.name).collect(Collectors.toList());
 
@@ -86,12 +90,13 @@ public class AnswerReviewResource {
         }
     )
     @GET
-    // @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Path("getAllStarAnswer/{examId}")
     @Transactional
-    public Response getAllStarAnswer(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId) {
-        Base64.Encoder encoder = Base64.getEncoder();
-
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response getAllStarAnswer(@Parameter(description = "ID of the exam", required = true) @PathParam("examId") long examId, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, examId, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         Map<Integer, WorstAndBestSolution> res = new HashMap<Integer, WorstAndBestSolution>();
         List<StudentResponse> resbest = StudentResponse.getAllBestAnswerforExamId(examId).list();
         List<StudentResponse> resworst = StudentResponse.getAllWorstAnswerforExamId(examId).list();
@@ -101,10 +106,7 @@ public class AnswerReviewResource {
                 res.put(st.question.numero, new WorstAndBestSolution(st.question.numero));
             }
             WorstAndBestSolution tmp = res.get(st.question.numero);
-            // /reponse/' + btoa('/' + s1 + '/' + (this.questionno + 1) + '/')
-            byte[] encodedContent = encoder.encode(("/" + st.sheet.name + "/" + (st.question.numero) + "/").getBytes());
-            var s = new String(encodedContent);
-            tmp.getBestSolutions().add("/reponse/" + s);
+            tmp.getBestSolutions().add(correctionLink(examId, st));
         });
 
         resworst.forEach(st -> {
@@ -112,10 +114,7 @@ public class AnswerReviewResource {
                 res.put(st.question.numero, new WorstAndBestSolution(st.question.numero));
             }
             WorstAndBestSolution tmp = res.get(st.question.numero);
-            // /reponse/' + btoa('/' + s1 + '/' + (this.questionno + 1) + '/')
-            byte[] encodedContent = encoder.encode(("/" + st.sheet.name + "/" + (st.question.numero) + "/").getBytes());
-            var s = new String(encodedContent);
-            tmp.getWorstSolutions().add("/reponse/" + s);
+            tmp.getWorstSolutions().add(correctionLink(examId, st));
         });
 
         return Response.ok().entity(res.values()).build();
@@ -149,5 +148,15 @@ public class AnswerReviewResource {
             e.printStackTrace();
             return Response.serverError().build();
         }
+    }
+
+    /**
+     * Link of the grading view of an answer (instructors only). The former /reponse/{base64} student links carried
+     * the UUID of the sheet; the student view no longer accepts them (ADR 0003).
+     */
+    private static String correctionLink(long examId, StudentResponse response) {
+        int pages = response.sheet.pagemax - response.sheet.pagemin + 1;
+        int sheetIndex = pages > 0 ? response.sheet.pagemin / pages : 0;
+        return "/answer/" + examId + "/" + response.question.numero + "/" + (sheetIndex + 1);
     }
 }

@@ -72,7 +72,8 @@ public class StudentPortalResource {
             @APIResponse(responseCode = "202", description = "Accepted: an e-mail is sent if the address is known"),
             @APIResponse(responseCode = "400", description = "Malformed address, or captcha missing, wrong, expired or already used"),
             @APIResponse(responseCode = "404", description = "The student portal is disabled"),
-            @APIResponse(responseCode = "429", description = "Too many requests for this address or from this network")
+            @APIResponse(responseCode = "429", description = "Too many requests for this address or from this network"),
+            @APIResponse(responseCode = "503", description = "The request could not be recorded")
         }
     )
     @POST
@@ -90,6 +91,7 @@ public class StudentPortalResource {
             case TOO_MANY_REQUESTS -> Response.status(Response.Status.TOO_MANY_REQUESTS)
                     .header("Retry-After", config.requestWindow().toSeconds()).entity(new Error("tooManyRequests")).build();
             case DISABLED -> Response.status(Response.Status.NOT_FOUND).build();
+            case UNAVAILABLE -> Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(new Error("unavailable")).build();
         };
     }
 
