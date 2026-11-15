@@ -21,7 +21,15 @@ jobs:
         distribution: 'mandrel'
         native-image-musl: 'false'
     - name: Build with Maven
-      run: mvn clean compile package -Pnative,shib -DskipTests
+      run: mvn clean compile package -Pnative,shib -DskipTests -Dquarkus.native.container-build=true
+    - name: Check the CPU level required by the native binary
+      # The server CPU stops at x86-64-v2: fail before pushing an image it cannot run
+      run: |
+        readelf -n target/*-runner | grep -i "ISA needed" || true
+        if readelf -n target/*-runner | grep -qE "x86-64-v3|x86-64-v4"; then
+          echo "::error::The native binary requires x86-64-v3 or more; the server supports x86-64-v2 only"
+          exit 1
+        fi
   #  - name: Build the Docker image
   #    run: docker build -f src/main/docker/Dockerfile.native -t barais/grade-scope-istic .
     - name: Set up Docker Buildx
