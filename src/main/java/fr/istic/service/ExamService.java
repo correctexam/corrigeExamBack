@@ -1,5 +1,6 @@
 package fr.istic.service;
 
+import fr.istic.domain.enumeration.IdentityZone;
 import fr.istic.domain.enumeration.StudentAccess;
 import io.quarkus.panache.common.Page;
 import fr.istic.domain.Answer2HybridGradedComment;
@@ -89,6 +90,38 @@ public class ExamService {
             }
         });
         return exam.map(examMapper::toDto);
+    }
+
+    /** Outcome of {@link #setIdentityZone}. */
+    public enum IdentityZoneOutcome {
+        UPDATED,
+        NOT_FOUND,
+        /** The zone already belongs to a question or to another exam. */
+        ZONE_IN_USE,
+    }
+
+    /**
+     * Sets one identity zone of the exam (name, first name or student number), and nothing else: unlike a full
+     * update, two zones drawn in a row cannot erase each other.
+     */
+    @Transactional
+    public IdentityZoneOutcome setIdentityZone(long examId, IdentityZone kind, long zoneId) {
+        Exam exam = Exam.findById(examId);
+        Zone zone = Zone.findById(zoneId);
+        if (exam == null || zone == null) {
+            return IdentityZoneOutcome.NOT_FOUND;
+        }
+        boolean otherExam = Exam.findExamThatMatchZoneId(zoneId).list().stream().anyMatch(e -> !e.id.equals(exam.id));
+        if (otherExam || Question.findQuestionbyZoneId(zoneId).count() > 0) {
+            return IdentityZoneOutcome.ZONE_IN_USE;
+        }
+        switch (kind) {
+            case NAME -> exam.namezone = zone;
+            case FIRSTNAME -> exam.firstnamezone = zone;
+            case INE -> exam.idzone = zone;
+        }
+        log.debug("Identity zone {} of exam {} set to zone {}", kind, examId, zoneId);
+        return IdentityZoneOutcome.UPDATED;
     }
 
     /**

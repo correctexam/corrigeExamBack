@@ -2,6 +2,7 @@ package fr.istic.web.rest;
 
 import fr.istic.domain.Scan;
 import fr.istic.domain.enumeration.StudentAccess;
+import fr.istic.domain.enumeration.IdentityZone;
 import static jakarta.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.domain.Authority;
@@ -368,5 +369,40 @@ public class ExamResource {
             return Response.status(403, "Current user cannot access to this ressource").build();
         }
         return ResponseUtil.wrapOrNotFound(examService.updateStudentAccess(id, access));
+    }
+
+    @Operation(summary = "Set an identity zone of an exam",
+        description = "Sets the zone of the template where the students write their last name (NAME), first name "
+            + "(FIRSTNAME) or student number (INE). Only this field changes: unlike PUT /api/exams, two zones drawn "
+            + "in a row cannot erase each other. The zone must not belong to a question or to another exam.")
+    @APIResponses(
+        value = {
+            @APIResponse(
+                responseCode = "200",
+                description = "The updated exam",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ExamDTO.class))
+            ),
+            @APIResponse(responseCode = "403", description = "Current user cannot access this exam"),
+            @APIResponse(responseCode = "404", description = "The exam, the zone or the kind does not exist"),
+            @APIResponse(responseCode = "409", description = "The zone belongs to a question or to another exam")
+        }
+    )
+    @PUT
+    @Path("/{id}/identity-zone/{kind}/{zoneId}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response setIdentityZone(
+            @Parameter(description = "Id of the exam", required = true) @PathParam("id") long id,
+            @Parameter(description = "NAME, FIRSTNAME or INE", required = true) @PathParam("kind") IdentityZone kind,
+            @Parameter(description = "Id of the zone", required = true) @PathParam("zoneId") long zoneId,
+            @Context SecurityContext ctx) {
+        log.debug("REST request to set the {} zone of Exam {} to zone {}", kind, id, zoneId);
+        if (!securityService.canAccess(ctx, id, Exam.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
+        return switch (examService.setIdentityZone(id, kind, zoneId)) {
+            case UPDATED -> ResponseUtil.wrapOrNotFound(examService.findOne(id));
+            case NOT_FOUND -> Response.status(Response.Status.NOT_FOUND).build();
+            case ZONE_IN_USE -> Response.status(Response.Status.CONFLICT).build();
+        };
     }
 }
