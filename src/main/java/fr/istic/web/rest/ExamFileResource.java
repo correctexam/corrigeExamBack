@@ -479,7 +479,7 @@ public class ExamFileResource {
         }
 
         catch (Exception e) {
-            log.error("Could not check the PDF of scan {}: {}", scanId, e.toString());
+            log.error("Could not check the PDF of template {}: {}", templateId, e.toString());
             return Response.noContent().build();
         }
     }
@@ -534,8 +534,7 @@ public class ExamFileResource {
         }
 
         catch (Exception e) {
-
-            e.printStackTrace();
+            log.error("Could not check the PDF of scan {}: {}", scanId, e.toString());
             return Response.noContent().build();
         }
     }
