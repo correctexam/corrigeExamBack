@@ -1,6 +1,9 @@
 package fr.istic.web.rest;
 
 
+import fr.istic.domain.Template;
+import fr.istic.domain.Scan;
+import jakarta.annotation.security.PermitAll;
 import io.smallrye.mutiny.Multi;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
@@ -78,7 +81,14 @@ public class ScanAlignResource {
             @APIResponse(responseCode = "503", description = "The job could not be sent to the message broker")
         }
     )
-    public Response createScanJob(@Valid ScanRequestDto request) {
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
+    public Response createScanJob(@Valid ScanRequestDto request, @Context SecurityContext ctx) {
+        // The job reads the scan and the template and rewrites the cache of the exam: all three must be the caller's
+        if (!securityService.canAccess(ctx, request.examID, Exam.class)
+                || !securityService.canAccess(ctx, request.scanID, Scan.class)
+                || !securityService.canAccess(ctx, request.templateID, Template.class)) {
+            return Response.status(Response.Status.FORBIDDEN).build();
+        }
         var running = jobRegistry.submit(request);
         if (running.isPresent()) {
             log.info("Alignment job for exam {} rejected: a job is already {}", request.examID, running.get().status);
@@ -148,6 +158,10 @@ public class ScanAlignResource {
             @APIResponse(responseCode = "200", description = "Stream of scan status events")
         }
     )
+    // Public on purpose: EventSource cannot send the Authorization header, and the stream only carries progress
+    // statuses of an alignment job (exam id, page, status, progress), no student data. The job itself is
+    // submitted by the authenticated POST.
+    @PermitAll
     public Multi<ScanStatusDto> streamScanProgress(@Parameter(description = "ID of the exam", required = true) @PathParam("id") int exam_id) {
         log.debug("SSE client subscribed to the alignment statuses of exam {}", exam_id);
         return streamService.streamStatus(exam_id);

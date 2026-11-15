@@ -105,6 +105,23 @@ public class SecurityService {
     }
 
 
+    /**
+     * Access check of a list filtered by a query parameter: true when the parameter is absent, else
+     * {@link #canAccess} on its first value (a value that is not a number gives no access).
+     */
+    public boolean canAccessParam(SecurityContext ctx, jakarta.ws.rs.core.MultivaluedMap<String, String> params, String name, Class entity) {
+        if (params == null || !params.containsKey(name)) {
+            return true;
+        }
+        long id;
+        try {
+            id = Long.parseLong(params.getFirst(name).trim());
+        } catch (RuntimeException e) {
+            return false;
+        }
+        return canAccess(ctx, id, entity);
+    }
+
     public User getCurrentLoggedUser(SecurityContext ctx){
         if (ctx.getUserPrincipal() == null ) return null;
         var userLogin = Optional

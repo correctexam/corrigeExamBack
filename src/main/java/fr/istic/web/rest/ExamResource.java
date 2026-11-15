@@ -1,5 +1,6 @@
 package fr.istic.web.rest;
 
+import fr.istic.domain.Scan;
 import fr.istic.domain.enumeration.StudentAccess;
 import static jakarta.ws.rs.core.UriBuilder.fromPath;
 
@@ -251,6 +252,7 @@ public class ExamResource {
         }
     )
     @GET
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getAllExams(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest,
             @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of Exams");
@@ -267,9 +269,9 @@ public class ExamResource {
             result = examService.findExambyCourseId(page, Long.parseLong("" + id.get(0)));
         } else if (param.containsKey("scanId")) {
             List scanId = (List) param.get("scanId");
-            /*if (!securityService.canAccess(ctx, Long.parseLong("" + scanId.get(0)), Scan.class)) {
+            if (!securityService.canAccess(ctx, Long.parseLong("" + scanId.get(0)), Scan.class)) {
                 return Response.status(403, "Current user cannot access to this ressource").build();
-            }*/
+            }
             result = examService.findExambyScanId(page, Long.parseLong("" + scanId.get(0)));
 
         } else {
@@ -327,6 +329,7 @@ public class ExamResource {
     )
     @GET
     @Path("/{id}")
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getExam(@Parameter(description = "Id of the exam to retrieve", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
         log.debug("REST request to get Exam : {}", id);
         if (!securityService.canAccess(ctx, id, Exam.class)) {

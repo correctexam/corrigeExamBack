@@ -171,7 +171,6 @@ public class ScanResource {
      * @return the {@link Response} with status {@code 200 (OK)} and the list of scans in body.
      */
     @GET
-//    @RolesAllowed({AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN})
     @Operation(summary = "Get all scans", description = "Returns a paginated list of scans, optionally filtered by name.")
     @APIResponses(
         value = {
@@ -182,6 +181,7 @@ public class ScanResource {
             )
         }
     )
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getAllScans(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest, @Context UriInfo uriInfo, @Context SecurityContext ctx) {
         log.debug("REST request to get a page of Scans");
         var page = pageRequest.toPage();
@@ -191,11 +191,18 @@ public class ScanResource {
         if (param.containsKey("name")) {
             List name = (List) param.get("name");
             Paged<ScanDTO> result =  scanService.findbyName("" + name.get(0),page);
+            if (result.content.stream().anyMatch(scan -> !securityService.canAccess(ctx, scan.id, Scan.class))) {
+                return Response.status(403, "Current user cannot access to this ressource").build();
+            }
             var response = Response.ok().entity(result.content);
             response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
             return response.build();
 
         }else {
+            // Every scan of the instance: administrators only
+            if (!ctx.isUserInRole(AuthoritiesConstants.ADMIN)) {
+                return Response.status(403, "Current user cannot access to this ressource").build();
+            }
             Paged<ScanDTO> result  = scanService.findAll(page);
             var response = Response.ok().entity(result.content);
             response = PaginationUtil.withPaginationInfo(response, uriInfo, result);
@@ -228,7 +235,11 @@ public class ScanResource {
             @APIResponse(responseCode = "404", description = "The scan does not exist")
         }
     )
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getScan(@Parameter(description = "ID of the scan", required = true) @PathParam("id") Long id, @Context SecurityContext ctx) {
+        if (!securityService.canAccess(ctx, id, Scan.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         log.debug("REST request to get Scan : {}", id);
         Optional<ScanDTO> scanDTO = scanService.findOne(id);
         return ResponseUtil.wrapOrNotFound(scanDTO);

@@ -1,5 +1,7 @@
 package fr.istic.web.rest;
 
+import fr.istic.domain.Zone;
+import fr.istic.domain.Exam;
 import static jakarta.ws.rs.core.UriBuilder.fromPath;
 
 import fr.istic.service.QuestionService;
@@ -209,8 +211,13 @@ public class QuestionResource {
         }
     )
     @GET
+    @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     public Response getAllQuestions(@BeanParam PageRequestVM pageRequest, @BeanParam SortRequestVM sortRequest,
             @Context UriInfo uriInfo, @Context SecurityContext ctx) {
+        if (!securityService.canAccessParam(ctx, uriInfo.getQueryParameters(), "examId", Exam.class)
+                || !securityService.canAccessParam(ctx, uriInfo.getQueryParameters(), "zoneId", Zone.class)) {
+            return Response.status(403, "Current user cannot access to this ressource").build();
+        }
         log.debug("REST request to get a page of Questions");
         var page = pageRequest.toPage();
         var sort = sortRequest.toSort();
