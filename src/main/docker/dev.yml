@@ -22,9 +22,10 @@ services:
   maildev:
     image: maildev/maildev
     container_name: maildev
-    command: bin/maildev --base-pathname /maildev -w 1080 -s 25
+    command: bin/maildev --base-pathname /maildev -w 1080 -s 1025
     ports:
       - 1080:1080
+      - 1025:1025
 
   miniocorrectexam:
     image: minio/minio
