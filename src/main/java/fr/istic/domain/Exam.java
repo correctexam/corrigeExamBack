@@ -125,15 +125,26 @@ public class Exam extends PanacheEntityBase implements Serializable {
                 entity.studentAccess = exam.studentAccess;
             }
             entity.template = exam.template;
-            entity.idzone = exam.idzone;
-            entity.namezone = exam.namezone;
-            entity.firstnamezone = exam.firstnamezone;
+            // Identity zones: a full update without them (null) or with a deleted zone keeps the current ones.
+            // They are set one by one with PUT /api/exams/{id}/identity-zone/{kind}/{zoneId}, removed by deleting
+            // the zone: an outdated copy of the exam (two zones drawn in a row, another tab) must not erase them.
+            entity.idzone = keptZone(entity.idzone, exam.idzone);
+            entity.namezone = keptZone(entity.namezone, exam.namezone);
+            entity.firstnamezone = keptZone(entity.firstnamezone, exam.firstnamezone);
             entity.notezone = exam.notezone;
             entity.scanfile = exam.scanfile;
             entity.questions = exam.questions;
             entity.course = exam.course;
         }
         return entity;
+    }
+
+    private static Zone keptZone(Zone current, Zone requested) {
+        if (requested == null || requested.id == null) {
+            return current;
+        }
+        Zone zone = Zone.findById(requested.id);
+        return zone != null ? zone : current;
     }
 
     public static Exam persistOrUpdate(Exam exam) {

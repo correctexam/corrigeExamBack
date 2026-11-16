@@ -572,4 +572,82 @@ public class ExamResourceTest {
             .then()
             .statusCode(NOT_FOUND.getStatusCode());
     }
+
+    private long createZoneForTest() {
+        return given()
+            .auth()
+            .preemptive()
+            .oauth2(adminToken)
+            .contentType(APPLICATION_JSON)
+            .accept(APPLICATION_JSON)
+            .body(java.util.Map.of("pageNumber", 1, "xInit", 10, "yInit", 10, "width", 100, "height", 50))
+            .when()
+            .post("/api/zones")
+            .then()
+            .statusCode(CREATED.getStatusCode())
+            .extract().jsonPath().getLong("id");
+    }
+
+    private void setIdentityZone(long examId, String kind, long zoneId, int status) {
+        given()
+            .auth()
+            .preemptive()
+            .oauth2(adminToken)
+            .accept(APPLICATION_JSON)
+            .when()
+            .put("/api/exams/{id}/identity-zone/{kind}/{zoneId}", examId, kind, zoneId)
+            .then()
+            .statusCode(status);
+    }
+
+    /** T24: the identity zones are set one by one, and a full update from an outdated copy keeps them. */
+    @Test
+    public void identityZonesAreSetOneByOneAndKeptByFullUpdates() {
+        examDTO = createExamForTest();
+        var outdated = getExamForTest(examDTO.id);
+        long name = createZoneForTest();
+        long firstname = createZoneForTest();
+        long ine = createZoneForTest();
+
+        setIdentityZone(examDTO.id, "NAME", name, OK.getStatusCode());
+        setIdentityZone(examDTO.id, "FIRSTNAME", firstname, OK.getStatusCode());
+        setIdentityZone(examDTO.id, "INE", ine, OK.getStatusCode());
+
+        // Full update from a copy read before the zones were drawn (another tab, a response arriving late)
+        outdated.name = UPDATED_NAME;
+        given()
+            .auth()
+            .preemptive()
+            .oauth2(adminToken)
+            .contentType(APPLICATION_JSON)
+            .accept(APPLICATION_JSON)
+            .body(outdated)
+            .when()
+            .put("/api/exams")
+            .then()
+            .statusCode(OK.getStatusCode());
+
+        var exam = getExamForTest(examDTO.id);
+        assertThat(exam.name).isEqualTo(UPDATED_NAME);
+        assertThat(exam.namezoneId).isEqualTo(name);
+        assertThat(exam.firstnamezoneId).isEqualTo(firstname);
+        assertThat(exam.idzoneId).isEqualTo(ine);
+    }
+
+    @Test
+    public void identityZoneRejectsUnknownOrForeignZones() {
+        var other = createExamForTest();
+        examDTO = createExamForTest();
+        long zone = createZoneForTest();
+        setIdentityZone(other.id, "NAME", zone, OK.getStatusCode());
+
+        // The zone of another exam
+        setIdentityZone(examDTO.id, "NAME", zone, CONFLICT.getStatusCode());
+        // Unknown zone, unknown kind
+        setIdentityZone(examDTO.id, "NAME", Long.MAX_VALUE, NOT_FOUND.getStatusCode());
+        setIdentityZone(examDTO.id, "SIGNATURE", createZoneForTest(), NOT_FOUND.getStatusCode());
+        // Anonymous
+        given().when().put("/api/exams/{id}/identity-zone/{kind}/{zoneId}", examDTO.id, "NAME", zone)
+            .then().statusCode(UNAUTHORIZED.getStatusCode());
+    }
 }
