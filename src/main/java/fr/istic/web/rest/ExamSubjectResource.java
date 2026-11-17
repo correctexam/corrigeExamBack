@@ -172,7 +172,7 @@ public class ExamSubjectResource {
     @Operation(summary = "Take or renew the edition lock",
         description = "force=true takes the lock over from another teacher (after a warning in the editor).")
     @APIResponses({
-        @APIResponse(responseCode = "200", description = "The lock, held by the caller"),
+        @APIResponse(responseCode = "200", description = "The subject, with the lock held by the caller"),
         @APIResponse(responseCode = "403", description = "Current user cannot access this exam"),
         @APIResponse(responseCode = "404", description = "The exam has no subject"),
         @APIResponse(responseCode = "409", description = "Held by another teacher")
