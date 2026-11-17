@@ -33,6 +33,19 @@ class StorageOrphanDetectorTest {
         assertOwner("cache/42_part_3_indexdb.json", StorageOrphanReport.Reason.EXAM_MISSING, 42);
         assertOwner("cache/42.sqlite3", StorageOrphanReport.Reason.EXAM_MISSING, 42);
         assertOwner("exportpdf/42/DUPONT_Jean.pdf", StorageOrphanReport.Reason.EXAM_MISSING, 42);
+        assertOwner("subject/42/files/main.typ", StorageOrphanReport.Reason.EXAM_MISSING, 42);
+        assertOwner("subject/42/files/img/schema.png", StorageOrphanReport.Reason.EXAM_MISSING, 42);
+    }
+
+    @Test
+    void subjectFilesFollowTheirExamAndDiagramCacheIsNotAnalysed() {
+        StorageOrphanReport report = StorageOrphanDetector.detect(
+                List.of(old("subject/10/files/main.typ"), old("subject/11/files/main.typ"), old("subject/x/a.typ")),
+                Set.of(), Set.of(), Set.of(10L), NOW, MIN_AGE);
+
+        assertEquals(List.of("subject/11/files/main.typ"),
+                report.orphans.stream().map(StorageOrphanReport.Orphan::key).toList());
+        assertTrue(StorageOrphanDetector.ownerOf("diagram-cache/plantuml/" + "a".repeat(64) + ".svg").isEmpty());
     }
 
     @Test
