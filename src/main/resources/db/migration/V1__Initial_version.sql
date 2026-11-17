@@ -1021,6 +1021,17 @@ CREATE TABLE exam_subject_file (
 );
 
 
+CREATE TABLE exam_edition (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  exam_id BIGINT NOT NULL,
+  copies INT NOT NULL,
+  pages_per_copy INT NOT NULL,
+  created_at DATETIME(6) NOT NULL,
+  created_by VARCHAR(50) NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT fk_exam_edition_exam_id FOREIGN KEY (exam_id) REFERENCES exam (id)
+);
+
 COMMIT;
 
 

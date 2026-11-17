@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        T25d / ADR 0004: print runs of an exam written in Typst (page codes CE1|edition|copy|page). Metadata only.
+        Skipped (and marked as run) when the table was already created by hand
+        (production: docs/db/T25d-exam-edition.sql).
+    -->
+    <changeSet id="20261118090000-1" author="barais">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="exam_edition"/>
+            </not>
+        </preConditions>
+        <createTable tableName="exam_edition">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="exam_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="copies" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pages_per_copy" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="VARCHAR(50)"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="exam_edition" baseColumnNames="exam_id"
+                                 constraintName="fk_exam_edition_exam_id"
+                                 referencedTableName="exam" referencedColumnNames="id"/>
+    </changeSet>
+</databaseChangeLog>
