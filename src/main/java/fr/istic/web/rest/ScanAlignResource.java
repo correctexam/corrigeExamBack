@@ -1,5 +1,7 @@
 package fr.istic.web.rest;
 
+import java.util.ArrayList;
+
 
 import fr.istic.domain.Template;
 import fr.istic.domain.Scan;
@@ -15,6 +17,7 @@ import fr.istic.service.ScanStreamService;
 import fr.istic.service.SecurityService;
 import fr.istic.service.customdto.ScanAlignJobDto;
 import fr.istic.service.customdto.ScanRequestDto;
+import fr.istic.service.subject.ExamEditionService;
 import fr.istic.service.customdto.ScanStatusDto;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -49,6 +52,9 @@ public class ScanAlignResource {
     // 1. Injecter l'émetteur pour envoyer vers RabbitMQ
     @Channel("scan-request-out")
     Emitter<ScanRequestDto> requestEmitter;
+
+    @Inject
+    ExamEditionService examEditionService;
 
     // 2. Injecter notre service de streaming
     @Inject
@@ -89,6 +95,9 @@ public class ScanAlignResource {
                 || !securityService.canAccess(ctx, request.templateID, Template.class)) {
             return Response.status(Response.Status.FORBIDDEN).build();
         }
+        // print runs of the exam (T25d3): the worker reads the page codes and aligns the pages in print order;
+        // never taken from the client, an empty list when the exam was not printed from CorrectExam
+        request.pageCodes = new ArrayList<>(examEditionService.pageCodes(request.examID));
         var running = jobRegistry.submit(request);
         if (running.isPresent()) {
             log.info("Alignment job for exam {} rejected: a job is already {}", request.examID, running.get().status);

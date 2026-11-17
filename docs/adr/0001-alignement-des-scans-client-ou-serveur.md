@@ -52,8 +52,9 @@ Front ◀──SSE GET /api/scansalign/{examId}/events── Quarkus ◀── e
 | `heightresolution` | long | hauteur de rendu des pages (défaut 2000) |
 | `corner_square_size` | long | taille des zones de coin analysées (défaut 300) |
 | `min_radius` | float | rayon minimal des ronds (défaut 10) |
+| `page_codes` | liste | tirages de l'examen `{id, copies, pages_per_copy}` (T25d3, ADR 0004), **renseignés par le back** à partir de `exam_edition` (liste vide sinon, jamais `null`) ; non vide et job sur tout le scan → le worker lit les codes de page et aligne les pages dans l'ordre du tirage |
 
-**`ScanStatusDto`** : `exam_id`, `page`, `status` (`running` par page, `finished` en fin de job), `progress` (0–100) et `details`. Le front considère le job terminé sur `finished` ou dès que `progress >= 100`.
+**`ScanStatusDto`** : `exam_id`, `page`, `status` (`running` par page, `finished` en fin de job), `progress` (0–100) et `details`. Avec `page_codes`, le worker publie d'abord des statuts `running` à `progress` 0 pendant la lecture des codes, et le `details` de `finished` est un JSON `{"pagecodes": {…}}` (résumé : copies, pages manquantes, retournées, en double, étrangères, illisibles, pages blanches insérées). Le front considère le job terminé sur `finished` ou dès que `progress >= 100`.
 
 **Suivi d'un job en cours** (reprise après rechargement, autre onglet, autre enseignant) :
 

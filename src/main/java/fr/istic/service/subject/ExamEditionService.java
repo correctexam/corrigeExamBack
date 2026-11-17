@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import fr.istic.domain.Exam;
 import fr.istic.domain.ExamEdition;
+import fr.istic.service.customdto.ScanRequestDto;
 import fr.istic.service.dto.ExamEditionDTO;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
@@ -43,6 +44,14 @@ public class ExamEditionService {
     @Transactional
     public List<ExamEditionDTO> list(long examId) {
         return ExamEdition.findByExamId(examId).stream().map(ExamEditionService::toDto).toList();
+    }
+
+    /** Print runs in the form sent to the alignment worker (T25d3); empty when the exam was never printed. */
+    @Transactional
+    public List<ScanRequestDto.PageCodeEdition> pageCodes(long examId) {
+        return ExamEdition.findByExamId(examId).stream()
+                .map(e -> new ScanRequestDto.PageCodeEdition(e.id, e.copies, e.pagesPerCopy))
+                .toList();
     }
 
     /** Called when the exam is deleted, in the same transaction. */
