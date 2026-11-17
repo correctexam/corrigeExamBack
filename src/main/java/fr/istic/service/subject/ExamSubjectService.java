@@ -105,8 +105,9 @@ public class ExamSubjectService {
         return toDto(subject, login);
     }
 
+    /** Takes or renews the lock; returns the subject (files and revision may have changed while someone else held it). */
     @Transactional
-    public SubjectLockDTO lock(long examId, String login, boolean force) {
+    public ExamSubjectDTO lock(long examId, String login, boolean force) {
         ExamSubject subject = subject(examId);
         Instant now = clock.instant();
         SubjectLocks.Decision d = SubjectLocks.acquire(lockOf(subject), login, force, now, lockTtl);
@@ -118,7 +119,7 @@ public class ExamSubjectService {
         }
         subject.lockedBy = d.lock().holder();
         subject.lockExpiresAt = d.lock().expiresAt();
-        return lockDto(subject, login, now);
+        return toDto(subject, login);
     }
 
     @Transactional
