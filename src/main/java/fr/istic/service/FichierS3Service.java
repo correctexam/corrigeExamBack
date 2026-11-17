@@ -203,6 +203,8 @@ public class FichierS3Service {
 
 
             Path path = localPath(name);
+            // nested keys (subject/{examId}/files/..., diagram-cache/{kind}/...) need their folders
+            Files.createDirectories(path.getParent());
             OutputStream outputStream = Files.newOutputStream(path);
             outputStream.write(bytes);
             outputStream.close();

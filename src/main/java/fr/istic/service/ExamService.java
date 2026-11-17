@@ -1,5 +1,7 @@
 package fr.istic.service;
 
+import fr.istic.service.subject.ExamSubjectService;
+
 import fr.istic.domain.enumeration.IdentityZone;
 import fr.istic.domain.enumeration.StudentAccess;
 import io.quarkus.panache.common.Page;
@@ -63,6 +65,9 @@ public class ExamService {
 
     @Inject
     StorageDeletionService storageDeletionService;
+
+    @Inject
+    ExamSubjectService examSubjectService;
 
     @ConfigProperty(name = "correctexam.uses3", defaultValue = "false")
     boolean uses3;
@@ -172,6 +177,8 @@ public class ExamService {
             }
             Comments.deleteCommentByExamId("" + id);
             storageKeys.addAll(this.cacheService.listCacheObjectKeys(id));
+            // Typst subject (T25c): rows deleted here, objects under subject/{id}/ after the commit
+            storageKeys.addAll(this.examSubjectService.prepareDeleteForExam(id));
             this.cacheService.deleteLocalCacheFiles(id);
         });
         return storageKeys;

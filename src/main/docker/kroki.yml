@@ -1,0 +1,22 @@
+# Self-hosted Kroki for the text diagrams of the Typst subjects (T25c, ADR 0004).
+#   docker compose -f src/main/docker/kroki.yml up -d
+# then correctexam.kroki.url=http://localhost:8001 (already set in the %dev profile).
+# Safe mode "secure": a diagram source cannot include files or URLs. In production, put Kroki on an internal network
+# without outbound access, reachable by the back-end only.
+services:
+  kroki:
+    image: yuzutech/kroki:${KROKI_VERSION:-latest} # pin the version in production
+    environment:
+      - KROKI_SAFE_MODE=secure
+      - KROKI_MERMAID_HOST=kroki-mermaid
+      - KROKI_MAX_URI_LENGTH=8192
+    ports:
+      - 127.0.0.1:8001:8000
+    depends_on:
+      - kroki-mermaid
+    restart: unless-stopped
+  kroki-mermaid:
+    image: yuzutech/kroki-mermaid:${KROKI_VERSION:-latest}
+    expose:
+      - 8002
+    restart: unless-stopped
