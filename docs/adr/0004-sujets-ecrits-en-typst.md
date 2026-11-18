@@ -136,3 +136,10 @@ Choix faits à l'implémentation du stockage du sujet ; ils précisent la sectio
 - **Assemblage dans le navigateur** : `pdf-lib` copie le modèle N fois et appose sur chaque page, en bas au centre (centre à 9 mm du bord, 11 mm de côté, comme dans le paquet), le Data Matrix `CE1|<tirage>|<copie>|<page>` généré par `bwip-js`, avec le libellé lisible « copie · p. ». Aucune donnée d'étudiant.
 - **Lecture au scan** (T25d2) : dans le navigateur d'abord (décodeur Wasm dans un Web Worker) ; elle sert à remettre les pages dans l'ordre et à signaler les pages manquantes, en double ou étrangères. La lecture par le worker Rust (mode serveur) suivra avec le même contrat.
 - Les types `numeric` et `short` restent dans le paquet et l'éditeur ; ils donnent des questions corrigées à la main (pas de correction automatique dans T25d).
+
+## Précisions (T25d3, 18/11/2026)
+
+- **Lecture des codes en mode serveur.** Le back ajoute au message du job (`ScanRequestDto.page_codes`) les tirages de l'examen ; le client ne peut pas les fournir. Le worker Rust lit le code de chaque page (`rxing`, bande du bas puis bande du haut) **avant l'alignement**, calcule l'ordre avec la même logique que le front (T25d2) et aligne les pages dans cet ordre : le cache `cache/{examId}.sqlite3` est directement dans l'ordre du modèle, pages retournées redressées, pages blanches à la place des pages manquantes, pages mises de côté en fin de lot.
+- La lecture n'a lieu que pour un job qui couvre tout le scan : un alignement partiel garde l'ordre du scan.
+- Le résumé revient dans le `details` du statut `finished` (`{"pagecodes": …}`), affiché par le front à l'import du cache. Le scan stocké (`scan/{scanId}.pdf`) n'est jamais modifié.
+- Évolution du contrat (ADR 0001) faite en même temps dans le DTO Java, le worker Rust et le front (`ScanStatusDto.details` lu au format JSON quand il commence par `{"pagecodes"`).

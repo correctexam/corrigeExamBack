@@ -1,6 +1,9 @@
 package fr.istic.service.customdto;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -34,5 +37,30 @@ public class ScanRequestDto{
     @JsonProperty("min_radius")
     @Schema(description = "Minimum marker radius used by CircleAlign.")
     public Float min_radius;
+    @JsonProperty("page_codes")
+    @Schema(description = "Print runs of the exam (T25d3, ADR 0004), filled by the server from exam_edition: when not "
+            + "empty and the job covers the whole scan, the worker reads the page codes CE1|print run|copy|page and "
+            + "processes the pages in print order. A value sent by the client is replaced.", readOnly = true)
+    public List<PageCodeEdition> pageCodes = new ArrayList<>();
+
+    /** Print run as the worker reads it ({@code EditionInfo} of the Rust worker). */
+    @RegisterForReflection
+    public static class PageCodeEdition {
+        @JsonProperty("id")
+        public long id;
+        @JsonProperty("copies")
+        public int copies;
+        @JsonProperty("pages_per_copy")
+        public int pagesPerCopy;
+
+        public PageCodeEdition() {
+        }
+
+        public PageCodeEdition(long id, int copies, int pagesPerCopy) {
+            this.id = id;
+            this.copies = copies;
+            this.pagesPerCopy = pagesPerCopy;
+        }
+    }
 
 }
