@@ -687,5 +687,8 @@
     <include file="config/liquibase/changelog/20261113000000_added_scan_page_count.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20261113180000_added_exam_student_access.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20261114090000_added_student_portal.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20261117090000_added_exam_subject.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20261118090000_added_exam_edition.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20261119090000_added_exam_version.xml" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>

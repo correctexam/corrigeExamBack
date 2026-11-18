@@ -18,6 +18,7 @@ import fr.istic.service.SecurityService;
 import fr.istic.service.customdto.ScanAlignJobDto;
 import fr.istic.service.customdto.ScanRequestDto;
 import fr.istic.service.subject.ExamEditionService;
+import fr.istic.service.subject.ExamVersionService;
 import fr.istic.service.customdto.ScanStatusDto;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -55,6 +56,9 @@ public class ScanAlignResource {
 
     @Inject
     ExamEditionService examEditionService;
+
+    @Inject
+    ExamVersionService examVersionService;
 
     // 2. Injecter notre service de streaming
     @Inject
@@ -98,6 +102,8 @@ public class ScanAlignResource {
         // print runs of the exam (T25d3): the worker reads the page codes and aligns the pages in print order;
         // never taken from the client, an empty list when the exam was not printed from CorrectExam
         request.pageCodes = new ArrayList<>(examEditionService.pageCodes(request.examID));
+        // versions of the exam (T25e5): the worker rebuilds the copies of versions B, C… in the layout of version A
+        request.versions = new ArrayList<>(examVersionService.layoutsForWorker(request.examID));
         var running = jobRegistry.submit(request);
         if (running.isPresent()) {
             log.info("Alignment job for exam {} rejected: a job is already {}", request.examID, running.get().status);
