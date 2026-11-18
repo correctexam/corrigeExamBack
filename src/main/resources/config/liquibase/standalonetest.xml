@@ -690,5 +690,6 @@
     <include file="config/liquibase/changelog/20261117090000_added_exam_subject.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20261118090000_added_exam_edition.xml" relativeToChangelogFile="false"/>
     <include file="config/liquibase/changelog/20261119090000_added_exam_version.xml" relativeToChangelogFile="false"/>
+    <include file="config/liquibase/changelog/20261120090000_added_exam_copy_version.xml" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>

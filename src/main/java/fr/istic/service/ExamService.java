@@ -3,6 +3,7 @@ package fr.istic.service;
 import fr.istic.service.subject.ExamEditionService;
 import fr.istic.service.subject.ExamSubjectService;
 import fr.istic.service.subject.ExamVersionService;
+import fr.istic.service.subject.CopyVersionService;
 
 import fr.istic.domain.enumeration.IdentityZone;
 import fr.istic.domain.enumeration.StudentAccess;
@@ -76,6 +77,9 @@ public class ExamService {
 
     @Inject
     ExamVersionService examVersionService;
+
+    @Inject
+    CopyVersionService copyVersionService;
 
     @ConfigProperty(name = "correctexam.uses3", defaultValue = "false")
     boolean uses3;
@@ -191,6 +195,8 @@ public class ExamService {
             this.examEditionService.deleteForExam(id);
             // versions (T25e): rows deleted here, PDFs under version/{id}/ after the commit
             storageKeys.addAll(this.examVersionService.prepareDeleteForExam(id));
+            // versions of the copies (T25e6b): metadata only
+            this.copyVersionService.deleteForExam(id);
             this.cacheService.deleteLocalCacheFiles(id);
         });
         return storageKeys;

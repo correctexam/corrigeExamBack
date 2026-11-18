@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.istic.service.dto.CopyVersionDTO;
 import fr.istic.service.dto.ExamVersionsRequestDTO;
 import fr.istic.service.dto.ExamVersionsRequestDTO.Version;
 
@@ -139,5 +140,24 @@ class VersionRulesTest {
         assertEquals(List.of(0, 1, 2, 0, 1, 2, 0),
                 List.of(1, 2, 3, 4, 5, 6, 7).stream().map(c -> VersionRules.versionOfCopy(c, 3)).toList());
         assertEquals(0, VersionRules.versionOfCopy(9, 1));
+    }
+
+    @Test
+    void copyVersionsNeedAPageAndALetterOfAVersion() {
+        CopyVersionDTO a = new CopyVersionDTO(1, "A", 41L, 1);
+        CopyVersionDTO b = new CopyVersionDTO(3, "B", null, null);
+        assertEquals(Optional.empty(), VersionRules.checkCopyVersions(List.of(a, b)));
+        assertEquals(Optional.empty(), VersionRules.checkCopyVersions(List.of()));
+        assertTrue(VersionRules.checkCopyVersions(null).isPresent());
+        assertTrue(VersionRules.checkCopyVersions(List.of(a, new CopyVersionDTO(1, "B", null, null))).get().contains("twice"));
+        assertTrue(VersionRules.checkCopyVersions(List.of(new CopyVersionDTO(0, "A", null, null))).isPresent());
+        assertTrue(VersionRules.checkCopyVersions(List.of(new CopyVersionDTO(null, "A", null, null))).isPresent());
+        assertTrue(VersionRules.checkCopyVersions(List.of(new CopyVersionDTO(5, "G", null, null))).get().contains("label"));
+        assertTrue(VersionRules.checkCopyVersions(List.of(new CopyVersionDTO(5, "AB", null, null))).isPresent());
+        List<CopyVersionDTO> many = new ArrayList<>();
+        for (int i = 1; i <= VersionRules.MAX_COPY_VERSIONS + 1; i++) {
+            many.add(new CopyVersionDTO(i, "A", null, null));
+        }
+        assertTrue(VersionRules.checkCopyVersions(many).isPresent());
     }
 }
