@@ -1027,9 +1027,28 @@ CREATE TABLE exam_edition (
   copies INT NOT NULL,
   pages_per_copy INT NOT NULL,
   created_at DATETIME(6) NOT NULL,
+  versions INT NOT NULL DEFAULT 1,
   created_by VARCHAR(50) NULL,
   PRIMARY KEY (id),
   CONSTRAINT fk_exam_edition_exam_id FOREIGN KEY (exam_id) REFERENCES exam (id)
+);
+
+CREATE TABLE exam_version (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  exam_id BIGINT NOT NULL,
+  idx INT NOT NULL,
+  label VARCHAR(2) NOT NULL,
+  seed BIGINT NOT NULL,
+  plan LONGTEXT NOT NULL,
+  layout LONGTEXT NOT NULL,
+  pages INT NOT NULL,
+  pdf_size BIGINT NULL,
+  pdf_sha256 VARCHAR(64) NULL,
+  created_at DATETIME(6) NOT NULL,
+  created_by VARCHAR(50) NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT ux_exam_version_exam_idx UNIQUE (exam_id, idx),
+  CONSTRAINT fk_exam_version_exam_id FOREIGN KEY (exam_id) REFERENCES exam (id)
 );
 
 COMMIT;
