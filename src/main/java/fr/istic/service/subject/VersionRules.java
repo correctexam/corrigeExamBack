@@ -1,12 +1,14 @@
 package fr.istic.service.subject;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.istic.service.dto.CopyVersionDTO;
 import fr.istic.service.dto.ExamVersionsRequestDTO;
 
 /**
@@ -144,6 +146,32 @@ public final class VersionRules {
         }
         if (pages == null || pages != pagesPerCopy) {
             return Optional.of("pagesPerCopy must be the pages of the versions (" + pages + ")");
+        }
+        return Optional.empty();
+    }
+
+    /** Copies of a scan: far more than an amphitheatre, never unbounded. */
+    public static final int MAX_COPY_VERSIONS = 20000;
+
+    /** Why a list of copy versions is refused (T25e6b), empty when it is valid. */
+    public static Optional<String> checkCopyVersions(List<CopyVersionDTO> copies) {
+        if (copies == null) {
+            return Optional.of("a list of copies");
+        }
+        if (copies.size() > MAX_COPY_VERSIONS) {
+            return Optional.of("at most " + MAX_COPY_VERSIONS + " copies");
+        }
+        Set<Integer> pages = new HashSet<>();
+        for (var c : copies) {
+            if (c == null || c.firstPage() == null || c.firstPage() < 1) {
+                return Optional.of("firstPage must be a page of the scan (from 1)");
+            }
+            if (c.label() == null || c.label().length() != 1 || LABELS.indexOf(c.label()) < 0) {
+                return Optional.of("copy at page " + c.firstPage() + ": label must be one of " + LABELS);
+            }
+            if (!pages.add(c.firstPage())) {
+                return Optional.of("copy at page " + c.firstPage() + " given twice");
+            }
         }
         return Optional.empty();
     }

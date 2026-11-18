@@ -21,6 +21,9 @@ public class StudentResultDTO extends StudentDTO{
     @Schema(description = "Correction indicator (0=false, 1=true, 2=abstain).")
     int abi;
 
+    @Schema(description = "Version of the subject the copy was printed in (A–F, T25e6b); null when unknown or single version.")
+    String version;
+
     @Schema(description = "Map of question numbers to their notes.")
     Map<Integer, String> notequestions =  new HashMap<>();
 
@@ -36,6 +39,12 @@ public class StudentResultDTO extends StudentDTO{
     }
     public void setUuid(String uuid) {
         this.uuid = uuid;
+    }
+    public String getVersion() {
+        return version;
+    }
+    public void setVersion(String version) {
+        this.version = version;
     }
     public String getNote() {
         return note;

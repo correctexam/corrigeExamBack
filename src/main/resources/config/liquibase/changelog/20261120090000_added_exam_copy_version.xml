@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        T25e6b / ADR 0005: version of each copy of the scan (statistics per version). Metadata only.
+        Skipped (and marked as run) when the table was already created by hand
+        (production: docs/db/T25e6b-exam-copy-version.sql).
+    -->
+    <changeSet id="20261120090000-1" author="barais">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="exam_copy_version"/>
+            </not>
+        </preConditions>
+        <createTable tableName="exam_copy_version">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="exam_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="first_page" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="label" type="VARCHAR(2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="edition_id" type="BIGINT"/>
+            <column name="copy_number" type="INT"/>
+            <column name="updated_at" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="exam_copy_version" columnNames="exam_id, first_page" constraintName="ux_exam_copy_version_page"/>
+        <addForeignKeyConstraint baseTableName="exam_copy_version" baseColumnNames="exam_id"
+                                 constraintName="fk_exam_copy_version_exam_id"
+                                 referencedTableName="exam" referencedColumnNames="id"/>
+    </changeSet>
+</databaseChangeLog>
