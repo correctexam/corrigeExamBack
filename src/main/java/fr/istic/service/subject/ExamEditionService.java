@@ -51,7 +51,7 @@ public class ExamEditionService {
     @Transactional
     public List<ScanRequestDto.PageCodeEdition> pageCodes(long examId) {
         return ExamEdition.findByExamId(examId).stream()
-                .map(e -> new ScanRequestDto.PageCodeEdition(e.id, e.copies, e.pagesPerCopy))
+                .map(e -> new ScanRequestDto.PageCodeEdition(e.id, e.copies, e.pagesPerCopy, e.versions))
                 .toList();
     }
 

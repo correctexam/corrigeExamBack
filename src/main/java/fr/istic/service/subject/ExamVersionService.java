@@ -30,6 +30,7 @@ import fr.istic.service.FichierS3Service;
 import fr.istic.service.StorageDeletionService;
 import fr.istic.service.StorageException;
 import fr.istic.service.StorageObject;
+import fr.istic.service.customdto.ScanRequestDto;
 import fr.istic.service.dto.ExamVersionDTO;
 import fr.istic.service.dto.ExamVersionsRequestDTO;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -158,6 +159,20 @@ public class ExamVersionService {
             log.error("Exam {}: could not read the PDF of version {}", examId, index, e);
             throw new VersionException(VersionException.Reason.STORAGE_UNAVAILABLE, "Could not read the PDF", e);
         }
+    }
+
+    /**
+     * Layouts of the versions sent to the alignment worker (T25e5): all the versions when a print run of several
+     * versions exists, none otherwise (nothing to rebuild).
+     */
+    @Transactional
+    public List<ScanRequestDto.VersionLayout> layoutsForWorker(long examId) {
+        if (!ExamEdition.hasSeveralVersions(examId)) {
+            return List.of();
+        }
+        return ExamVersion.findByExamId(examId).stream()
+                .map(v -> new ScanRequestDto.VersionLayout(v.versionIndex, v.label, json(v.layout)))
+                .toList();
     }
 
     /** Checks a print run of {@code versions} versions against the stored versions; empty when it is valid. */
