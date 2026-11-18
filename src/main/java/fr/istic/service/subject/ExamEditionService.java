@@ -25,7 +25,7 @@ public class ExamEditionService {
 
     /** Records a print run; empty when the exam does not exist. */
     @Transactional
-    public Optional<ExamEditionDTO> create(long examId, int copies, int pagesPerCopy, String login) {
+    public Optional<ExamEditionDTO> create(long examId, int copies, int pagesPerCopy, int versions, String login) {
         Optional<Exam> exam = Exam.findByIdOptional(examId);
         if (exam.isEmpty()) {
             return Optional.empty();
@@ -34,10 +34,11 @@ public class ExamEditionService {
         edition.exam = exam.get();
         edition.copies = copies;
         edition.pagesPerCopy = pagesPerCopy;
+        edition.versions = versions;
         edition.createdAt = Instant.now(clock);
         edition.createdBy = login;
         edition.persist();
-        log.info("Exam {}: print run {} of {} copies x {} pages by {}", examId, edition.id, copies, pagesPerCopy, login);
+        log.info("Exam {}: print run {} of {} copies x {} pages, {} version(s), by {}", examId, edition.id, copies, pagesPerCopy, versions, login);
         return Optional.of(toDto(edition));
     }
 
@@ -61,6 +62,6 @@ public class ExamEditionService {
     }
 
     static ExamEditionDTO toDto(ExamEdition e) {
-        return new ExamEditionDTO(e.id, e.exam.id, e.copies, e.pagesPerCopy, e.createdAt, e.createdBy);
+        return new ExamEditionDTO(e.id, e.exam.id, e.copies, e.pagesPerCopy, e.versions, e.createdAt, e.createdBy);
     }
 }

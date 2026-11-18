@@ -30,7 +30,7 @@ import fr.istic.domain.Template;
 public class StorageOrphanService {
 
     /** Prefixes owned by the application in the bucket. */
-    static final List<String> PREFIXES = List.of("scan/", "template/", "cache/", "exportpdf/", "subject/");
+    static final List<String> PREFIXES = List.of("scan/", "template/", "cache/", "exportpdf/", "subject/", "version/");
 
     /** Default minimum age of an orphan before it can be deleted. */
     public static final Duration DEFAULT_MIN_AGE = Duration.ofHours(24);
