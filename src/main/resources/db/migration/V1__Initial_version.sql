@@ -1032,6 +1032,8 @@ CREATE TABLE exam_edition (
   CONSTRAINT fk_exam_edition_exam_id FOREIGN KEY (exam_id) REFERENCES exam (id)
 );
 
+
+
 COMMIT;
 
 
