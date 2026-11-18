@@ -14,6 +14,7 @@ import fr.istic.service.SecurityService;
 import fr.istic.service.dto.EditionRequestDTO;
 import fr.istic.service.subject.EditionRules;
 import fr.istic.service.subject.ExamEditionService;
+import fr.istic.service.subject.ExamVersionService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
@@ -41,6 +42,9 @@ public class ExamEditionResource {
     ExamEditionService examEditionService;
 
     @Inject
+    ExamVersionService examVersionService;
+
+    @Inject
     SecurityService securityService;
 
     @GET
@@ -62,10 +66,10 @@ public class ExamEditionResource {
     @RolesAllowed({ AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN })
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Record a print run", description = "Returns its identifier, printed in the page codes CE1|edition|copy|page.")
+    @Operation(summary = "Record a print run", description = "Returns its identifier, printed in the page codes CE1|edition|copy|page. With versions = K > 1, copy c is printed in version (c - 1) mod K; the versions of the exam are then frozen.")
     @APIResponses({
         @APIResponse(responseCode = "200", description = "The new print run"),
-        @APIResponse(responseCode = "400", description = "Number of copies or of pages out of range"),
+        @APIResponse(responseCode = "400", description = "Number of copies, pages or versions out of range, or versions not stored"),
         @APIResponse(responseCode = "403", description = "Current user cannot access this exam"),
         @APIResponse(responseCode = "404", description = "No such exam")
     })
@@ -74,11 +78,16 @@ public class ExamEditionResource {
             return forbidden();
         }
         var refused = EditionRules.check(request == null ? null : request.copies(), request == null ? null : request.pagesPerCopy());
+        if (refused.isEmpty()) {
+            // T25e: a print run of several versions needs the versions of the exam, with their PDF
+            refused = examVersionService.checkEdition(examId, request.versions(), request.pagesPerCopy());
+        }
         if (refused.isPresent()) {
             return Response.status(Response.Status.BAD_REQUEST).type(MediaType.APPLICATION_JSON)
                     .entity(new ExamSubjectResource.Error("BAD_REQUEST", refused.get())).build();
         }
-        return examEditionService.create(examId, request.copies(), request.pagesPerCopy(), ExamSubjectResource.login(ctx))
+        int versions = request.versions() == null ? 1 : request.versions();
+        return examEditionService.create(examId, request.copies(), request.pagesPerCopy(), versions, ExamSubjectResource.login(ctx))
                 .map(e -> Response.ok(e).build())
                 .orElseGet(() -> Response.status(Response.Status.NOT_FOUND).build());
     }

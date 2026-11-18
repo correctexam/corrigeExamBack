@@ -35,6 +35,17 @@ class StorageOrphanDetectorTest {
         assertOwner("exportpdf/42/DUPONT_Jean.pdf", StorageOrphanReport.Reason.EXAM_MISSING, 42);
         assertOwner("subject/42/files/main.typ", StorageOrphanReport.Reason.EXAM_MISSING, 42);
         assertOwner("subject/42/files/img/schema.png", StorageOrphanReport.Reason.EXAM_MISSING, 42);
+        assertOwner("version/42/1.pdf", StorageOrphanReport.Reason.EXAM_MISSING, 42);
+    }
+
+    @Test
+    void versionPdfsFollowTheirExam() {
+        StorageOrphanReport report = StorageOrphanDetector.detect(
+                List.of(old("version/10/0.pdf"), old("version/11/2.pdf"), old("version/10/B.pdf")),
+                Set.of(), Set.of(), Set.of(10L), NOW, MIN_AGE);
+
+        assertEquals(List.of("version/11/2.pdf"), report.orphans.stream().map(StorageOrphanReport.Orphan::key).toList());
+        assertEquals(List.of("version/10/B.pdf"), report.unknownKeys);
     }
 
     @Test
