@@ -190,6 +190,7 @@ public class ExportPdfService {
             }
             qpdf.setTypeAlgoName(q.type.algoName);
             qpdf.setTypeID(q.type.id);
+            qpdf.setValidExpression(q.validExpression);
             qpdf.setZonepdf(new Zonepdf());
             qpdf.getZonepdf().setHeight(q.zone.height);
             qpdf.getZonepdf().setWidth(q.zone.width);

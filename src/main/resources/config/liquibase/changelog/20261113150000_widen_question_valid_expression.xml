@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        T20 / ADR 0002: the valid expression of a QCM can hold a grading DSL
+        (a&b|a&c=100; a|b=50; c=-25; *=-33), longer than 255 characters.
+        Widening a VARCHAR is idempotent: running it again on a database already changed
+        by hand (production: docs/db/T20-question-valid-expression.sql) is harmless.
+    -->
+    <changeSet id="20261113150000-1" author="barais">
+        <modifyDataType tableName="question" columnName="valid_expression" newDataType="VARCHAR(1024)"/>
+    </changeSet>
+</databaseChangeLog>

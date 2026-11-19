@@ -106,6 +106,14 @@ public class FinalNoteService {
                         finalnote = finalnote + (resp.quarternote / 4);
                     }
 
+                    } else if (QcmDslGrading.isDsl(resp.question)) {
+                        // Grading DSL (ADR 0002): percentages stored on the options, note in hundredths of a point
+                        int currentNote = QcmDslGrading.quarternote(resp.question, resp.gradedcomments);
+                        if (resp.quarternote == null || currentNote != resp.quarternote) {
+                            resp.quarternote = currentNote;
+                            StudentResponse.update(resp);
+                        }
+                        finalnote = finalnote + (currentNote / 4);
                     } else if ("QCM".equals(resp.question.type.algoName) && resp.question.step !=null && resp.question.step > 0) {
                         int currentNote = 0;
                         for (var g : resp.gradedcomments) {
@@ -114,13 +122,13 @@ public class FinalNoteService {
                             } else if (g.description.startsWith("incorrect")) {
                                 currentNote = currentNote - resp.question.quarterpoint;
                             }
-                            if (currentNote != resp.quarternote) {
-                                resp.quarternote = currentNote;
-                                StudentResponse.update(resp);
-                            }
-                            finalnote = finalnote + (currentNote * 100 / 4 / resp.question.step);
-
                         }
+                        // Once per answer, after all its options (it used to be added again for each option)
+                        if (resp.quarternote == null || currentNote != resp.quarternote) {
+                            resp.quarternote = currentNote;
+                            StudentResponse.update(resp);
+                        }
+                        finalnote = finalnote + (currentNote * 100 / 4 / resp.question.step);
                     } else if ("QCM".equals(resp.question.type.algoName) && resp.question.step <= 0) {
                         int currentNote = 0;
                         for (var g : resp.gradedcomments) {
