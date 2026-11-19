@@ -37,8 +37,10 @@ import fr.istic.domain.StudentResponse;
 import fr.istic.domain.User;
 import fr.istic.domain.enumeration.GradeType;
 import fr.istic.security.AuthoritiesConstants;
+import fr.istic.service.QcmDslGrading;
 import fr.istic.service.CacheStudentPdfFService;
 import fr.istic.service.ExamService;
+import fr.istic.service.subject.CopyVersionService;
 import fr.istic.service.FinalNoteService;
 import fr.istic.service.MailService;
 import fr.istic.service.SecurityService;
@@ -81,6 +83,9 @@ public class ExamResultResource {
 
     @Inject
     SecurityService securityService;
+
+    @Inject
+    CopyVersionService copyVersionService;
 
     @Inject
     JHipsterProperties jHipsterProperties;
@@ -317,6 +322,8 @@ public class ExamResultResource {
         Exam ex = finalNoteService.computeFinalNote(examId, finalfinalResultsByStudentId, finalNotes, mapstudentResp);
 
         List<StudentResultDTO> results = new ArrayList<>();
+        // version of each copy (T25e6b), by the first page of its sheet
+        Map<Integer, String> versions = copyVersionService.byPagemin(examId);
         List<Long> studentsId = new ArrayList<>();
         List<Long> sheetsId = new ArrayList<>();
 
@@ -352,6 +359,7 @@ public class ExamResultResource {
                     final DecimalFormat df = new DecimalFormat("0.00");
                     res.setNote(df.format(r.doubleValue() / 100.0));
                     res.setUuid(uuid);
+                    res.setVersion(versions.get(sheet.pagemin));
                     res.setStudentNumber("" + studentnumber);
                     res.setAbi(0);
                     res.setNotequestions(new HashMap<>());
@@ -360,7 +368,14 @@ public class ExamResultResource {
                     resp.forEach(resp1 -> {
                         // log.error("resp1 " + resp1.id);
 
-                        if ("QCM".equals(resp1.question.type.algoName) && resp1.question.step < 0) {
+                        if (QcmDslGrading.isDsl(resp1.question)) {
+                            // Grading DSL (ADR 0002): hundredths of a point, like hybrid notes
+                            res.getNotequestions().put(resp1.question.numero,
+                                    df.format(
+                                            resp1.quarternote.doubleValue() / 400));
+                        } else if ("QCM".equals(resp1.question.type.algoName)
+                                && (resp1.question.step == null || resp1.question.step <= 0)) {
+                            // <= 0: with step = 0 the generic branch below divided by zero
                             res.getNotequestions().put(resp1.question.numero,
                                     df.format(
                                             resp1.quarternote.doubleValue() / 4));
@@ -393,6 +408,7 @@ public class ExamResultResource {
                     final DecimalFormat df = new DecimalFormat("0.00");
                     res.setNote(df.format(r.doubleValue() / 100.0));
                     res.setUuid(uuid);
+                    res.setVersion(versions.get(sheet.pagemin));
                     res.setStudentNumber("" + studentnumber);
                     res.setAbi(0);
                     res.setNotequestions(new HashMap<>());
@@ -401,7 +417,14 @@ public class ExamResultResource {
                     resp.forEach(resp1 -> {
                         // log.error("resp1 " + resp1.id);
 
-                        if ("QCM".equals(resp1.question.type.algoName) && resp1.question.step < 0) {
+                        if (QcmDslGrading.isDsl(resp1.question)) {
+                            // Grading DSL (ADR 0002): hundredths of a point, like hybrid notes
+                            res.getNotequestions().put(resp1.question.numero,
+                                    df.format(
+                                            resp1.quarternote.doubleValue() / 400));
+                        } else if ("QCM".equals(resp1.question.type.algoName)
+                                && (resp1.question.step == null || resp1.question.step <= 0)) {
+                            // <= 0: with step = 0 the generic branch below divided by zero
                             res.getNotequestions().put(resp1.question.numero,
                                     df.format(
                                             resp1.quarternote.doubleValue() / 4));

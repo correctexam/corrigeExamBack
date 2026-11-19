@@ -193,3 +193,5 @@ ALTER TABLE scan ADD COLUMN page_count INT NULL, ALGORITHM=INSTANT;
 -- T21: student portal (see docs/db/T21-exam-student-access.sql)
 ALTER TABLE exam ADD COLUMN student_access VARCHAR(16) NOT NULL DEFAULT 'GRADED', ALGORITHM=INSTANT;
 ALTER TABLE exam ALTER COLUMN student_access SET DEFAULT 'SHEET';
+-- T20: grading DSL for QCM questions (see docs/db/T20-question-valid-expression.sql)
+ALTER TABLE question MODIFY valid_expression VARCHAR(1024) NULL;

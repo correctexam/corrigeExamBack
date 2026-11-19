@@ -28,7 +28,8 @@ public class QuestionDTO implements Serializable {
     @Schema(description = "Step value used for this question.")
     public Integer step;
 
-    @Schema(description = "Expression defining a valid answer.")
+    @Size(max = 1024)
+    @Schema(description = "QCM: valid answers (a&b|a&c) or grading DSL (a&b|a&c=100; c=-25; *=-33, see ADR 0002).")
     public String validExpression;
 
     @Schema(description = "Label of the question.")

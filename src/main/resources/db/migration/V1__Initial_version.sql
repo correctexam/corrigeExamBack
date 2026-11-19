@@ -993,6 +993,77 @@ ALTER TABLE exam_sheet
   ADD COLUMN active_pagemin INT GENERATED ALWAYS AS (IF(pagemin >= 0, pagemin, NULL)) STORED,
   ADD UNIQUE INDEX ux_exam_sheet_scan_pages (scan_id, active_pagemin, pagemax);
 
+CREATE TABLE exam_subject (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  exam_id BIGINT NOT NULL,
+  main_file VARCHAR(200) NOT NULL DEFAULT 'main.typ',
+  revision INT NOT NULL DEFAULT 0,
+  updated_at DATETIME(6) NOT NULL,
+  updated_by VARCHAR(50) NULL,
+  locked_by VARCHAR(50) NULL,
+  lock_expires_at DATETIME(6) NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT ux_exam_subject_exam UNIQUE (exam_id),
+  CONSTRAINT fk_exam_subject_exam_id FOREIGN KEY (exam_id) REFERENCES exam (id)
+);
+
+CREATE TABLE exam_subject_file (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  subject_id BIGINT NOT NULL,
+  path VARCHAR(200) NOT NULL,
+  size BIGINT NOT NULL,
+  sha256 VARCHAR(64) NOT NULL,
+  content_type VARCHAR(100) NOT NULL,
+  updated_at DATETIME(6) NOT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT ux_exam_subject_file_path UNIQUE (subject_id, path),
+  CONSTRAINT fk_exam_subject_file_subject_id FOREIGN KEY (subject_id) REFERENCES exam_subject (id)
+);
+
+
+CREATE TABLE exam_edition (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  exam_id BIGINT NOT NULL,
+  copies INT NOT NULL,
+  pages_per_copy INT NOT NULL,
+  created_at DATETIME(6) NOT NULL,
+  versions INT NOT NULL DEFAULT 1,
+  created_by VARCHAR(50) NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT fk_exam_edition_exam_id FOREIGN KEY (exam_id) REFERENCES exam (id)
+);
+
+CREATE TABLE exam_version (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  exam_id BIGINT NOT NULL,
+  idx INT NOT NULL,
+  label VARCHAR(2) NOT NULL,
+  seed BIGINT NOT NULL,
+  plan LONGTEXT NOT NULL,
+  layout LONGTEXT NOT NULL,
+  pages INT NOT NULL,
+  pdf_size BIGINT NULL,
+  pdf_sha256 VARCHAR(64) NULL,
+  created_at DATETIME(6) NOT NULL,
+  created_by VARCHAR(50) NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT ux_exam_version_exam_idx UNIQUE (exam_id, idx),
+  CONSTRAINT fk_exam_version_exam_id FOREIGN KEY (exam_id) REFERENCES exam (id)
+);
+
+CREATE TABLE exam_copy_version (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  exam_id BIGINT NOT NULL,
+  first_page INT NOT NULL,
+  label VARCHAR(2) NOT NULL,
+  edition_id BIGINT NULL,
+  copy_number INT NULL,
+  updated_at DATETIME(6) NOT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT ux_exam_copy_version_page UNIQUE (exam_id, first_page),
+  CONSTRAINT fk_exam_copy_version_exam_id FOREIGN KEY (exam_id) REFERENCES exam (id)
+);
+
 COMMIT;
 
 

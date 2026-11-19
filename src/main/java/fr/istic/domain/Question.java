@@ -37,7 +37,8 @@ public class Question extends PanacheEntityBase implements Serializable {
     @Column(name = "step")
     public Integer step;
 
-    @Column(name = "valid_expression")
+    /** QCM: valid answers ({@code a&b|a&c}) or grading DSL ({@code a&b|a&c=100; c=-25; *=-33}, ADR 0002). */
+    @Column(name = "valid_expression", length = 1024)
     public String validExpression;
 
     @Column(name = "libelle")

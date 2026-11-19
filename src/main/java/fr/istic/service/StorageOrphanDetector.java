@@ -19,7 +19,10 @@ import java.util.regex.Pattern;
  * <li>{@code cache/{examId}indexdb.json}, {@code cache/{examId}_exam_template_indexdb.json},
  * {@code cache/{examId}_part_{n}_indexdb.json}, {@code cache/{examId}.sqlite3}</li>
  * <li>{@code exportpdf/{examId}/...}</li>
+ * <li>{@code subject/{examId}/...}: Typst subject of an exam (T25c)</li>
+ * <li>{@code version/{examId}/{index}.pdf}: PDF of a version of an exam (T25e)</li>
  * </ul>
+ * The shared diagram cache ({@code diagram-cache/}) has no owner and is not analysed.
  * Any other key is reported as unknown and never deleted.
  */
 public final class StorageOrphanDetector {
@@ -33,6 +36,8 @@ public final class StorageOrphanDetector {
     private static final Pattern CACHE = Pattern.compile(
             "^cache/(\\d+)(indexdb\\.json|_exam_template_indexdb\\.json|_part_\\d+_indexdb\\.json|\\.sqlite3)$");
     private static final Pattern EXPORT_PDF = Pattern.compile("^exportpdf/(\\d+)/.+$");
+    private static final Pattern SUBJECT = Pattern.compile("^subject/(\\d+)/.+$");
+    private static final Pattern VERSION = Pattern.compile("^version/(\\d+)/\\d+\\.pdf$");
 
     private StorageOrphanDetector() {
     }
@@ -55,6 +60,14 @@ public final class StorageOrphanDetector {
             return Optional.of(new Owner(StorageOrphanReport.Reason.EXAM_MISSING, Long.parseLong(m.group(1))));
         }
         m = EXPORT_PDF.matcher(key);
+        if (m.matches()) {
+            return Optional.of(new Owner(StorageOrphanReport.Reason.EXAM_MISSING, Long.parseLong(m.group(1))));
+        }
+        m = SUBJECT.matcher(key);
+        if (m.matches()) {
+            return Optional.of(new Owner(StorageOrphanReport.Reason.EXAM_MISSING, Long.parseLong(m.group(1))));
+        }
+        m = VERSION.matcher(key);
         if (m.matches()) {
             return Optional.of(new Owner(StorageOrphanReport.Reason.EXAM_MISSING, Long.parseLong(m.group(1))));
         }

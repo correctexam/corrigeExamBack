@@ -22,6 +22,8 @@ public class Questionspdf {
     private long typeID;
     @Schema(description = "Zone of the question.")
     private Zonepdf zonepdf;
+    @Schema(description = "QCM: valid answers or grading DSL (ADR 0002), needed to compute the note of the copy.")
+    private String validExpression;
 
     public String getGradeType() { return gradeType; }
     public void setGradeType(String value) { this.gradeType = value; }
@@ -46,4 +48,7 @@ public class Questionspdf {
 
     public Zonepdf getZonepdf() { return zonepdf; }
     public void setZonepdf(Zonepdf value) { this.zonepdf = value; }
+
+    public String getValidExpression() { return validExpression; }
+    public void setValidExpression(String value) { this.validExpression = value; }
 }

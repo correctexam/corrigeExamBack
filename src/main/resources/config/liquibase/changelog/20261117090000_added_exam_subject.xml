@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        T25c / ADR 0004: Typst subject of an exam (metadata and edition lock) and the list of its files; the contents
+        are in the object storage (subject/{examId}/files/...).
+        Skipped (and marked as run) when the tables were already created by hand
+        (production: docs/db/T25c-exam-subject.sql).
+    -->
+    <changeSet id="20261117090000-1" author="barais">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="exam_subject"/>
+            </not>
+        </preConditions>
+        <createTable tableName="exam_subject">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="exam_id" type="BIGINT">
+                <constraints nullable="false" unique="true" uniqueConstraintName="ux_exam_subject_exam"/>
+            </column>
+            <column name="main_file" type="VARCHAR(200)" defaultValue="main.typ">
+                <constraints nullable="false"/>
+            </column>
+            <column name="revision" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="VARCHAR(50)"/>
+            <column name="locked_by" type="VARCHAR(50)"/>
+            <column name="lock_expires_at" type="datetime(6)"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="exam_subject" baseColumnNames="exam_id"
+                                 constraintName="fk_exam_subject_exam_id"
+                                 referencedTableName="exam" referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet id="20261117090000-2" author="barais">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="exam_subject_file"/>
+            </not>
+        </preConditions>
+        <createTable tableName="exam_subject_file">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="subject_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="path" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="size" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sha256" type="VARCHAR(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content_type" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="exam_subject_file" columnNames="subject_id, path"
+                             constraintName="ux_exam_subject_file_path"/>
+        <addForeignKeyConstraint baseTableName="exam_subject_file" baseColumnNames="subject_id"
+                                 constraintName="fk_exam_subject_file_subject_id"
+                                 referencedTableName="exam_subject" referencedColumnNames="id"/>
+    </changeSet>
+</databaseChangeLog>

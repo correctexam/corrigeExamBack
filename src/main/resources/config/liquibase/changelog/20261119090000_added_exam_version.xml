@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        T25e / ADR 0005: versions of an exam written in Typst (plan and layout in JSON; the PDF of each version is in
+        the object storage, version/{examId}/{index}.pdf) and number of versions of a print run.
+        Skipped (and marked as run) when already applied by hand (production: docs/db/T25e-exam-version.sql).
+    -->
+    <changeSet id="20261119090000-1" author="barais">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="exam_version"/>
+            </not>
+        </preConditions>
+        <createTable tableName="exam_version">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="exam_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="idx" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="label" type="VARCHAR(2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="seed" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="plan" type="LONGTEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="layout" type="LONGTEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pages" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pdf_size" type="BIGINT"/>
+            <column name="pdf_sha256" type="VARCHAR(64)"/>
+            <column name="created_at" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="VARCHAR(50)"/>
+        </createTable>
+        <addUniqueConstraint tableName="exam_version" columnNames="exam_id, idx" constraintName="ux_exam_version_exam_idx"/>
+        <addForeignKeyConstraint baseTableName="exam_version" baseColumnNames="exam_id"
+                                 constraintName="fk_exam_version_exam_id"
+                                 referencedTableName="exam" referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet id="20261119090000-2" author="barais">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="exam_edition" columnName="versions"/>
+            </not>
+        </preConditions>
+        <addColumn tableName="exam_edition">
+            <column name="versions" type="INT" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>
