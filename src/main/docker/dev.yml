@@ -65,6 +65,23 @@ services:
     command: ["./pdf_to_webp", "--mq","--mq-server-host","rabbitmq","--server-url","http://miniocorrectexam:9000"]
     restart: always
 
+  kroki:
+    image: yuzutech/kroki:${KROKI_VERSION:-latest} # pin the version in production
+    environment:
+      - KROKI_SAFE_MODE=secure
+      - KROKI_MERMAID_HOST=kroki-mermaid
+      - KROKI_MAX_URI_LENGTH=8192
+    ports:
+      - 127.0.0.1:8001:8000
+    depends_on:
+      - kroki-mermaid
+    restart: unless-stopped
+  kroki-mermaid:
+    image: yuzutech/kroki-mermaid:${KROKI_VERSION:-latest}
+    expose:
+      - 8002
+    restart: unless-stopped
+
 volumes:
   rabbitmq-data:
     driver: local
